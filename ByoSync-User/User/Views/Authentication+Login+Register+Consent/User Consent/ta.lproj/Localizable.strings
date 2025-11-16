@@ -1,0 +1,302 @@
+"welcome_title" = "ByoSync – பயனர் பதிவு ஒப்புதல் மற்றும் நிபந்தனைகள்";
+"welcome_subtitle" = "ByoSync-க்கு வரவேற்கிறோம்";
+"welcome_tagline" = "பாதுகாப்பான முக அடிப்படையிலான UPI கட்டணங்களுக்கு உங்கள் நம்பகமான பயன்பாடு.";
+
+"language_label" = "மொழி";
+
+"before_you_begin" = "தொடங்குவதற்கு முன்";
+"before_you_begin_text" = "தொடர்வதற்கு முன் எங்கள் சேவை விதிமுறைகள் மற்றும் தரவு ஒப்புதலைப் படித்து ஏற்றுக்கொள்ளுங்கள்.";
+
+"eligibility" = "தகுதி";
+"eligibility_text" = "நீங்கள் 18 வயது அல்லது அதற்கு மேற்பட்டவர் மற்றும் சட்டரீதியாக ByoSync-ஐப் பயன்படுத்த தகுதியுடையவர் என்பதை உறுதிப்படுத்துகிறீர்கள்.";
+
+"what_you_agree_to" = "நீங்கள் ஏற்றுக்கொள்வது";
+"what_you_agree_to_text" = "• உங்கள் பெயர், மொபைல் எண், UPI ID, வங்கி விவரங்கள் மற்றும் சாதனத் தகவலை நாங்கள் சேகரித்து செயலாக்குகிறோம்.\n• மோசடி தடுப்பு மற்றும் சேவை மேம்பாட்டிற்காக நாங்கள் பரிவர்த்தனை வரலாறு மற்றும் இருப்பிடத்தை சேகரிக்கலாம்.\n• முகம் அடையாளம் காண்பதை இயக்கினால், உங்கள் முக புள்ளிவிவரங்கள் அடையாள சரிபார்ப்புக்காக செயலாக்கப்படும்.\n• வங்கிகள், NPCI மற்றும் KYC பங்குதாரர்களுடன் உங்கள் தரவை பகிரலாம்.\n• உங்கள் தரவு இந்தியாவில் மட்டுமே பாதுகாப்பாக சேமிக்கப்படுகிறது.\n• எந்த தனிப்பட்ட தகவலும் இந்தியாவிற்கு வெளியே அனுப்பப்படாது.";
+
+"identity_verification" = "அடையாளச் சரிபார்ப்பு (KYC / ஆதார்)";
+"identity_verification_text" = "சரிபார்ப்பு CKYC, வீடியோ-KYC அல்லது UIDAI அங்கீகரித்த முறைகளின் மூலம் உங்கள் ஒப்புதலுடன் மேற்கொள்ளப்படுகிறது.\nஉங்கள் ஆதார் எண் அல்லது பயோமெட்ரிக் தகவலை நாங்கள் சேமிப்பதில்லை.";
+
+"what_we_need" = "சேவை வழங்க தேவையானவை";
+"what_we_need_text" = "முக அடிப்படையிலான கட்டணங்களை செயல்படுத்தவும் வங்கி தரமான பாதுகாப்பை வழங்கவும் ByoSync கீழே உள்ளவற்றை செயலாக்க வேண்டும்:\n• உங்கள் பயோமெட்ரிக் தகவல் (முக டெம்ப்ளேட்)\n• உங்கள் KYC தகவல் (PAN/ID)\n• உங்கள் சாதன மற்றும் பரிவர்த்தனை தரவு";
+
+"consent_checkbox" = "நான் 18 வயது அல்லது அதற்கு மேற்பட்டவன்/வள் என்பதை உறுதிப்படுத்துகிறேன் மற்றும் ByoSync-க்கு எனது பயோமெட்ரிக் மற்றும் KYC தரவை அடையாளச் சரிபார்ப்பு மற்றும் மோசடி தடுப்பு நோக்கத்திற்காக செயல்படுத்த அனுமதிக்கிறேன்.";
+
+"your_rights" = "உங்கள் உரிமைகள் மற்றும் தரவு சேமிப்பு";
+"your_rights_text" = "• உங்கள் தரவை எப்போதும் பார்க்க, திருத்த அல்லது நீக்கலாம்.\n• ஒப்புதலை வாபஸ் பெற்றால் உங்கள் கணக்கு செயலிழக்கும்.\n• சட்டரீதியாக தேவைப்படும் தரவு 7 ஆண்டுகள் வைத்திருக்கும்.";
+
+"security_notice" = "பாதுகாப்பு மற்றும் மீறல் அறிவிப்பு";
+"security_notice_text" = "நாங்கள் முழுமையான குறியாக்கம் மற்றும் சாதன பாதுகாப்பைப் பயன்படுத்துகிறோம்.\nஎந்த தரவு மீறலும் CERT-In / RBI வழிகாட்டுதலின் கீழ் அறிவிக்கப்படும்.";
+
+"data_localization" = "தரவு உள்ளூர்மயமாக்கல்";
+"data_localization_text" = "அனைத்து கட்டணங்கள், KYC மற்றும் பயோமெட்ரிக் தரவு இந்தியாவில் மட்டுமே சேமிக்கப்படுகிறது.";
+
+"roles_contacts" = "பாத்திரங்கள் மற்றும் தொடர்புகள்";
+"roles_contacts_text" = "தரவு பொறுப்பாளர்: Kavion Intelligence Pvt. Ltd. (\"ByoSync\")\nபுகார் அதிகாரி: info@byosync.com\nமுகவரி: 55, NRI Complex, GK-VI, டெல்லி 110048";
+
+"quick_summary" = "விரைவான சுருக்கம்";
+"quick_summary_text" = "• நாங்கள் உங்கள் முகம் மற்றும் KYC தரவை செயலாக்குகிறோம்.\n• உங்கள் தரவு இந்தியாவில் மட்டுமே உள்ளது.\n• ஒப்புதலை வாபஸ் பெறுதல் உங்கள் கணக்கை முடக்கும்.";
+
+"terms_checkbox" = "நான் ByoSync விதிமுறைகள் மற்றும் தரவு ஒப்புதலைப் படித்து ஏற்றுக்கொண்டேன்.";
+
+"decline_button" = "நிராகரிக்கவும்";
+"accept_button" = "ஏற்றுக்கொண்டு தொடரவும்";
+
+"alert_title" = "ஒப்புதல் தேவை";
+"alert_message" = "ByoSync ஐப் பயன்படுத்த தொடர இரு ஒப்புதல்களும் தேவை.";
+"alert_ok" = "சரி";
+
+
+"merchant_title" = "ByoSync – வணிகர் பதிவு ஒப்புதல் & விதிமுறைகள்";
+"merchant_subtitle" = "வணிகர்களுக்கான ByoSync-க்கு வரவேற்கிறோம்";
+"merchant_tagline" = "பாதுகாப்பான UPI பணப்பரிவர்த்தனைகள் மற்றும் உடனடி தீர்வுகளுடன் தொடங்குங்கள்.";
+
+"merchant_before_you_begin" = "தொடங்குவதற்கு முன்";
+"merchant_before_you_begin_text" = "தொடர்வதற்கு முன் எங்கள் வணிகர் விதிமுறைகள் மற்றும் தரவு ஒப்புதலை வாசித்து ஏற்கவும்.";
+
+"merchant_eligibility" = "தகுதி";
+"merchant_eligibility_text" = "• நீங்கள் 18 வயது அல்லது அதற்கு மேற்பட்டவராக இருக்க வேண்டும் மற்றும் உங்கள் வணிகத்தின் சார்பில் செயல்பட அனுமதிக்கப்பட்டவராக இருக்க வேண்டும்.\n• நீங்கள் ஒரு நிறுவனத்தை பிரதிநிதித்துவப்படுத்தினால், பதிவு மற்றும் கணக்கு செயல்பாட்டிற்கான உங்கள் அதிகாரத்தை உறுதிப்படுத்துகிறீர்கள்.";
+
+"merchant_what_you_agree_to" = "நீங்கள் ஏற்கும் விதிமுறைகள்";
+"merchant_what_you_agree_to_text" = "• நீங்கள் வணிக அடையாள ஆவணங்கள், PAN, GSTIN மற்றும் வங்கி விவரங்களை வழங்குவீர்கள்.\n• நாங்கள் பரிவர்த்தனை தரவு மற்றும் பயோமெட்ரிக் அடையாளத்தை ஒழுங்குமுறைக்காக செயலாக்குகிறோம்.\n• உங்கள் வணிகத் தகவல் வாடிக்கையாளர் ரசீதுகளில் தோன்றலாம்.\n• அனைத்து தரவும் இந்தியாவில் குறியாக்கப்பட்டு 7 ஆண்டுகள் வரை சேமிக்கப்படுகிறது.";
+
+"merchant_kyc_biometric" = "KYC, பயோமெட்ரிக்ஸ் மற்றும் அபாயக் கட்டுப்பாடு (தேவை)";
+"merchant_kyc_biometric_text" = "• நீங்கள் KYC, முக அடையாள சரிபார்ப்பு மற்றும் அபாய மதிப்பாய்விற்கு ஒப்புதல் அளிக்கிறீர்கள்.\n• ஒப்புதலை மறுப்பது உங்கள் கணக்கை முடக்கும்.";
+
+"merchant_settlement_cycle" = "தீர்வு சுற்று";
+"merchant_settlement_cycle_text" = "• நிலையான கொடுப்பனவு: T+1 வங்கி நாள்.\n• விதிவிலக்குகள் காரணங்களுடன் டாஷ்போர்டில் காட்டப்படும்.";
+
+"merchant_rights_retention" = "உங்கள் உரிமைகள் மற்றும் தரவு காப்பு";
+"merchant_rights_retention_text" = "• நீங்கள் எப்போதும் உங்கள் தரவை அணுக அல்லது திருத்த முடியும்.\n• தரவு 7 ஆண்டுகள் வரை சேமிக்கப்படும்.";
+
+"merchant_liability" = "பொறுப்பு & ஒழுங்குமுறை";
+"merchant_liability_text" = "• உங்கள் சாதனம் மற்றும் நெட்வொர்க்கு பாதுகாப்பு உங்களுடைய பொறுப்பு.\n• ஏமாற்றம் அல்லது தவறான பயன்பாட்டிற்கு நீங்கள் பொறுப்பானவர்.";
+
+"merchant_what_we_need" = "சேவை வழங்க எங்களுக்கு தேவையானவை";
+"merchant_what_we_need_text" = "பாதுகாப்பான வணிக உள்நுழைவு மற்றும் தீர்வுகளுக்காக ByoSync பின்வரும் தரவை செயலாக்குகிறது:\n• முக பயோமெட்ரிக் தரவு\n• KYC மற்றும் நிதி தகவல்\n• சாதன மற்றும் பரிவர்த்தனை விவரங்கள்.";
+
+"merchant_consent_checkbox" = "நான் 18 வயது அல்லது அதற்கு மேற்பட்டவன், என் வணிகத்தின் சார்பில் அங்கீகரிக்கப்பட்டவன் மற்றும் என் பயோமெட்ரிக், KYC மற்றும் வணிகத் தரவை ByoSync செயலாக்க அனுமதி அளிக்கிறேன்.";
+
+"merchant_localization_support" = "உள்ளூர்மயமாக்கல் மற்றும் ஆதரவு";
+"merchant_localization_support_text" = "அனைத்து தரவும் இந்தியாவில் மட்டுமே சேமிக்கப்படுகிறது.\nஆதரவு: privacy@byosync.com\nமுகவரி: 55, NRI Complex, GK-VI, Delhi 110048.";
+
+"merchant_summary" = "விரைவான சுருக்கம்";
+"merchant_summary_text" = "நாங்கள் உங்கள் பயோமெட்ரிக், KYC மற்றும் வணிகத் தரவை பாதுகாப்பாக வைத்திருக்கிறோம்.\nதரவு இந்தியாவில் 7 ஆண்டுகள் நிலைத்திருக்கும்.";
+
+"merchant_terms_checkbox" = "நான் 18 வயது அல்லது அதற்கு மேற்பட்டவன், வணிகத்திற்காக அங்கீகரிக்கப்பட்டவன், ByoSync விதிமுறைகளுடன் ஒப்புக்கொள்கிறேன்.";
+
+"merchant_alert_consent_message" = "ByoSync வணிகர் பதிவைத் தொடர நீங்கள் இரு ஒப்புதல்களையும் வழங்க வேண்டும்.";
+"merchant_alert_declined_title" = "பதிவு நிராகரிக்கப்பட்டது";
+"merchant_alert_declined_message" = "நீங்கள் விதிமுறைகளை நிராகரித்துள்ளீர்கள். அவற்றை ஏற்றுக்கொள்ளாமல் பதிவு செய்ய முடியாது.";
+
+"back_button" = "மீண்டும்";
+
+"welcome_to" = "வரவேற்பு";
+"make_payments_easier" = "உங்கள் பணப்பரிவர்த்தனைகளை எளிதாக்குங்கள்";
+"login" = "உள்நுழைய";
+"create_account" = "கணக்கை உருவாக்கவும்";
+"powered_by" = "இயக்கப்படுகிறது";
+"welcome_back" = "திரும்ப வரவேற்கிறோம்";
+"enter_credentials" = "தொடர அங்கீகாரத்தை உள்ளிடவும்";
+"full_name" = "முழு பெயர்";
+"enter_full_name" = "உங்கள் முழு பெயரை உள்ளிடவும்";
+"continue" = "தொடரவும்";
+"login_failed" = "உள்நுழைவு தோல்வி";
+"first_name" = "முதல் பெயர்";
+"last_name" = "கடைசி பெயர்";
+"email" = "மின்னஞ்சல்";
+"phone_number" = "தொலைபேசி எண்";
+"join_byosync_start" = "தொடங்க ByoSync-இல் சேரவும்";
+"error" = "பிழை";
+
+"profile_title" = "சுயவிவரம்";
+"linked_devices" = "இணைக்கப்பட்ட சாதனங்கள்";
+"settings" = "அமைப்புகள்";
+"more" = "மேலும்";
+"refreshing_profile" = "சுயவிவரம் புதுப்பிக்கப்படுகிறது...";
+"edit_profile" = "சுயவிவரத்தை திருத்து";
+"user_section" = "பயனர்";
+"first_name" = "முதல் பெயர்";
+"last_name" = "கடைசி பெயர்";
+"email_address" = "மின்னஞ்சல் முகவரி";
+"phone_number" = "தொலைபேசி எண்";
+"testing_encryption" = "குறியாக்கம்-SHA256 சோதனை";
+"location_testing" = "இடம் சோதனை காட்சி";
+"log_out" = "வெளியேறு";
+"success" = "வெற்றி ✅";
+"profile_refreshed" = "சுயவிவரம் வெற்றிகரமாக புதுப்பிக்கப்பட்டது!";
+"error_refresh" = "பிழை ❌";
+"refresh_failed" = "சுயவிவரத்தை புதுப்பிக்க முடியவில்லை:";
+"ok" = "சரி";
+
+"search_placeholder" = "பெயர் அல்லது தொலைபேசி எண் மூலம் பணம் செலுத்தவும்";
+"available_credit" = "கிடைக்கும் கடன்";
+"my_wallet" = "என் பணப்பை";
+"pay_to_merchant" = "வர்த்தகருக்கு பணம் செலுத்தவும்";
+"cashback_subtext" = "பணம் செலுத்தவும் • 10% வரை பணத்தைத் திருப்பி பெறவும்";
+"promotions" = "ப்ரமோஷன்கள்";
+"weekend_offer_title" = "வார இறுதி சிறப்பு சலுகை";
+"weekend_offer_subtitle" = "அனைத்து பணப்பரிவர்த்தனைகளிலும் கூடுதல் 20% பணத்தைத் திருப்பி வழங்கப்படும்";
+
+"tab_home" = "முகப்பு";
+"tab_transactions" = "பரிவர்த்தனைகள்";
+
+
+// MARK: - EditProfileView
+"edit_profile.title" = "சுயவிவரத்தைத் திருத்து";
+"edit_profile.cancel" = "ரத்து செய்";
+"edit_profile.profile_picture" = "சுயவிவரப் படம்";
+"edit_profile.choose_photo" = "படத்தைத் தேர்வுசெய்";
+"edit_profile.save_new_picture" = "புதிய படத்தை சேமி";
+"edit_profile.uploading" = "பதிவேற்றப்படுகிறது…";
+"edit_profile.personal_information" = "தனிப்பட்ட தகவல்";
+"edit_profile.first_name" = "முதல் பெயர்";
+"edit_profile.last_name" = "கடைசி பெயர்";
+"edit_profile.email" = "மின்னஞ்சல்";
+"edit_profile.save_changes" = "மாற்றங்களை சேமி";
+"edit_profile.updating" = "புதுப்பிக்கப்படுகிறது…";
+"edit_profile.ok" = "சரி";
+
+// MARK: - WalletView
+"wallet.title" = "பணைக்கேஸ்";
+"wallet.current_balance" = "தற்போது கிடைக்கும் தொகை";
+"wallet.total_discounts" = "மொத்த தள்ளுபடி";
+"wallet.transactions" = "பரிவர்த்தனைகள்";
+"wallet.discount_history" = "தள்ளுபடி வரலாறு";
+"wallet.all_discounts" = "அனைத்து தள்ளுபடிகள்";
+"wallet.no_discounts_yet" = "இனிமேல் எந்த தள்ளுபடியும் இல்லை";
+"wallet.complete_payments_message" = "தள்ளுபடி பெற பணம் செலுத்தவும்";
+"wallet.discount_applied" = "தள்ளுபடி பிரயோகிக்கப்பட்டது";
+"wallet.off" = "மட்டும்";
+
+// MARK: - TransactionView
+"transaction.title" = "பரிவர்த்தனைகள்";
+"transaction.total_paid" = "மொத்தம் செலுத்தப்பட்டது";
+"transaction.count" = "எண்ணிக்கை";
+"transaction.saved" = "சேர்ந்தது";
+"transaction.report_type" = "அறிக்கை வகை";
+"transaction.select_date" = "தேதியை தேர்வுசெய்";
+"transaction.loading" = "ஏற்றப்படுகிறது…";
+"transaction.processing_request" = "உங்கள் கோரிக்கை செயலாக்கப்படுகிறது…";
+"transaction.something_wrong" = "ஏதோ தவறு ஏற்பட்டுள்ளது";
+"transaction.try_again" = "மீண்டும் முயற்சி செய்";
+"transaction.no_transactions" = "பரிவர்த்தனைகள் இல்லை";
+"transaction.no_transactions_for_date" = "%@ தேதிக்கான பரிவர்த்தனைகள் இல்லை";
+"transaction.transactions_for" = "%@ க்காக";
+"transaction.transaction" = "பரிவர்த்தனை";
+"transaction.transactions" = "பரிவர்த்தனைகள்";
+"transaction.payment" = "செலுத்துபவை";
+"transaction.discount_earned" = "சேர்ந்த தள்ளுபடி";
+"transaction.email_will_be_sent" = "மின்னஞ்சல் அனுப்பப்படும்";
+"transaction.report_will_be_downloaded" = "அறிக்கை பதிவிறக்கப்படும்";
+"transaction.click_to_proceed" = "தொடர '%@' என்பதைத் சொடுக்கவும்";
+
+// MARK: - Report Types
+"report_type.view" = "பார்க்க";
+"report_type.email" = "மின்னஞ்சல்";
+"report_type.download" = "பதிவிறக்கு";
+"report_type.fetch" = "பிறப்பிக்க";
+"report_type.send" = "அனுப்பு";
+
+// MARK: - Transaction Status
+"status.success" = "வெற்றி";
+"status.completed" = "முடிந்தது";
+"status.pending" = "முடிவின்றி";
+"status.failed" = "தோல்வி";
+
+// MARK: - EnterAmountView
+"enter_amount.title" = "நண்பருக்கு பணம் அனுப்பு";
+"enter_amount.merchant" = "விற்பனையாளர்";
+"enter_amount.ready_to_receive" = "பெற தயாராகிறது";
+"enter_amount.enter_amount" = "தொகையை உள்ளிடவும்";
+"enter_amount.amount_placeholder" = "0";
+"enter_amount.amount_format" = "தொகை: ₹%.2f";
+"enter_amount.hide_keyboard" = "கீபோর্ডை மறை";
+"enter_amount.continue_payment" = "செலுத்துவதை தொடர";
+
+// MARK: - PaymentConfirmationView
+"payment_confirmation.title" = "செலுத்துதலை உறுதிசெய்யவும்";
+"payment_confirmation.verify_faceid" = "Face ID மூலம் சரிபார்";
+"payment_confirmation.authenticate_message" = "உங்கள் செலுத்துதலை உறுதி செய்ய சரிபார்க்கவும்";
+"payment_confirmation.amount_to_pay" = "செலுத்த வேண்டிய தொகை";
+"payment_confirmation.pay_to" = "யாருக்கு செலுத்த?";
+"payment_confirmation.upi_id" = "UPI ID";
+"payment_confirmation.date_time" = "தேதி & நேரம்";
+"payment_confirmation.secure_payment" = "பாதுகாப்பான செலுத்துதல்";
+"payment_confirmation.payment_encrypted" = "உங்கள் செலுத்துதல் குறியாக்கம் செய்யப்பட்டு பாதுகாக்கப்பட்டுள்ளது";
+"payment_confirmation.agree_terms" = "நான் செலுத்துதல் விதிமுறைகளுக்கு ஒப்புக்கொண்டுள்ளேன்";
+"payment_confirmation.processing" = "செயலாக்கப்படுகிறது…";
+"payment_confirmation.verifying_faceid" = "Face ID சரிபார்க்கப்படுகிறது";
+"payment_confirmation.confirm_payment" = "செலுத்துதலை உறுதிசெய்";
+"payment_confirmation.cancel_payment" = "செலுத்துதலை ரத்து செய்";
+
+// MARK: - ChooseUPIAppView
+"choose_upi.title" = "பணம் அனுப்பு";
+"choose_upi.merchant" = "விற்பனையாளர்";
+"choose_upi.amount" = "தொகை: ₹%@";
+"choose_upi.choose_payment_app" = "பணம் செலுத்தும் ஆப் தேர்வு செய்";
+"choose_upi.change" = "மாற்று";
+"choose_upi.transaction_details" = "பரிவர்த்தனை விவரங்கள்";
+"choose_upi.date" = "தேதி";
+"choose_upi.cashback" = "கேஷ்பேக்";
+"choose_upi.cashback_amount" = "உயரம் 10%";
+"choose_upi.receiver_upi" = "பெறுநரின் UPI";
+"choose_upi.proceed_to_pay" = "பணம் செலுத்தத் தொடங்கு";
+"choose_upi.back" = "பின்";
+"choose_upi.processing_payment" = "பணப்பரிவர்த்தனை செயலாக்கப்படுகிறது";
+"choose_upi.please_wait" = "தயவுசெய்து காத்திரு…";
+"choose_upi.select_upi_app" = "UPI ஆப் தேர்வு செய்";
+"choose_upi.cancel" = "ரத்து செய்";
+
+// MARK: - UPI Apps
+"upi_app.google_pay" = "Google Pay";
+"upi_app.phonepe" = "PhonePe";
+"upi_app.paytm" = "Paytm";
+
+// MARK: - ReceiptView
+"receipt.payment_successful" = "செலுத்துதல் வெற்றி!";
+"receipt.transaction_completed" = "உங்கள் பரிவர்த்தனை முடிந்து உள்ளது";
+"receipt.amount_paid" = "செலுத்தப்பட்ட தொகை";
+"receipt.cashback_earned" = "₹%@ கேஷ்பேக் பெற்றீர்கள்";
+"receipt.pay_again" = "மீண்டும் செலுத்து";
+"receipt.transaction_details" = "பரிவர்த்தனை விவரங்கள்";
+"receipt.date_time" = "தேதி & நேரம்";
+"receipt.transaction_id" = "பரிவர்த்தனை ஐடி";
+"receipt.payment_method" = "செலுத்தும் முறையி";
+"receipt.status" = "நிலை";
+"receipt.status_completed" = "முடிந்தது";
+"receipt.share_receipt" = "ரசீதை பகிர்";
+"receipt.back_to_home" = "முகப்புக்கு மீண்டும்";
+
+// MARK: - Common
+"common.currency_symbol" = "₹";
+"common.phone_number" = "0987654321";
+"common.receiver_upi" = "receiver@oksbi";
+"common.loading" = "ஏற்றுகிறது…";
+"common.error" = "தெற்சி";
+"common.success" = "வெற்றி";
+"common.ok" = "சரி";
+"common.cancel" = "ரத்து செய்";
+"common.back" = "பின்";
+"common.done" = "முடிந்தது";
+"common.save" = "சேமி";
+"common.delete" = "நீக்கு";
+"common.edit" = "திருத்து";
+"common.close" = "மூடு";
+
+// MARK: - Date Formats
+"date.format.full" = "MMM dd, yyyy • hh:mm a";
+"date.format.short" = "MMM dd, yyyy";
+"date.format.time" = "hh:mm a";
+"date.format.month_day_time" = "MMM dd, hh:mm a";
+
+// MARK: - Error Messages
+"error.something_went_wrong" = "ஏதோ தவறு ஏற்பட்டுள்ளது";
+"error.try_again" = "தயவுசெய்து மீண்டும் முயற்சி செய்";
+"error.invalid_amount" = "தயவுசெய்து சரியான தொகையை உள்ளிடுங்கள்";
+"error.payment_failed" = "செலுத்துதல் தோல்வியடைந்தது";
+"error.network_error" = "நெட்வொர்க் பிழை ஏற்பட்டது";
+
+// MARK: - Success Messages
+"success.payment_completed" = "செலுத்துதல் வெற்றிகரமாக முடிந்தது";
+"success.profile_updated" = "சுயவிவரம் வெற்றிகரமாக புதுப்பிக்கப்பட்டது";
+"success.photo_uploaded" = "படம் வெற்றிகரமாக பதிவேற்றப்பட்டது";

@@ -1,0 +1,24 @@
+PODS:
+  - MediaPipeTasksCommon (0.10.21)
+  - MediaPipeTasksVision (0.10.21):
+    - MediaPipeTasksCommon (= 0.10.21)
+  - OpenCV (4.3.0)
+
+DEPENDENCIES:
+  - MediaPipeTasksVision
+  - OpenCV
+
+SPEC REPOS:
+  trunk:
+    - MediaPipeTasksCommon
+    - MediaPipeTasksVision
+    - OpenCV
+
+SPEC CHECKSUMS:
+  MediaPipeTasksCommon: 6cfa29170d4900f04d250ad95ec058f14a741f38
+  MediaPipeTasksVision: 7b1c0f5a5820e87e9d96926f5e65d8cd3744fac2
+  OpenCV: 681e0451c1e54c5930a8922277f817ed5d5ab459
+
+PODFILE CHECKSUM: db486d8b2c4eba2db571f982464307f8f4c3d457
+
+COCOAPODS: 1.16.2

@@ -1,0 +1,300 @@
+"welcome_title" = "ByoSync – उपयोगकर्ता पंजीकरण सहमति और शर्तें";
+"welcome_subtitle" = "ByoSync में आपका स्वागत है";
+"welcome_tagline" = "सुरक्षित फेस-आधारित UPI भुगतान के लिए आपका विश्वसनीय ऐप।";
+
+"language_label" = "भाषा";
+
+"before_you_begin" = "शुरू करने से पहले";
+"before_you_begin_text" = "कृपया हमारी सेवा की शर्तें और डेटा सहमति पढ़ें और स्वीकार करें।";
+
+"eligibility" = "पात्रता";
+"eligibility_text" = "आप पुष्टि करते हैं कि आप 18 वर्ष या उससे अधिक आयु के हैं और ByoSync का उपयोग करने के लिए कानूनी रूप से सक्षम हैं।";
+
+"what_you_agree_to" = "आप किससे सहमत हैं";
+"what_you_agree_to_text" = "• हम भुगतान सक्षम करने के लिए आपका नाम, मोबाइल नंबर, UPI ID, बैंक विवरण और डिवाइस जानकारी एकत्र करते हैं।\n• हम धोखाधड़ी रोकथाम और सेवा सुधार के लिए लेनदेन इतिहास, डिवाइस मेटाडेटा और स्थान एकत्र कर सकते हैं।\n• फेस रिकग्निशन सक्षम करने पर, हम आपके चेहरे के बायोमेट्रिक डेटा को पहचान सत्यापन के लिए संसाधित करेंगे।\n• हम बैंकों, NPCI, भुगतान प्रदाताओं और KYC भागीदारों के साथ डेटा साझा कर सकते हैं।\n• आपका डेटा भारत में सुरक्षित रूप से संग्रहीत और एन्क्रिप्ट किया जाता है।\n• हम आपका व्यक्तिगत डेटा भारत के बाहर स्थानांतरित नहीं करते।";
+
+"identity_verification" = "पहचान सत्यापन (KYC / आधार)";
+"identity_verification_text" = "सत्यापन CKYC, वीडियो-KYC, पैन सत्यापन या UIDAI स्वीकृत प्रक्रिया से आपकी सहमति के साथ किया जाता है।\nहम आपका आधार नंबर या बायोमेट्रिक डेटा संग्रहीत नहीं करते।";
+
+"what_we_need" = "सेवा प्रदान करने के लिए हमें क्या चाहिए";
+"what_we_need_text" = "फेस-आधारित भुगतान और सुरक्षा सुनिश्चित करने के लिए ByoSync को निम्न डेटा की आवश्यकता होती है:\n• आपका बायोमेट्रिक डेटा (चेहरा)\n• आपका KYC डेटा (PAN/ID)\n• आपका डिवाइस और लेनदेन डेटा\nइनके बिना सेवा प्रदान नहीं की जा सकती।";
+
+"consent_checkbox" = "मैं पुष्टि करता हूं कि मैं 18 वर्ष या उससे अधिक आयु का हूं और ByoSync को मेरे बायोमेट्रिक और KYC डेटा को पहचान सत्यापन, अनुपालन और धोखाधड़ी रोकथाम के लिए संसाधित करने की अनुमति देता हूं। मैं समझता हूं कि इस सहमति को वापस लेने पर मेरा खाता निष्क्रिय हो जाएगा।";
+
+"your_rights" = "आपके अधिकार और डेटा संग्रहण";
+"your_rights_text" = "• आप कभी भी अपना डेटा एक्सेस, संशोधित या हटाने का अनुरोध कर सकते हैं।\n• आप सहमति वापस ले सकते हैं, लेकिन इससे आपका खाता निष्क्रिय हो जाएगा।\n• कानूनी रूप से आवश्यक डेटा 7 वर्षों तक रखा जाएगा।";
+
+"security_notice" = "सुरक्षा और उल्लंघन सूचना";
+"security_notice_text" = "हम एंड-टू-एंड एन्क्रिप्शन और ऑडिट लॉग का उपयोग करते हैं।\nकिसी भी डेटा उल्लंघन की सूचना उपयोगकर्ताओं और नियामकों को दी जाएगी।";
+
+"data_localization" = "डेटा स्थानीयकरण";
+"data_localization_text" = "सभी भुगतान, KYC और बायोमेट्रिक डेटा केवल भारत में संग्रहीत और संसाधित किया जाता है।";
+
+"roles_contacts" = "भूमिकाएँ और संपर्क";
+"roles_contacts_text" = "डेटा फिड्युशियरी: Kavion Intelligence Pvt. Ltd. (\"ByoSync\")\nशिकायत अधिकारी: info@byosync.com\nपता: 55, NRI कॉम्प्लेक्स, जीके-VI, दिल्ली 110048\nउत्तर 15 दिनों में दिया जाएगा।";
+
+"quick_summary" = "त्वरित सारांश";
+"quick_summary_text" = "• हम बायोमेट्रिक और KYC डेटा संसाधित करते हैं ताकि सुरक्षित फेस-आधारित भुगतान सक्षम हो सके।\n• आपका डेटा भारत में ही रहता है।\n• आप कभी भी इसे देख, संशोधित या हटाने का अनुरोध कर सकते हैं।\n• सहमति वापस लेने से आपका खाता निष्क्रिय हो जाएगा।";
+
+"terms_checkbox" = "मैं पुष्टि करता हूं कि मैंने ByoSync की शर्तें और डेटा प्रसंस्करण सहमति पढ़ी, समझी और स्वीकार की है।";
+
+"decline_button" = "अस्वीकार करें";
+"accept_button" = "स्वीकार करें और आगे बढ़ें";
+
+"alert_title" = "सहमति आवश्यक";
+"alert_message" = "ByoSync का उपयोग जारी रखने के लिए आपको दोनों सहमतियाँ प्रदान करनी होंगी।";
+"alert_ok" = "ठीक है";
+"merchant_title" = "बायोसिंक – व्यापारी पंजीकरण सहमति और शर्तें";
+"merchant_subtitle" = "व्यापारियों के लिए बायोसिंक में आपका स्वागत है";
+"merchant_tagline" = "सुरक्षित UPI भुगतान स्वीकृति और त्वरित सेटलमेंट के साथ शुरुआत करें।";
+
+"merchant_before_you_begin" = "शुरू करने से पहले";
+"merchant_before_you_begin_text" = "कृपया जारी रखने से पहले हमारे व्यापारी नियमों और डेटा सहमति को पढ़ें और स्वीकार करें।";
+
+"merchant_eligibility" = "पात्रता";
+"merchant_eligibility_text" = "• आपकी आयु 18 वर्ष या उससे अधिक होनी चाहिए और आपको अपने व्यवसाय की ओर से कार्य करने की अनुमति होनी चाहिए।\n• यदि आप किसी संगठन का प्रतिनिधित्व करते हैं, तो आप पंजीकरण और खाता संचालन के लिए अपनी अधिकारिता की पुष्टि करते हैं।";
+
+"merchant_what_you_agree_to" = "आप किससे सहमत हैं";
+"merchant_what_you_agree_to_text" = "• आप व्यापारी सत्यापन के लिए व्यवसाय पहचान दस्तावेज़, PAN, GSTIN और बैंक विवरण प्रदान करेंगे।\n• हम लेन-देन डेटा, सेटलमेंट और बायोमेट्रिक पहचान को अनुपालन हेतु संसाधित करते हैं।\n• आपका व्यापारी डेटा ग्राहक रसीदों पर प्रदर्शित हो सकता है।\n• सभी डेटा भारत में एन्क्रिप्टेड और 7 वर्षों के लिए संग्रहीत किया जाता है (RBI / FIU-IND नियमों के अनुसार)।";
+
+"merchant_kyc_biometric" = "KYC, बायोमेट्रिक्स और जोखिम नियंत्रण (अनिवार्य)";
+"merchant_kyc_biometric_text" = "• आप KYC ऑनबोर्डिंग, फेस-आधारित सत्यापन और जोखिम समीक्षा के लिए सहमति देते हैं।\n• सहमति से इंकार करने पर आपका व्यापारी खाता निलंबित हो जाएगा।";
+
+"merchant_settlement_cycle" = "सेटलमेंट चक्र";
+"merchant_settlement_cycle_text" = "• मानक भुगतान: T+1 बैंकिंग दिवस।\n• अपवाद (जैसे बैंक अवकाश या डाउनटाइम) कारणों और ETA के साथ प्रदर्शित किए जाएंगे।";
+
+"merchant_rights_retention" = "आपके अधिकार और डेटा प्रतिधारण";
+"merchant_rights_retention_text" = "• आप कभी भी अपने डेटा को एक्सेस या सुधार सकते हैं।\n• डेटा को 7 वर्षों तक रखा जाएगा और फिर DPDP अनुपालन के अनुसार हटाया या गुमनाम किया जाएगा।";
+
+"merchant_liability" = "देयता और अनुपालन";
+"merchant_liability_text" = "• आप अपने डिवाइस और नेटवर्क सुरक्षा के लिए जिम्मेदार हैं।\n• आपके द्वारा किसी भी धोखाधड़ी या दुरुपयोग के लिए आप उत्तरदायी होंगे।\n• विवाद दिल्ली न्यायालय के अधिकार क्षेत्र में सुलझाए जाएंगे।";
+
+"merchant_what_we_need" = "सेवा प्रदान करने के लिए हमें क्या चाहिए";
+"merchant_what_we_need_text" = "सुरक्षित व्यापारी लॉगिन, सेटलमेंट और अनुपालन सत्यापन के लिए बायोसिंक को निम्नलिखित डेटा की आवश्यकता होती है:\n• फेस बायोमेट्रिक डेटा\n• KYC और वित्तीय डेटा\n• डिवाइस और लेन-देन डेटा।";
+
+"merchant_consent_checkbox" = "मैं 18 वर्ष या उससे अधिक आयु का हूं और अपने व्यवसाय की ओर से अधिकृत हूं, तथा बायोसिंक को मेरे बायोमेट्रिक, KYC और व्यवसायिक डेटा को संसाधित करने की अनुमति देता/देती हूं।";
+
+"merchant_localization_support" = "स्थानीयकरण और सहायता";
+"merchant_localization_support_text" = "सभी डेटा केवल भारत में संग्रहीत और संसाधित किए जाते हैं।\nसहायता: privacy@byosync.com\nपता: 55, NRI कॉम्प्लेक्स, GK-VI, दिल्ली 110048।";
+
+"merchant_summary" = "त्वरित सारांश";
+"merchant_summary_text" = "हम आपके बायोमेट्रिक, KYC और व्यवसाय डेटा को आपके व्यापारी खाते की सुरक्षा के लिए संसाधित करते हैं।\nडेटा भारत में 7 वर्षों तक रहता है।\nसहायता: privacy@byosync.com।";
+
+"merchant_terms_checkbox" = "मैं पुष्टि करता/करती हूं कि मैं 18 वर्ष या उससे अधिक आयु का हूं, इस व्यवसाय के लिए अधिकृत हूं और बायोसिंक व्यापारी शर्तों और डेटा सहमति से सहमत हूं।";
+
+"merchant_alert_consent_message" = "बायोसिंक व्यापारी पंजीकरण जारी रखने के लिए आपको दोनों सहमतियाँ प्रदान करनी होंगी।";
+"merchant_alert_declined_title" = "पंजीकरण अस्वीकार किया गया";
+"merchant_alert_declined_message" = "आपने व्यापारी शर्तों को अस्वीकार कर दिया है। इन्हें स्वीकार किए बिना, आप व्यापारी के रूप में पंजीकरण नहीं कर सकते।";
+
+"back_button" = "वापस";
+"welcome_to" = "स्वागत है";
+"make_payments_easier" = "अपने भुगतान को आसान बनाएं";
+"login" = "लॉगिन";
+"create_account" = "खाता बनाएं";
+"powered_by" = "द्वारा संचालित";
+"welcome_back" = "वापसी पर स्वागत है";
+"enter_credentials" = "जारी रखने के लिए क्रेडेंशियल दर्ज करें";
+"full_name" = "पूरा नाम";
+"enter_full_name" = "अपना पूरा नाम दर्ज करें";
+"continue" = "जारी रखें";
+"login_failed" = "लॉगिन विफल";
+"first_name" = "पहला नाम";
+"last_name" = "अंतिम नाम";
+"email" = "ईमेल";
+"phone_number" = "फ़ोन नंबर";
+"join_byosync_start" = "शुरू करने के लिए ByoSync से जुड़ें";
+"error" = "त्रुटि";
+
+"profile_title" = "प्रोफ़ाइल";
+"linked_devices" = "लिंक किए गए डिवाइस";
+"settings" = "सेटिंग्स";
+"more" = "अधिक";
+"refreshing_profile" = "प्रोफ़ाइल रीफ़्रेश की जा रही है...";
+"edit_profile" = "प्रोफ़ाइल संपादित करें";
+"user_section" = "उपयोगकर्ता";
+"first_name" = "पहला नाम";
+"last_name" = "अंतिम नाम";
+"email_address" = "ईमेल पता";
+"phone_number" = "फ़ोन नंबर";
+"testing_encryption" = "एन्क्रिप्शन-SHA256 परीक्षण";
+"location_testing" = "स्थान परीक्षण दृश्य";
+"log_out" = "लॉग आउट";
+"success" = "सफलता ✅";
+"profile_refreshed" = "प्रोफ़ाइल सफलतापूर्वक रीफ़्रेश हो गई!";
+"error_refresh" = "त्रुटि ❌";
+"refresh_failed" = "प्रोफ़ाइल रीफ़्रेश करने में विफल:";
+"ok" = "ठीक है";
+
+"search_placeholder" = "नाम या फ़ोन नंबर से भुगतान करें";
+"available_credit" = "उपलब्ध क्रेडिट";
+"my_wallet" = "मेरा वॉलेट";
+"pay_to_merchant" = "व्यापारी को भुगतान करें";
+"cashback_subtext" = "भुगतान करें • अधिकतम 10% कैशबैक पाएं";
+"promotions" = "प्रमोशन्स";
+"weekend_offer_title" = "सप्ताहांत विशेष ऑफर";
+"weekend_offer_subtitle" = "सभी भुगतानों पर 20% अतिरिक्त कैशबैक";
+
+"tab_home" = "होम";
+"tab_transactions" = "लेनदेन";
+
+
+
+// MARK: - EditProfileView
+"edit_profile.title" = "प्रोफ़ाइल संपादित करें";
+"edit_profile.cancel" = "रद्द करें";
+"edit_profile.profile_picture" = "प्रोफ़ाइल तस्वीर";
+"edit_profile.choose_photo" = "फोटो चुनें";
+"edit_profile.save_new_picture" = "नई तस्वीर सहेजें";
+"edit_profile.uploading" = "अपलोड हो रहा है…";
+"edit_profile.personal_information" = "व्यक्तिगत जानकारी";
+"edit_profile.first_name" = "पहला नाम";
+"edit_profile.last_name" = "अंतिम नाम";
+"edit_profile.email" = "ई-मेल";
+"edit_profile.save_changes" = "परिवर्तन सहेजें";
+"edit_profile.updating" = "अपडेट हो रहा है…";
+"edit_profile.ok" = "ठीक है";
+
+// MARK: - WalletView
+"wallet.title" = "बटुआ";
+"wallet.current_balance" = "वर्तमान शेष";
+"wallet.total_discounts" = "कुल छूट";
+"wallet.transactions" = "लेन-देन";
+"wallet.discount_history" = "छूट इतिहास";
+"wallet.all_discounts" = "सभी छूट";
+"wallet.no_discounts_yet" = "अभी तक कोई छूट नहीं";
+"wallet.complete_payments_message" = "छूट पाने के लिए भुगतान पूरे करें";
+"wallet.discount_applied" = "छूट लागू हुई";
+"wallet.off" = "छूट";
+
+// MARK: - TransactionView
+"transaction.title" = "लेन-देन";
+"transaction.total_paid" = "कुल भुगतान";
+"transaction.count" = "गणना";
+"transaction.saved" = "बचाया गया";
+"transaction.report_type" = "रिपोर्ट प्रकार";
+"transaction.select_date" = "तारीख चुनें";
+"transaction.loading" = "लोड हो रहा है…";
+"transaction.processing_request" = "आपकी अनुरोध संसाधित हो रही है…";
+"transaction.something_wrong" = "कुछ गलत हो गया";
+"transaction.try_again" = "फिर कोशिश करें";
+"transaction.no_transactions" = "कोई लेन-देन नहीं";
+"transaction.no_transactions_for_date" = "इस तारीख के लिए कोई लेन-देन नहीं है %@";
+"transaction.transactions_for" = "के लिए %@";
+"transaction.transaction" = "लेन-देन";
+"transaction.transactions" = "लेन-देन";
+"transaction.payment" = "भुगतान";
+"transaction.discount_earned" = "कमाई गई छूट";
+"transaction.email_will_be_sent" = "ई-मेल भेजा जाएगा";
+"transaction.report_will_be_downloaded" = "रिपोर्ट डाउनलोड की जाएगी";
+"transaction.click_to_proceed" = "आगे बढ़ने के लिए '%@' पर क्लिक करें";
+
+// MARK: - Report Types
+"report_type.view" = "देखें";
+"report_type.email" = "ई-मेल";
+"report_type.download" = "डाउनलोड";
+"report_type.fetch" = "लाएँ";
+"report_type.send" = "भेजें";
+
+// MARK: - Transaction Status
+"status.success" = "सफल";
+"status.completed" = "पूरा हुआ";
+"status.pending" = "लंबित";
+"status.failed" = "विफल";
+
+// MARK: - EnterAmountView
+"enter_amount.title" = "को भेजें";
+"enter_amount.merchant" = "विक्रेता";
+"enter_amount.ready_to_receive" = "प्राप्त करने के लिए तैयार";
+"enter_amount.enter_amount" = "राशि दर्ज करें";
+"enter_amount.amount_placeholder" = "0";
+"enter_amount.amount_format" = "राशि: ₹%.2f";
+"enter_amount.hide_keyboard" = "कीबोर्ड छुपाएँ";
+"enter_amount.continue_payment" = "भुगतान जारी रखें";
+
+// MARK: - PaymentConfirmationView
+"payment_confirmation.title" = "भुगतान की पुष्टि करें";
+"payment_confirmation.verify_faceid" = "Face ID से सत्यापित करें";
+"payment_confirmation.authenticate_message" = "अपने भुगतान की पुष्टि हेतु प्रमाणित करें";
+"payment_confirmation.amount_to_pay" = "भुगतान करने योग्य राशि";
+"payment_confirmation.pay_to" = "को भुगतान करें";
+"payment_confirmation.upi_id" = "UPI ID";
+"payment_confirmation.date_time" = "तारीख एवं समय";
+"payment_confirmation.secure_payment" = "सुरक्षित भुगतान";
+"payment_confirmation.payment_encrypted" = "आपका भुगतान एन्क्रिप्टेड और सुरक्षित है";
+"payment_confirmation.agree_terms" = "मैं भुगतान शर्तों और नियमों से सहमत हूँ";
+"payment_confirmation.processing" = "प्रसंस्करण…";
+"payment_confirmation.verifying_faceid" = "Face ID सत्यापित हो रहा है";
+"payment_confirmation.confirm_payment" = "भुगतान करें";
+"payment_confirmation.cancel_payment" = "भुगतान रद्द करें";
+
+// MARK: - ChooseUPIAppView
+"choose_upi.title" = "पैसे भेजें";
+"choose_upi.merchant" = "विक्रेता";
+"choose_upi.amount" = "राशि: ₹%@";
+"choose_upi.choose_payment_app" = "भुगतान ऐप चुनें";
+"choose_upi.change" = "बदलें";
+"choose_upi.transaction_details" = "लेन-देन विवरण";
+"choose_upi.date" = "तारीख";
+"choose_upi.cashback" = "कैशबैक";
+"choose_upi.cashback_amount" = "उच्चतम 10%";
+"choose_upi.receiver_upi" = "प्राप्तकर्ता का UPI";
+"choose_upi.proceed_to_pay" = "भुगतान करने के लिए आगे बढ़ें";
+"choose_upi.back" = "वापस";
+"choose_upi.processing_payment" = "भुगतान संसाधित हो रहा है";
+"choose_upi.please_wait" = "कृपया प्रतीक्षा करें…";
+"choose_upi.select_upi_app" = "UPI ऐप चुनें";
+"choose_upi.cancel" = "रद्द करें";
+
+// MARK: - UPI Apps
+"upi_app.google_pay" = "Google Pay";
+"upi_app.phonepe" = "PhonePe";
+"upi_app.paytm" = "Paytm";
+
+// MARK: - ReceiptView
+"receipt.payment_successful" = "भुगतान सफल!";
+"receipt.transaction_completed" = "आपका लेन-देन पूरा हो गया है";
+"receipt.amount_paid" = "भुगतान राशि";
+"receipt.cashback_earned" = "₹%@ कैशबैक कमाया";
+"receipt.pay_again" = "फिर से भुगतान करें";
+"receipt.transaction_details" = "लेन-देन विवरण";
+"receipt.date_time" = "तारीख एवं समय";
+"receipt.transaction_id" = "लेन-देन आईडी";
+"receipt.payment_method" = "भुगतान का तरीका";
+"receipt.status" = "स्थिति";
+"receipt.status_completed" = "पूरा हुआ";
+"receipt.share_receipt" = "रसीद साझा करें";
+"receipt.back_to_home" = "होम पर वापस जाएं";
+
+// MARK: - Common
+"common.currency_symbol" = "₹";
+"common.phone_number" = "0987654321";
+"common.receiver_upi" = "receiver@oksbi";
+"common.loading" = "लोड हो रहा है…";
+"common.error" = "त्रुटि";
+"common.success" = "सफलता";
+"common.ok" = "ठीक है";
+"common.cancel" = "रद्द करें";
+"common.back" = "वापस";
+"common.done" = "समाप्त";
+"common.save" = "सहेजें";
+"common.delete" = "हटाएँ";
+"common.edit" = "संपादित करें";
+"common.close" = "बंद करें";
+
+// MARK: - Date Formats
+"date.format.full" = "MMM dd, yyyy • hh:mm a";
+"date.format.short" = "MMM dd, yyyy";
+"date.format.time" = "hh:mm a";
+"date.format.month_day_time" = "MMM dd, hh:mm a";
+
+// MARK: - Error Messages
+"error.something_went_wrong" = "कुछ गलत हो गया";
+"error.try_again" = "कृपया पुनः प्रयास करें";
+"error.invalid_amount" = "कृपया एक मान्य राशि दर्ज करें";
+"error.payment_failed" = "भुगतान असफल हुआ";
+"error.network_error" = "नेटवर्क त्रुटि हुई";
+
+// MARK: - Success Messages
+"success.payment_completed" = "भुगतान सफलतापूर्वक पूरा हुआ";
+"success.profile_updated" = "प्रोफ़ाइल सफलतापूर्वक अपडेट हुई";
+"success.photo_uploaded" = "फोटो सफलतापूर्वक अपलोड हुई";

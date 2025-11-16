@@ -1,0 +1,766 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		33B2D23E4CE752524A6378F9 /* Pods_ByoSync_User.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 54762F6C47B5FD4BF8520480 /* Pods_ByoSync_User.framework */; };
+		73BA51CF70F8786EE75CF0C8 /* Pods_NotificationServiceExtension.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FA5D4BCE32F5E43A98EB6173 /* Pods_NotificationServiceExtension.framework */; };
+		BF1EA1472EBB61DD0077D606 /* SocketIO in Frameworks */ = {isa = PBXBuildFile; productRef = BF1EA1462EBB61DD0077D606 /* SocketIO */; };
+		BF54D06E2EBDD14600A0F3ED /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = BF54D06D2EBDD14600A0F3ED /* FirebaseAuth */; };
+		BF54D0702EBDD14600A0F3ED /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = BF54D06F2EBDD14600A0F3ED /* FirebaseFirestore */; settings = {ATTRIBUTES = (Weak, ); }; };
+		BF54D07B2EBDE58E00A0F3ED /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = BF54D07A2EBDE58E00A0F3ED /* FirebaseMessaging */; };
+		BF54D0902EBE19D500A0F3ED /* NotificationServiceExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = BF54D0892EBE19D500A0F3ED /* NotificationServiceExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		BF5645742EC9CE28002EF012 /* CoreImage.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BF5645732EC9CE28002EF012 /* CoreImage.framework */; };
+		BF5645762EC9CE2E002EF012 /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BF5645752EC9CE2E002EF012 /* AVFoundation.framework */; };
+		BF6B26162EC9B3BC00FB4958 /* CoreMedia.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BF6B26152EC9B3BC00FB4958 /* CoreMedia.framework */; };
+		BF6B26182EC9B3C800FB4958 /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BF6B26172EC9B3C800FB4958 /* CoreFoundation.framework */; };
+		BF6B261A2EC9B3E800FB4958 /* AssetsLibrary.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BF6B26192EC9B3E800FB4958 /* AssetsLibrary.framework */; };
+		BF6B261C2EC9B3EF00FB4958 /* Accelerate.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BF6B261B2EC9B3EF00FB4958 /* Accelerate.framework */; };
+		BFC703302EBB5CBE001B13C7 /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = BFC7032F2EBB5CBE001B13C7 /* Alamofire */; };
+		BFC703352EBB5CED001B13C7 /* Cloudinary in Frameworks */ = {isa = PBXBuildFile; productRef = BFC703342EBB5CED001B13C7 /* Cloudinary */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		BF54D08E2EBE19D500A0F3ED /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BFC7008F2EBB5C03001B13C7 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = BF54D0882EBE19D500A0F3ED;
+			remoteInfo = NotificationServiceExtension;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		BF54D0952EBE19D500A0F3ED /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				BF54D0902EBE19D500A0F3ED /* NotificationServiceExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		4BB98856B8AAB10C1CF1E768 /* Pods-NotificationServiceExtension.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NotificationServiceExtension.release.xcconfig"; path = "Target Support Files/Pods-NotificationServiceExtension/Pods-NotificationServiceExtension.release.xcconfig"; sourceTree = "<group>"; };
+		54762F6C47B5FD4BF8520480 /* Pods_ByoSync_User.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_ByoSync_User.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		8AB51C2E2821F84BD14C07ED /* Pods-NotificationServiceExtension.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NotificationServiceExtension.debug.xcconfig"; path = "Target Support Files/Pods-NotificationServiceExtension/Pods-NotificationServiceExtension.debug.xcconfig"; sourceTree = "<group>"; };
+		A68D9C5DB79D79982F5DC581 /* Pods-ByoSync-User.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ByoSync-User.debug.xcconfig"; path = "Target Support Files/Pods-ByoSync-User/Pods-ByoSync-User.debug.xcconfig"; sourceTree = "<group>"; };
+		BF1EEE082ECA434D0068E276 /* PrefixHeader.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PrefixHeader.pch; sourceTree = "<group>"; };
+		BF54D0892EBE19D500A0F3ED /* NotificationServiceExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = NotificationServiceExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		BF5645012EC9BA4E002EF012 /* MediaPipeTasksCommon.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = MediaPipeTasksCommon.xcframework; path = Pods/MediaPipeTasksCommon/frameworks/MediaPipeTasksCommon.xcframework; sourceTree = "<group>"; };
+		BF5645032EC9BA4E002EF012 /* MediaPipeTasksVision.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = MediaPipeTasksVision.xcframework; path = Pods/MediaPipeTasksVision/frameworks/MediaPipeTasksVision.xcframework; sourceTree = "<group>"; };
+		BF5645712EC9CD76002EF012 /* libc++.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = "libc++.tbd"; path = "usr/lib/libc++.tbd"; sourceTree = SDKROOT; };
+		BF5645732EC9CE28002EF012 /* CoreImage.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreImage.framework; path = System/Library/Frameworks/CoreImage.framework; sourceTree = SDKROOT; };
+		BF5645752EC9CE2E002EF012 /* AVFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = System/Library/Frameworks/AVFoundation.framework; sourceTree = SDKROOT; };
+		BF6B26152EC9B3BC00FB4958 /* CoreMedia.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMedia.framework; path = System/Library/Frameworks/CoreMedia.framework; sourceTree = SDKROOT; };
+		BF6B26172EC9B3C800FB4958 /* CoreFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreFoundation.framework; path = System/Library/Frameworks/CoreFoundation.framework; sourceTree = SDKROOT; };
+		BF6B26192EC9B3E800FB4958 /* AssetsLibrary.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AssetsLibrary.framework; path = System/Library/Frameworks/AssetsLibrary.framework; sourceTree = SDKROOT; };
+		BF6B261B2EC9B3EF00FB4958 /* Accelerate.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Accelerate.framework; path = System/Library/Frameworks/Accelerate.framework; sourceTree = SDKROOT; };
+		BFC700972EBB5C03001B13C7 /* ByoSync-User.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "ByoSync-User.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		C85BF2BFA45173D81BE0B77B /* Pods-ByoSync-User.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ByoSync-User.release.xcconfig"; path = "Target Support Files/Pods-ByoSync-User/Pods-ByoSync-User.release.xcconfig"; sourceTree = "<group>"; };
+		FA5D4BCE32F5E43A98EB6173 /* Pods_NotificationServiceExtension.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_NotificationServiceExtension.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		BF54D06B2EBDD08900A0F3ED /* Exceptions for "ByoSync-User" folder in "ByoSync-User" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = BFC700962EBB5C03001B13C7 /* ByoSync-User */;
+		};
+		BF54D0942EBE19D500A0F3ED /* Exceptions for "NotificationServiceExtension" folder in "NotificationServiceExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = BF54D0882EBE19D500A0F3ED /* NotificationServiceExtension */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		BF54D08A2EBE19D500A0F3ED /* NotificationServiceExtension */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				BF54D0942EBE19D500A0F3ED /* Exceptions for "NotificationServiceExtension" folder in "NotificationServiceExtension" target */,
+			);
+			path = NotificationServiceExtension;
+			sourceTree = "<group>";
+		};
+		BFC700992EBB5C03001B13C7 /* ByoSync-User */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				BF54D06B2EBDD08900A0F3ED /* Exceptions for "ByoSync-User" folder in "ByoSync-User" target */,
+			);
+			path = "ByoSync-User";
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		BF54D0862EBE19D500A0F3ED /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				73BA51CF70F8786EE75CF0C8 /* Pods_NotificationServiceExtension.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		BFC700942EBB5C03001B13C7 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BF5645762EC9CE2E002EF012 /* AVFoundation.framework in Frameworks */,
+				BF5645742EC9CE28002EF012 /* CoreImage.framework in Frameworks */,
+				BF6B261C2EC9B3EF00FB4958 /* Accelerate.framework in Frameworks */,
+				BF6B261A2EC9B3E800FB4958 /* AssetsLibrary.framework in Frameworks */,
+				BF6B26182EC9B3C800FB4958 /* CoreFoundation.framework in Frameworks */,
+				BF6B26162EC9B3BC00FB4958 /* CoreMedia.framework in Frameworks */,
+				BF54D07B2EBDE58E00A0F3ED /* FirebaseMessaging in Frameworks */,
+				BFC703302EBB5CBE001B13C7 /* Alamofire in Frameworks */,
+				BFC703352EBB5CED001B13C7 /* Cloudinary in Frameworks */,
+				BF1EA1472EBB61DD0077D606 /* SocketIO in Frameworks */,
+				BF54D0702EBDD14600A0F3ED /* FirebaseFirestore in Frameworks */,
+				BF54D06E2EBDD14600A0F3ED /* FirebaseAuth in Frameworks */,
+				33B2D23E4CE752524A6378F9 /* Pods_ByoSync_User.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		356CE0C1391FE31CD6E54A56 /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				A68D9C5DB79D79982F5DC581 /* Pods-ByoSync-User.debug.xcconfig */,
+				C85BF2BFA45173D81BE0B77B /* Pods-ByoSync-User.release.xcconfig */,
+				8AB51C2E2821F84BD14C07ED /* Pods-NotificationServiceExtension.debug.xcconfig */,
+				4BB98856B8AAB10C1CF1E768 /* Pods-NotificationServiceExtension.release.xcconfig */,
+			);
+			path = Pods;
+			sourceTree = "<group>";
+		};
+		BFC7008E2EBB5C03001B13C7 = {
+			isa = PBXGroup;
+			children = (
+				BFC700992EBB5C03001B13C7 /* ByoSync-User */,
+				BF54D08A2EBE19D500A0F3ED /* NotificationServiceExtension */,
+				BFC700982EBB5C03001B13C7 /* Products */,
+				356CE0C1391FE31CD6E54A56 /* Pods */,
+				F878E7F41DA4F7DF64B6DADA /* Frameworks */,
+				BF1EEE082ECA434D0068E276 /* PrefixHeader.pch */,
+			);
+			sourceTree = "<group>";
+		};
+		BFC700982EBB5C03001B13C7 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				BFC700972EBB5C03001B13C7 /* ByoSync-User.app */,
+				BF54D0892EBE19D500A0F3ED /* NotificationServiceExtension.appex */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		F878E7F41DA4F7DF64B6DADA /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				BF5645752EC9CE2E002EF012 /* AVFoundation.framework */,
+				BF5645732EC9CE28002EF012 /* CoreImage.framework */,
+				BF5645712EC9CD76002EF012 /* libc++.tbd */,
+				BF5645012EC9BA4E002EF012 /* MediaPipeTasksCommon.xcframework */,
+				BF5645032EC9BA4E002EF012 /* MediaPipeTasksVision.xcframework */,
+				BF6B261B2EC9B3EF00FB4958 /* Accelerate.framework */,
+				BF6B26192EC9B3E800FB4958 /* AssetsLibrary.framework */,
+				BF6B26172EC9B3C800FB4958 /* CoreFoundation.framework */,
+				BF6B26152EC9B3BC00FB4958 /* CoreMedia.framework */,
+				54762F6C47B5FD4BF8520480 /* Pods_ByoSync_User.framework */,
+				FA5D4BCE32F5E43A98EB6173 /* Pods_NotificationServiceExtension.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		BF54D0882EBE19D500A0F3ED /* NotificationServiceExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = BF54D0912EBE19D500A0F3ED /* Build configuration list for PBXNativeTarget "NotificationServiceExtension" */;
+			buildPhases = (
+				C8E2D139834505984425D260 /* [CP] Check Pods Manifest.lock */,
+				BF54D0852EBE19D500A0F3ED /* Sources */,
+				BF54D0862EBE19D500A0F3ED /* Frameworks */,
+				BF54D0872EBE19D500A0F3ED /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				BF54D08A2EBE19D500A0F3ED /* NotificationServiceExtension */,
+			);
+			name = NotificationServiceExtension;
+			productName = NotificationServiceExtension;
+			productReference = BF54D0892EBE19D500A0F3ED /* NotificationServiceExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+		BFC700962EBB5C03001B13C7 /* ByoSync-User */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = BFC700A22EBB5C04001B13C7 /* Build configuration list for PBXNativeTarget "ByoSync-User" */;
+			buildPhases = (
+				2F3F3F6A3FA2DE3201A727C5 /* [CP] Check Pods Manifest.lock */,
+				BFC700932EBB5C03001B13C7 /* Sources */,
+				BFC700942EBB5C03001B13C7 /* Frameworks */,
+				BFC700952EBB5C03001B13C7 /* Resources */,
+				BF54D0952EBE19D500A0F3ED /* Embed Foundation Extensions */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				BF54D08F2EBE19D500A0F3ED /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				BFC700992EBB5C03001B13C7 /* ByoSync-User */,
+			);
+			name = "ByoSync-User";
+			packageProductDependencies = (
+				BFC7032F2EBB5CBE001B13C7 /* Alamofire */,
+				BFC703342EBB5CED001B13C7 /* Cloudinary */,
+				BF1EA1462EBB61DD0077D606 /* SocketIO */,
+				BF54D06D2EBDD14600A0F3ED /* FirebaseAuth */,
+				BF54D06F2EBDD14600A0F3ED /* FirebaseFirestore */,
+				BF54D07A2EBDE58E00A0F3ED /* FirebaseMessaging */,
+			);
+			productName = "ByoSync-User";
+			productReference = BFC700972EBB5C03001B13C7 /* ByoSync-User.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		BFC7008F2EBB5C03001B13C7 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 2600;
+				LastUpgradeCheck = 2600;
+				TargetAttributes = {
+					BF54D0882EBE19D500A0F3ED = {
+						CreatedOnToolsVersion = 26.0.1;
+					};
+					BFC700962EBB5C03001B13C7 = {
+						CreatedOnToolsVersion = 26.0.1;
+						LastSwiftMigration = 2600;
+					};
+				};
+			};
+			buildConfigurationList = BFC700922EBB5C03001B13C7 /* Build configuration list for PBXProject "ByoSync-User" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+				mr,
+				ta,
+				ml,
+				bn,
+				hi,
+			);
+			mainGroup = BFC7008E2EBB5C03001B13C7;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				BFC7032E2EBB5CBE001B13C7 /* XCRemoteSwiftPackageReference "Alamofire" */,
+				BFC703332EBB5CED001B13C7 /* XCRemoteSwiftPackageReference "cloudinary_ios" */,
+				BF1EA1452EBB61DD0077D606 /* XCRemoteSwiftPackageReference "socket.io-client-swift" */,
+				BF54D06C2EBDD14600A0F3ED /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = BFC700982EBB5C03001B13C7 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				BFC700962EBB5C03001B13C7 /* ByoSync-User */,
+				BF54D0882EBE19D500A0F3ED /* NotificationServiceExtension */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		BF54D0872EBE19D500A0F3ED /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		BFC700952EBB5C03001B13C7 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		2F3F3F6A3FA2DE3201A727C5 /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-ByoSync-User-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+		C8E2D139834505984425D260 /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-NotificationServiceExtension-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		BF54D0852EBE19D500A0F3ED /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		BFC700932EBB5C03001B13C7 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		BF54D08F2EBE19D500A0F3ED /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = BF54D0882EBE19D500A0F3ED /* NotificationServiceExtension */;
+			targetProxy = BF54D08E2EBE19D500A0F3ED /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		BF54D0922EBE19D500A0F3ED /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 8AB51C2E2821F84BD14C07ED /* Pods-NotificationServiceExtension.debug.xcconfig */;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 26HBC2PDLM;
+				FRAMEWORK_SEARCH_PATHS = "$(PROJECT_DIR)/ByoSync-User/Frameworks";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = NotificationServiceExtension/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = NotificationServiceExtension;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.KavionIntelligence.byosync.user.NotificationServiceExtension;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		BF54D0932EBE19D500A0F3ED /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 4BB98856B8AAB10C1CF1E768 /* Pods-NotificationServiceExtension.release.xcconfig */;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 26HBC2PDLM;
+				FRAMEWORK_SEARCH_PATHS = "$(PROJECT_DIR)/ByoSync-User/Frameworks";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = NotificationServiceExtension/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = NotificationServiceExtension;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.KavionIntelligence.byosync.user.NotificationServiceExtension;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		BFC700A02EBB5C04001B13C7 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = LAP54KU2SV;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		BFC700A12EBB5C04001B13C7 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = LAP54KU2SV;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		BFC700A32EBB5C04001B13C7 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = A68D9C5DB79D79982F5DC581 /* Pods-ByoSync-User.debug.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_ENTITLEMENTS = "ByoSync-User/ByoSync-User.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 26HBC2PDLM;
+				ENABLE_PREVIEWS = YES;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(PROJECT_DIR)/ByoSync-User/Frameworks",
+					"$(inherited)",
+					"$(PROJECT_DIR)/ByoSync-User/Frameworks\\ 2",
+					"$(PROJECT_DIR)/ByoSync-User/Frameworks\\ 2",
+				);
+				GCC_PREFIX_HEADER = "$(SRCROOT)/PrefixHeader.pch";
+				GENERATE_INFOPLIST_FILE = YES;
+				HEADER_SEARCH_PATHS = (
+					"$(PROJECT_DIR)/ByoSync-User/Frameworks/ncnn.framework/Versions/A/Headers/**",
+					"$(PROJECT_DIR)/ByoSync-User/Frameworks/ncnn.framework/Versions/A/Headers/**",
+					"$(PROJECT_DIR)/**",
+				);
+				INFOPLIST_FILE = "ByoSync-User/Info.plist";
+				INFOPLIST_KEY_NSCameraUsageDescription = "Allow to camera access to proceed for payment and scan.";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				LIBRARY_SEARCH_PATHS = "$(inherited)";
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.KavionIntelligence.byosync.user;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "ByoSync-User/ByoSync-User-Bridging-Header.h";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		BFC700A42EBB5C04001B13C7 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = C85BF2BFA45173D81BE0B77B /* Pods-ByoSync-User.release.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_ENTITLEMENTS = "ByoSync-User/ByoSync-User.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 26HBC2PDLM;
+				ENABLE_PREVIEWS = YES;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(PROJECT_DIR)/ByoSync-User/Frameworks",
+					"$(inherited)",
+					"$(PROJECT_DIR)/ByoSync-User/Frameworks\\ 2",
+					"$(PROJECT_DIR)/ByoSync-User/Frameworks\\ 2",
+				);
+				GCC_PREFIX_HEADER = "$(SRCROOT)/PrefixHeader.pch";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "ByoSync-User/Info.plist";
+				INFOPLIST_KEY_NSCameraUsageDescription = "Allow to camera access to proceed for payment and scan.";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.KavionIntelligence.byosync.user;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "ByoSync-User/ByoSync-User-Bridging-Header.h";
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		BF54D0912EBE19D500A0F3ED /* Build configuration list for PBXNativeTarget "NotificationServiceExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BF54D0922EBE19D500A0F3ED /* Debug */,
+				BF54D0932EBE19D500A0F3ED /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		BFC700922EBB5C03001B13C7 /* Build configuration list for PBXProject "ByoSync-User" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BFC700A02EBB5C04001B13C7 /* Debug */,
+				BFC700A12EBB5C04001B13C7 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		BFC700A22EBB5C04001B13C7 /* Build configuration list for PBXNativeTarget "ByoSync-User" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BFC700A32EBB5C04001B13C7 /* Debug */,
+				BFC700A42EBB5C04001B13C7 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		BF1EA1452EBB61DD0077D606 /* XCRemoteSwiftPackageReference "socket.io-client-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/socketio/socket.io-client-swift.git";
+			requirement = {
+				branch = master;
+				kind = branch;
+			};
+		};
+		BF54D06C2EBDD14600A0F3ED /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 12.5.0;
+			};
+		};
+		BFC7032E2EBB5CBE001B13C7 /* XCRemoteSwiftPackageReference "Alamofire" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/Alamofire/Alamofire.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.10.2;
+			};
+		};
+		BFC703332EBB5CED001B13C7 /* XCRemoteSwiftPackageReference "cloudinary_ios" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/cloudinary/cloudinary_ios.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.2.3;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		BF1EA1462EBB61DD0077D606 /* SocketIO */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = BF1EA1452EBB61DD0077D606 /* XCRemoteSwiftPackageReference "socket.io-client-swift" */;
+			productName = SocketIO;
+		};
+		BF54D06D2EBDD14600A0F3ED /* FirebaseAuth */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = BF54D06C2EBDD14600A0F3ED /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAuth;
+		};
+		BF54D06F2EBDD14600A0F3ED /* FirebaseFirestore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = BF54D06C2EBDD14600A0F3ED /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseFirestore;
+		};
+		BF54D07A2EBDE58E00A0F3ED /* FirebaseMessaging */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = BF54D06C2EBDD14600A0F3ED /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseMessaging;
+		};
+		BFC7032F2EBB5CBE001B13C7 /* Alamofire */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = BFC7032E2EBB5CBE001B13C7 /* XCRemoteSwiftPackageReference "Alamofire" */;
+			productName = Alamofire;
+		};
+		BFC703342EBB5CED001B13C7 /* Cloudinary */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = BFC703332EBB5CED001B13C7 /* XCRemoteSwiftPackageReference "cloudinary_ios" */;
+			productName = Cloudinary;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = BFC7008F2EBB5C03001B13C7 /* Project object */;
+}

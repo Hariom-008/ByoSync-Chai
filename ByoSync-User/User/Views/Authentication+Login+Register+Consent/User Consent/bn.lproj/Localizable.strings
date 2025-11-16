@@ -1,0 +1,281 @@
+"welcome_title" = "ByoSync – ব্যবহারকারী নিবন্ধন সম্মতি ও শর্তাবলী";
+"welcome_subtitle" = "ByoSync-এ স্বাগতম";
+"welcome_tagline" = "নিরাপদ মুখ-ভিত্তিক UPI পেমেন্টের জন্য আপনার বিশ্বস্ত অ্যাপ।";
+
+"language_label" = "ভাষা";
+
+"before_you_begin" = "শুরু করার আগে";
+"before_you_begin_text" = "অগ্রসর হওয়ার আগে আমাদের পরিষেবার শর্তাবলী এবং ডেটা সম্মতি পড়ে নিন এবং গ্রহণ করুন।";
+
+"eligibility" = "যোগ্যতা";
+"eligibility_text" = "আপনি নিশ্চিত করছেন যে আপনার বয়স ১৮ বছর বা তার বেশি এবং আপনি ByoSync ব্যবহারের জন্য আইনগতভাবে যোগ্য।";
+
+"what_you_agree_to" = "আপনি যেগুলির সাথে একমত হচ্ছেন";
+"what_you_agree_to_text" = "• আমরা আপনার নাম, মোবাইল নম্বর, UPI ID, ব্যাংক বিবরণ এবং ডিভাইসের তথ্য সংগ্রহ ও প্রক্রিয়া করি।\n• আমরা প্রতারণা রোধ ও পরিষেবা উন্নতির জন্য লেনদেনের ইতিহাস, ডিভাইসের মেটাডেটা ও অবস্থান তথ্য সংগ্রহ করতে পারি।\n• আপনি ফেস রিকগনিশন সক্রিয় করলে, আমরা আপনার মুখের বায়োমেট্রিক ডেটা পরিচয় যাচাইয়ের জন্য ব্যবহার করব।\n• আমরা ব্যাংক, NPCI, পেমেন্ট পরিষেবা প্রদানকারী এবং যাচাইকৃত KYC অংশীদারদের সাথে ডেটা ভাগ করতে পারি।\n• আপনার ডেটা শুধুমাত্র ভারতে সংরক্ষিত ও এনক্রিপ্ট করা হয়।\n• আমরা কোনো ব্যক্তিগত তথ্য ভারতের বাইরে প্রেরণ করি না।";
+
+"identity_verification" = "পরিচয় যাচাই (KYC / আধার)";
+"identity_verification_text" = "পরিচয় যাচাই CKYC, ভিডিও-KYC, PAN যাচাই বা UIDAI অনুমোদিত পদ্ধতিতে আপনার সম্মতিসহ সম্পন্ন করা হয়।\nআমরা আপনার আধার নম্বর বা বায়োমেট্রিক সংরক্ষণ করি না।";
+
+"what_we_need" = "পরিষেবা প্রদানের জন্য আমাদের যা প্রয়োজন";
+"what_we_need_text" = "ফেস-ভিত্তিক পেমেন্ট এবং ব্যাংক-গ্রেড নিরাপত্তা নিশ্চিত করতে ByoSync প্রক্রিয়া করবে:\n• আপনার বায়োমেট্রিক তথ্য (মুখের টেমপ্লেট)\n• আপনার KYC তথ্য (PAN/ID)\n• আপনার ডিভাইস ও লেনদেনের তথ্য\nএই ডেটা ছাড়া পরিষেবা প্রদান করা সম্ভব নয়।";
+
+"consent_checkbox" = "আমি নিশ্চিত করছি যে আমার বয়স ১৮ বছর বা তার বেশি এবং আমি ByoSync-কে আমার বায়োমেট্রিক ও KYC তথ্য যাচাই, নিয়ম মেনে চলা এবং প্রতারণা প্রতিরোধের জন্য প্রক্রিয়া করার অনুমতি দিচ্ছি। আমি বুঝি, এই সম্মতি প্রত্যাহার করলে আমার অ্যাকাউন্ট নিষ্ক্রিয় হয়ে যাবে।";
+
+"your_rights" = "আপনার অধিকার ও ডেটা সংরক্ষণ";
+"your_rights_text" = "• আপনি যেকোনো সময় আপনার তথ্য অ্যাক্সেস, সংশোধন বা মুছে ফেলতে পারেন।\n• আপনি সম্মতি প্রত্যাহার করতে পারেন, তবে এতে আপনার অ্যাকাউন্ট নিষ্ক্রিয় হবে।\n• আইনত প্রয়োজনীয় তথ্য ৭ বছর সংরক্ষিত থাকবে।";
+
+"security_notice" = "নিরাপত্তা ও ভঙ্গের বিজ্ঞপ্তি";
+"security_notice_text" = "আমরা এন্ড-টু-এন্ড এনক্রিপশন এবং অডিট লগ ব্যবহার করি।\nযেকোনো ডেটা লঙ্ঘনের ক্ষেত্রে ব্যবহারকারী ও নিয়ন্ত্রকদের অবহিত করা হবে।";
+
+"data_localization" = "ডেটা লোকালাইজেশন";
+"data_localization_text" = "সব পেমেন্ট, KYC ও বায়োমেট্রিক ডেটা শুধুমাত্র ভারতে সংরক্ষিত ও প্রক্রিয়াকৃত হয়।";
+
+"roles_contacts" = "ভূমিকা ও যোগাযোগ";
+"roles_contacts_text" = "ডেটা ফিডিউশিয়ারি: Kavion Intelligence Pvt. Ltd. (\"ByoSync\")\nঅভিযোগ কর্মকর্তা: info@byosync.com\nঠিকানা: 55, NRI কমপ্লেক্স, জি.কে-VI, দিল্লি 110048\nউত্তর ১৫ দিনের মধ্যে প্রদান করা হবে।";
+
+"quick_summary" = "দ্রুত সারাংশ";
+"quick_summary_text" = "• আমরা মুখের বায়োমেট্রিক ও KYC তথ্য প্রক্রিয়া করি যাতে নিরাপদ UPI পেমেন্ট নিশ্চিত হয়।\n• আপনার ডেটা ভারতে থাকে।\n• আপনি যেকোনো সময় এটি দেখতে, সংশোধন করতে বা মুছতে পারেন।\n• সম্মতি প্রত্যাহার করলে আপনার অ্যাকাউন্ট নিষ্ক্রিয় হয়ে যাবে।";
+
+"terms_checkbox" = "আমি নিশ্চিত করছি যে আমি ByoSync-এর শর্তাবলী ও ডেটা প্রক্রিয়াকরণ সম্মতি পড়েছি, বুঝেছি এবং স্বীকার করেছি।";
+
+"decline_button" = "প্রত্যাখ্যান করুন";
+"accept_button" = "গ্রহণ করুন এবং চালিয়ে যান";
+
+"alert_title" = "সম্মতি প্রয়োজন";
+"alert_message" = "ByoSync ব্যবহার চালিয়ে যেতে আপনাকে দুটি সম্মতি প্রদান করতে হবে।";
+"alert_ok" = "ঠিক আছে";
+"merchant_title" = "বায়োসিঙ্ক – মার্চেন্ট রেজিস্ট্রেশন সম্মতি ও শর্তাবলী";
+"merchant_subtitle" = "মার্চেন্টদের জন্য বায়োসিঙ্কে স্বাগতম";
+"merchant_tagline" = "নিরাপদ UPI পেমেন্ট গ্রহণ এবং তাৎক্ষণিক সেটেলমেন্টের সাথে শুরু করুন।";
+
+"merchant_before_you_begin" = "শুরু করার আগে";
+"merchant_before_you_begin_text" = "অনুগ্রহ করে এগিয়ে যাওয়ার আগে আমাদের মার্চেন্ট শর্তাবলী এবং ডেটা সম্মতি পড়ুন এবং গ্রহণ করুন।";
+
+"merchant_eligibility" = "যোগ্যতা";
+"merchant_eligibility_text" = "• আপনার বয়স ১৮ বছর বা তার বেশি হতে হবে এবং ব্যবসার পক্ষে কাজ করার অনুমতি থাকতে হবে।\n• আপনি কোনো প্রতিষ্ঠানের প্রতিনিধিত্ব করলে, আপনি রেজিস্ট্রেশনের জন্য অনুমোদিত তা নিশ্চিত করেন।";
+
+"merchant_what_you_agree_to" = "আপনি কীসের সাথে একমত";
+"merchant_what_you_agree_to_text" = "• ব্যবসার পরিচয়পত্র, PAN, GSTIN এবং ব্যাংক বিবরণ প্রদান করবেন।\n• আমরা লেনদেনের তথ্য, সেটেলমেন্ট ও বায়োমেট্রিক আইডেন্টিটি প্রসেস করি।\n• আপনার তথ্য কাস্টমার রিসিপ্টে প্রদর্শিত হতে পারে।\n• সমস্ত ডেটা এনক্রিপ্টেড এবং শুধুমাত্র ভারতে সংরক্ষিত হয়।";
+
+"merchant_kyc_biometric" = "KYC, বায়োমেট্রিক ও ঝুঁকি নিয়ন্ত্রণ (প্রয়োজনীয়)";
+"merchant_kyc_biometric_text" = "• আপনি KYC, মুখভিত্তিক যাচাই ও ঝুঁকি পর্যালোচনার জন্য সম্মতি দেন।\n• সম্মতি প্রত্যাহার করলে আপনার মার্চেন্ট অ্যাকাউন্ট স্থগিত হবে।";
+
+"merchant_settlement_cycle" = "সেটেলমেন্ট সাইকেল";
+"merchant_settlement_cycle_text" = "• স্ট্যান্ডার্ড পেমেন্ট: T+1 ব্যাংকিং দিন।\n• ব্যতিক্রমসমূহ ড্যাশবোর্ডে কারণসহ প্রদর্শিত হবে।";
+
+"merchant_rights_retention" = "আপনার অধিকার ও ডেটা সংরক্ষণ";
+"merchant_rights_retention_text" = "• আপনি যেকোনো সময় আপনার তথ্য অ্যাক্সেস বা সংশোধন করতে পারেন।\n• ডেটা ৭ বছর সংরক্ষিত থাকবে এবং পরে মুছে ফেলা হবে।";
+
+"merchant_liability" = "দায়বদ্ধতা ও সম্মতি";
+"merchant_liability_text" = "• ডিভাইস ও নেটওয়ার্ক সুরক্ষার দায় আপনার।\n";
+
+"welcome_to" = "স্বাগতম";
+"make_payments_easier" = "আপনার পেমেন্ট সহজ করুন";
+"login" = "লগইন";
+"create_account" = "অ্যাকাউন্ট তৈরি করুন";
+"powered_by" = "দ্বারা চালিত";
+"welcome_back" = "আবার স্বাগতম";
+"enter_credentials" = "চালিয়ে যেতে প্রমাণপত্র দিন";
+"full_name" = "পূর্ণ নাম";
+"enter_full_name" = "আপনার পূর্ণ নাম লিখুন";
+"continue" = "চালিয়ে যান";
+"login_failed" = "লগইন ব্যর্থ হয়েছে";
+"first_name" = "প্রথম নাম";
+"last_name" = "শেষ নাম";
+"email" = "ইমেইল";
+"phone_number" = "ফোন নম্বর";
+"join_byosync_start" = "শুরু করতে ByoSync-এ যোগ দিন";
+"error" = "ত্রুটি";
+
+"profile_title" = "প্রোফাইল";
+"linked_devices" = "লিঙ্ক করা ডিভাইস";
+"settings" = "সেটিংস";
+"more" = "আরও";
+"refreshing_profile" = "প্রোফাইল রিফ্রেশ করা হচ্ছে...";
+"edit_profile" = "প্রোফাইল সম্পাদনা করুন";
+"user_section" = "ব্যবহারকারী";
+"first_name" = "প্রথম নাম";
+"last_name" = "শেষ নাম";
+"email_address" = "ইমেইল ঠিকানা";
+"phone_number" = "ফোন নম্বর";
+"testing_encryption" = "এনক্রিপশন-SHA256 পরীক্ষা";
+"location_testing" = "অবস্থান পরীক্ষার ভিউ";
+"log_out" = "লগ আউট";
+"success" = "সফলতা ✅";
+"profile_refreshed" = "প্রোফাইল সফলভাবে রিফ্রেশ হয়েছে!";
+"error_refresh" = "ত্রুটি ❌";
+"refresh_failed" = "প্রোফাইল রিফ্রেশ ব্যর্থ হয়েছে:";
+"ok" = "ঠিক আছে";
+
+"search_placeholder" = "নাম বা ফোন নম্বর দিয়ে পেমেন্ট করুন";
+"available_credit" = "উপলব্ধ ক্রেডিট";
+"my_wallet" = "আমার ওয়ালেট";
+"pay_to_merchant" = "বণিককে পরিশোধ করুন";
+"cashback_subtext" = "পে করুন • সর্বাধিক 10% ক্যাশব্যাক পান";
+"promotions" = "প্রচারাভিযান";
+"weekend_offer_title" = "সাপ্তাহিক বিশেষ অফার";
+"weekend_offer_subtitle" = "সব পেমেন্টে অতিরিক্ত 20% ক্যাশব্যাক";
+
+"tab_home" = "হোম";
+"tab_transactions" = "লেনদেন";
+
+
+// MARK: - EditProfileView
+"edit_profile.title" = "প্রোফাইল সম্পাদনা করুন";
+"edit_profile.cancel" = "বাতিল";
+"edit_profile.profile_picture" = "প্রোফাইল ছবি";
+"edit_profile.choose_photo" = "ছবি নির্বাচন করুন";
+"edit_profile.save_new_picture" = "নতুন ছবি সংরক্ষণ করুন";
+"edit_profile.uploading" = "আপলোড হচ্ছে…";
+"edit_profile.personal_information" = "ব্যক্তিগত তথ্য";
+"edit_profile.first_name" = "প্রথম নাম";
+"edit_profile.last_name" = "শেষ নাম";
+"edit_profile.email" = "ই-মেইল";
+"edit_profile.save_changes" = "পরিবর্তন সংরক্ষণ করুন";
+"edit_profile.updating" = "হালনাগাদ হচ্ছে…";
+"edit_profile.ok" = "ঠিক আছে";
+
+// MARK: - WalletView
+"wallet.title" = "ওয়ালেট";
+"wallet.current_balance" = "বর্তমান ব্যালেন্স";
+"wallet.total_discounts" = "মোট ছাড়";
+"wallet.transactions" = "লেনদেন";
+"wallet.discount_history" = "ছাড় ইতিহাস";
+"wallet.all_discounts" = "সকল ছাড়";
+"wallet.no_discounts_yet" = "এখনও কোনো ছাড় নেই";
+"wallet.complete_payments_message" = "ছাড় পেতে পেমেন্ট সম্পন্ন করুন";
+"wallet.discount_applied" = "ছাড় প্রযোজিত হয়েছে";
+"wallet.off" = "ছাড়";
+
+// MARK: - TransactionView
+"transaction.title" = "লেনদেন";
+"transaction.total_paid" = "মোট পরিশোধ";
+"transaction.count" = "পরিমাণ";
+"transaction.saved" = "সঞ্চিত";
+"transaction.report_type" = "রিপোর্ট প্রকার";
+"transaction.select_date" = "তারিখ নির্বাচন করুন";
+"transaction.loading" = "লোড হচ্ছে…";
+"transaction.processing_request" = "আপনার অনুরোধ প্রক্রিয়া করা হচ্ছে…";
+"transaction.something_wrong" = "কিছু ভুল হয়েছে";
+"transaction.try_again" = "আবার চেষ্টা করুন";
+"transaction.no_transactions" = "কোনো লেনদেন নেই";
+"transaction.no_transactions_for_date" = "%@ তারিখের জন্য কোনো লেনদেন নেই";
+"transaction.transactions_for" = "%@ জন্য";
+"transaction.transaction" = "লেনদেন";
+"transaction.transactions" = "লেনদেনসমূহ";
+"transaction.payment" = "পরিশোধ";
+"transaction.discount_earned" = "উপার্জিত ছাড়";
+"transaction.email_will_be_sent" = "ই-মেইল পাঠানো হবে";
+"transaction.report_will_be_downloaded" = "রিপোর্ট ডাউনলোড করা হবে";
+"transaction.click_to_proceed" = "আগে যেতে ‘%@’ তে ক্লিক করুন";
+
+// MARK: - Report Types
+"report_type.view" = "দেখুন";
+"report_type.email" = "ই-মেইল";
+"report_type.download" = "ডাউনলোড";
+"report_type.fetch" = "আনা";
+"report_type.send" = "পাঠান";
+
+// MARK: - Transaction Status
+"status.success" = "সফল";
+"status.completed" = "সম্পন্ন";
+"status.pending" = "অপেক্ষারত";
+"status.failed" = "ব্যর্থ";
+
+// MARK: - EnterAmountView
+"enter_amount.title" = "টাকা পাঠান";
+"enter_amount.merchant" = "বিক্রেতা";
+"enter_amount.ready_to_receive" = "গ্রহণের জন্য প্রস্তুত";
+"enter_amount.enter_amount" = "রাশি লিখুন";
+"enter_amount.amount_placeholder" = "0";
+"enter_amount.amount_format" = "রাশি: ₹%.2f";
+"enter_amount.hide_keyboard" = "কীবোর্ড লুকান";
+"enter_amount.continue_payment" = "পরিশোধ চালিয়ে যান";
+
+// MARK: - PaymentConfirmationView
+"payment_confirmation.title" = "পরিশোধ নিশ্চিত করুন";
+"payment_confirmation.verify_faceid" = "Face ID দিয়ে যাচাই করুন";
+"payment_confirmation.authenticate_message" = "আপনার পরিশোধ নিশ্চিত করতে যাচাই করুন";
+"payment_confirmation.amount_to_pay" = "পারিশোধযোগ্য রাশি";
+"payment_confirmation.pay_to" = "কে পরিশোধ করুন";
+"payment_confirmation.upi_id" = "UPI ID";
+"payment_confirmation.date_time" = "তারিখ ও সময়";
+"payment_confirmation.secure_payment" = "নিরাপদ পরিশোধ";
+"payment_confirmation.payment_encrypted" = "আপনার পরিশোধ এনক্রিপ্টেড এবং নিরাপদ";
+"payment_confirmation.agree_terms" = "আমি পরিশোধের শর্তাবলী ও বিধিতে সম্মত";
+"payment_confirmation.processing" = "প্রক্রিয়াকরণ…";
+"payment_confirmation.verifying_faceid" = "Face ID যাচাই করা হচ্ছে";
+"payment_confirmation.confirm_payment" = "পরিশোধ নিশ্চিত করুন";
+"payment_confirmation.cancel_payment" = "পরিশোধ বাতিল করুন";
+
+// MARK: - ChooseUPIAppView
+"choose_upi.title" = "টাকা পাঠান";
+"choose_upi.merchant" = "বিক্রেতা";
+"choose_upi.amount" = "রাশি: ₹%@";
+"choose_upi.choose_payment_app" = "পরিশোধ অ্যাপ নির্বাচন করুন";
+"choose_upi.change" = "পরিবর্তন করুন";
+"choose_upi.transaction_details" = "লেনদেনের বিবরণ";
+"choose_upi.date" = "তারিখ";
+"choose_upi.cashback" = "ক্যাশব্যাক";
+"choose_upi.cashback_amount" = "সর্বোচ্চ 10%";
+"choose_upi.receiver_upi" = "গ্রহীতার UPI";
+"choose_upi.proceed_to_pay" = "পরিশোধ করতে এগিয়ে যান";
+"choose_upi.back" = "পিছনে";
+"choose_upi.processing_payment" = "পরিশোধ প্রক্রিয়াধীন";
+"choose_upi.please_wait" = "অনুগ্রহ করে অপেক্ষা করুন…";
+"choose_upi.select_upi_app" = "UPI অ্যাপ নির্বাচন করুন";
+"choose_upi.cancel" = "বাতিল";
+
+// MARK: - UPI Apps
+"upi_app.google_pay" = "Google Pay";
+"upi_app.phonepe" = "PhonePe";
+"upi_app.paytm" = "Paytm";
+
+// MARK: - ReceiptView
+"receipt.payment_successful" = "পরিশোধ সফল!";
+"receipt.transaction_completed" = "আপনার লেনদেন সম্পন্ন হয়েছে";
+"receipt.amount_paid" = "পরিশোধিত রাশি";
+"receipt.cashback_earned" = "₹%@ ক্যাশব্যাক অর্জিত";
+"receipt.pay_again" = "আবার পরিশোধ করুন";
+"receipt.transaction_details" = "লেনদেনের বিস্তারিত";
+"receipt.date_time" = "তারিখ ও সময়";
+"receipt.transaction_id" = "লেনদেন আইডি";
+"receipt.payment_method" = "পরিশোধ পদ্ধতি";
+"receipt.status" = "অবস্থা";
+"receipt.status_completed" = "সম্পন্ন";
+"receipt.share_receipt" = "রসিদ শেয়ার করুন";
+"receipt.back_to_home" = "হোমে ফিরে যান";
+
+// MARK: - Common
+"common.currency_symbol" = "₹";
+"common.phone_number" = "0987654321";
+"common.receiver_upi" = "receiver@oksbi";
+"common.loading" = "লোড হচ্ছে…";
+"common.error" = "ত্রুটি";
+"common.success" = "সাফল্য";
+"common.ok" = "ঠিক আছে";
+"common.cancel" = "বাতিল";
+"common.back" = "পিছনে";
+"common.done" = "সম্পন্ন";
+"common.save" = "সংরক্ষণ";
+"common.delete" = "মুছে ফেলুন";
+"common.edit" = "সম্পাদনা";
+"common.close" = "বন্ধ করুন";
+
+// MARK: - Date Formats
+"date.format.full" = "MMM dd, yyyy • hh:mm a";
+"date.format.short" = "MMM dd, yyyy";
+"date.format.time" = "hh:mm a";
+"date.format.month_day_time" = "MMM dd, hh:mm a";
+
+// MARK: - Error Messages
+"error.something_went_wrong" = "কিছু ভুল হয়েছে";
+"error.try_again" = "দয়া করে আবার চেষ্টা করুন";
+"error.invalid_amount" = "দয়া করে একটি বৈধ রাশি লিখুন";
+"error.payment_failed" = "পরিশোধ ব্যর্থ হয়েছে";
+"error.network_error" = "নেটওয়ার্ক ত্রুটি হয়েছে";
+
+// MARK: - Success Messages
+"success.payment_completed" = "পরিশোধ সফলভাবে সম্পন্ন হয়েছে";
+"success.profile_updated" = "প্রোফাইল সফলভাবে আপডেট হয়েছে";
+"success.photo_uploaded" = "ছবি সফলভাবে আপলোড হয়েছে";

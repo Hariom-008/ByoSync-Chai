@@ -1,0 +1,325 @@
+/* 
+  Localizable.strings
+  ByoSync
+
+  Created by Hari's Mac on 31.10.2025.
+  
+*/
+"welcome_title" = "ByoSync – User Registration Consent & Terms";
+"welcome_subtitle" = "Welcome to ByoSync";
+"welcome_tagline" = "Your trusted app for secure face-based UPI payments.";
+
+"language_label" = "Language";
+"before_you_begin" = "Before You Begin";
+"before_you_begin_text" = "Please review and accept our Terms of Service and Data Consent to continue.";
+
+"eligibility" = "Eligibility";
+"eligibility_text" = "You confirm that you are 18 years or older and legally competent to use ByoSync.";
+
+"what_you_agree_to" = "What You Agree To";
+"what_you_agree_to_text" = "• We collect and process your name, mobile number, UPI ID, bank details, and device information to enable payments.\n• We may collect transaction history, device metadata, IP address, and geolocation for fraud prevention and service improvement.\n• If you enable face recognition, we will process your biometric data (face templates) for identity verification and payment authorization.\n• We may share information with banks, NPCI, payment providers, and verified KYC partners for transactions and regulatory compliance.\n• Your data is encrypted in transit and at rest, and stored only in India per RBI, NPCI, and government policies.\n• We do not transfer personal data outside India.";
+
+"identity_verification" = "Identity Verification (KYC / Aadhaar)";
+"identity_verification_text" = "Verification is performed using CKYC, Video-KYC, PAN validation, or UIDAI-approved flows with your consent.\nWe do not store your Aadhaar number or Aadhaar biometrics.";
+
+"what_we_need" = "What We Need to Provide the Service";
+"what_we_need_text" = "To enable face-based payments and banking-grade security, ByoSync must process:\n• Your biometric data (face template)\n• Your KYC data (PAN/ID)\n• Your device and transaction data\nWithout this processing, we cannot provide the service.";
+
+"consent_checkbox" = "I am 18 years or older and I give explicit consent to ByoSync to process my biometric and KYC data for identity verification, compliance, and fraud prevention. I understand that withdrawing this consent will disable my ByoSync account.";
+
+"your_rights" = "Your Rights & Data Storage";
+"your_rights_text" = "• You can access, correct, or delete your data anytime.\n• You can withdraw consent anytime, but doing so will deactivate your account.\n• Legally required data will be retained for 7 years before deletion or anonymization.";
+
+"security_notice" = "Security & Breach Notice";
+"security_notice_text" = "We use end-to-end encryption, device binding, and audit logs to protect your data.\nAny data breach will be reported to users and regulators per CERT-In/RBI/NPCI guidelines.";
+
+"data_localization" = "Data Localization";
+"data_localization_text" = "All payment, KYC, and biometric data are stored and processed only in India.\nAny third-party processors are India-based and DPDP Act compliant.";
+
+"roles_contacts" = "Roles & Contacts";
+"roles_contacts_text" = "Data Fiduciary: Kavion Intelligence Pvt. Ltd. (“ByoSync”)\nGrievance Officer: info@byosync.com\nAddress: 55, NRI Complex, GK-VI, Delhi 110048\nResponse within 15 days. Unresolved complaints can be escalated to the Data Protection Board of India.";
+
+"quick_summary" = "Quick Summary";
+"quick_summary_text" = "• We process your biometrics and KYC to enable secure face-based UPI payments.\n• Your data stays in India.\n• You can view, correct, or delete it anytime.\n• Withdrawing consent disables your account.\nHelp: privacy@byosync.com";
+
+"terms_checkbox" = "I confirm that I am 18 years or older and have read, understood, and agree to the ByoSync Terms & Conditions and Consent to Data Processing.";
+
+"decline_button" = "Decline";
+"accept_button" = "Accept & Continue";
+
+"alert_title" = "Consent Required";
+"alert_message" = "You must provide both consents to continue using ByoSync.";
+"alert_ok" = "OK";
+
+"merchant_title" = "ByoSync – Merchant Registration Consent & Terms";
+"merchant_subtitle" = "Welcome to ByoSync for Merchants";
+"merchant_tagline" = "Get started with secure UPI payment acceptance and instant settlements.";
+
+"merchant_before_you_begin" = "Before You Begin";
+"merchant_before_you_begin_text" = "Please review and accept our Merchant Terms and Data Consent to continue.";
+
+"merchant_eligibility" = "Eligibility";
+"merchant_eligibility_text" = "• You must be 18 years or older and authorized to act for your business.\n• If representing an organization, you confirm your authority to register and operate the account.";
+
+"merchant_what_you_agree_to" = "What You Agree To";
+"merchant_what_you_agree_to_text" = "• You will provide business identity documents, PAN, GSTIN, and bank details for verification.\n• We process transaction data, settlements, and biometric identity for compliance.\n• Your merchant data may appear on customer receipts.\n• All data is encrypted, stored in India, and retained for 7 years as per RBI / FIU-IND rules.";
+
+"merchant_kyc_biometric" = "KYC, Biometrics & Risk Controls (Required)";
+"merchant_kyc_biometric_text" = "• You consent to KYC onboarding, face-based verification, and risk reviews.\n• Refusing consent suspends your merchant account.";
+
+"merchant_settlement_cycle" = "Settlement Cycle";
+"merchant_settlement_cycle_text" = "• Standard payout: T+1 banking day.\n• Exceptions (bank holidays, downtime, or risk reviews) will be notified with reasons and ETA.";
+
+"merchant_rights_retention" = "Your Rights & Retention";
+"merchant_rights_retention_text" = "• You can access or correct your data anytime.\n• Data retained for 7 years, then deleted or anonymized per DPDP compliance.";
+
+"merchant_liability" = "Liability & Compliance";
+"merchant_liability_text" = "• You are responsible for your device and network security.\n• Fraud or misuse from your end is your liability.\n• Disputes governed by Delhi jurisdiction.";
+
+"merchant_what_we_need" = "What We Need to Provide the Service";
+"merchant_what_we_need_text" = "To enable secure merchant login, settlements, and compliance verification, ByoSync must process:\n• Face biometric data\n• KYC and financial data\n• Device and transaction data.";
+
+"merchant_consent_checkbox" = "I am 18 years or older, authorized to act on behalf of my business, and give explicit consent to ByoSync to process my biometric, KYC, and business data for compliance and settlement.";
+
+"merchant_localization_support" = "Localization & Support";
+"merchant_localization_support_text" = "All data is stored and processed only in India.\nSupport: privacy@byosync.com\nAddress: 55, NRI Complex, GK-VI, Delhi 110048.";
+
+"merchant_summary" = "Quick Summary";
+"merchant_summary_text" = "We process your biometric, KYC, and business data to secure your merchant account.\nData stays in India for 7 years.\nHelp: privacy@byosync.com.";
+
+"merchant_terms_checkbox" = "I confirm that I am 18 years or older, authorized for this business, and agree to the ByoSync Merchant Terms & Data Consent.";
+
+"merchant_alert_consent_message" = "You must provide both consents to continue merchant registration with ByoSync.";
+"merchant_alert_declined_title" = "Registration Declined";
+"merchant_alert_declined_message" = "You have declined the merchant terms. Without accepting these, you cannot register as a merchant.";
+
+"back_button" = "Back";
+
+"welcome_to" = "Welcome to";
+"make_payments_easier" = "Make your payments easier";
+"login" = "Login";
+"create_account" = "Create Account";
+"powered_by" = "Powered by";
+"welcome_back" = "Welcome Back";
+"enter_credentials" = "Enter credentials to continue";
+"full_name" = "Full Name";
+"enter_full_name" = "Enter your full name";
+"continue" = "Continue";
+"login_failed" = "Login Failed";
+"first_name" = "First Name";
+"last_name" = "Last Name";
+"email" = "Email";
+"phone_number" = "Phone Number";
+"join_byosync_start" = "Join ByoSync to get started";
+"error" = "Error";
+
+"profile_title" = "Profile";
+"linked_devices" = "Linked Devices";
+"settings" = "Settings";
+"more" = "More";
+"refreshing_profile" = "Refreshing Profile...";
+"edit_profile" = "Edit Profile";
+"user_section" = "User";
+"first_name" = "First Name";
+"last_name" = "Last Name";
+"email_address" = "Email Address";
+"phone_number" = "Phone Number";
+"testing_encryption" = "Testing Encryption-SHA256";
+"location_testing" = "Location Testing View";
+"log_out" = "Log Out";
+"success" = "Success ✅";
+"profile_refreshed" = "Profile refreshed successfully!";
+"error_refresh" = "Error ❌";
+"refresh_failed" = "Failed to refresh profile:";
+"ok" = "OK";
+
+"search_placeholder" = "Pay by name or phone number";
+"available_credit" = "Available Credit";
+"my_wallet" = "My Wallet";
+"pay_to_merchant" = "Pay";
+"cashback_subtext" = "Pay  • Get upto 10% cashback";
+"promotions" = "Promotions";
+"weekend_offer_title" = "Weekend Special Offer";
+"weekend_offer_subtitle" = "Extra 20% cashback on all payments";
+
+"tab_home" = "Home";
+"tab_transactions" = "Transactions";
+
+
+
+
+// MARK: - EditProfileView
+"edit_profile.title" = "Edit Profile";
+"edit_profile.cancel" = "Cancel";
+"edit_profile.profile_picture" = "Profile Picture";
+"edit_profile.choose_photo" = "Choose Photo";
+"edit_profile.save_new_picture" = "Save New Picture";
+"edit_profile.uploading" = "Uploading...";
+"edit_profile.personal_information" = "Personal Information";
+"edit_profile.first_name" = "First Name";
+"edit_profile.last_name" = "Last Name";
+"edit_profile.email" = "Email";
+"edit_profile.save_changes" = "Save Changes";
+"edit_profile.updating" = "Updating...";
+"edit_profile.ok" = "OK";
+
+// MARK: - WalletView
+"wallet.title" = "Wallet";
+"wallet.current_balance" = "Current Balance";
+"wallet.total_discounts" = "Total Discounts";
+"wallet.transactions" = "Transactions";
+"wallet.discount_history" = "Discount History";
+"wallet.all_discounts" = "All Discounts";
+"wallet.no_discounts_yet" = "No Discounts Yet";
+"wallet.complete_payments_message" = "Complete payments to earn discounts";
+"wallet.discount_applied" = "Discount";
+"wallet.off" = "off";
+
+// MARK: - TransactionView
+"transaction.title" = "Transactions";
+"transaction.total_paid" = "Total Paid";
+"transaction.count" = "Count";
+"transaction.saved" = "Saved";
+"transaction.report_type" = "Report Type";
+"transaction.select_date" = "Select Date";
+"transaction.loading" = "Loading...";
+"transaction.processing_request" = "Processing your request...";
+"transaction.something_wrong" = "Something went wrong";
+"transaction.try_again" = "Try Again";
+"transaction.no_transactions" = "No Transactions";
+"transaction.no_transactions_for_date" = "There are no transactions for %@";
+"transaction.transactions_for" = "for %@";
+"transaction.transaction" = "Transaction";
+"transaction.transactions" = "Transactions";
+"transaction.payment" = "Payment";
+"transaction.discount_earned" = "Discount Earned";
+"transaction.email_will_be_sent" = "Email will be sent";
+"transaction.report_will_be_downloaded" = "Report will be downloaded";
+"transaction.click_to_proceed" = "Click '%@' to proceed";
+
+// MARK: - Report Types
+"report_type.view" = "View";
+"report_type.email" = "Email";
+"report_type.download" = "Download";
+"report_type.fetch" = "Fetch";
+"report_type.send" = "Send";
+
+// MARK: - Transaction Status
+"status.success" = "SUCCESS";
+"status.completed" = "COMPLETED";
+"status.pending" = "PENDING";
+"status.failed" = "FAILED";
+
+// MARK: - EnterAmountView
+"enter_amount.title" = "Send Money to";
+"enter_amount.merchant" = "Merchant";
+"enter_amount.ready_to_receive" = "Ready to receive";
+"enter_amount.enter_amount" = "Enter Amount";
+"enter_amount.amount_placeholder" = "0";
+"enter_amount.amount_format" = "Amount: ₹%.2f";
+"enter_amount.hide_keyboard" = "Hide Keyboard";
+"enter_amount.continue_payment" = "Continue to Payment";
+
+// MARK: - PaymentConfirmationView
+"payment_confirmation.title" = "Confirm Payment";
+"payment_confirmation.verify_faceid" = "Verify with Face ID";
+"payment_confirmation.authenticate_message" = "Authenticate to confirm your payment";
+"payment_confirmation.amount_to_pay" = "Amount to Pay";
+"payment_confirmation.pay_to" = "Pay to";
+"payment_confirmation.upi_id" = "UPI ID";
+"payment_confirmation.date_time" = "Date & Time";
+"payment_confirmation.secure_payment" = "Secure Payment";
+"payment_confirmation.payment_encrypted" = "Your payment is encrypted and secure";
+"payment_confirmation.agree_terms" = "I agree to the payment terms and conditions";
+"payment_confirmation.processing" = "Processing...";
+"payment_confirmation.verifying_faceid" = "Verifying with Face ID";
+"payment_confirmation.confirm_payment" = "Confirm Payment";
+"payment_confirmation.cancel_payment" = "Cancel Payment";
+
+// MARK: - ChooseUPIAppView
+"choose_upi.title" = "Send Money";
+"choose_upi.merchant" = "Merchant";
+"choose_upi.amount" = "Amount: ₹%@";
+"choose_upi.choose_payment_app" = "Choose Payment App";
+"choose_upi.change" = "Change";
+"choose_upi.transaction_details" = "Transaction Details";
+"choose_upi.date" = "Date";
+"choose_upi.cashback" = "Cashback";
+"choose_upi.cashback_amount" = "Up to 10%";
+"choose_upi.receiver_upi" = "Receiver's UPI";
+"choose_upi.proceed_to_pay" = "Proceed to Pay";
+"choose_upi.back" = "Back";
+"choose_upi.processing_payment" = "Processing Payment";
+"choose_upi.please_wait" = "Please wait...";
+"choose_upi.select_upi_app" = "Select UPI App";
+"choose_upi.cancel" = "Cancel";
+
+// MARK: - UPI Apps
+"upi_app.google_pay" = "Google Pay";
+"upi_app.phonepe" = "PhonePe";
+"upi_app.paytm" = "Paytm";
+
+// MARK: - ReceiptView
+"receipt.payment_successful" = "Payment Successful!";
+"receipt.transaction_completed" = "Your transaction has been completed";
+"receipt.amount_paid" = "Amount Paid";
+"receipt.cashback_earned" = "₹%@ Cashback Earned";
+"receipt.pay_again" = "Pay Again";
+"receipt.transaction_details" = "Transaction Details";
+"receipt.date_time" = "Date & Time";
+"receipt.transaction_id" = "Transaction ID";
+"receipt.payment_method" = "Payment Method";
+"receipt.status" = "Status";
+"receipt.status_completed" = "Completed";
+"receipt.share_receipt" = "Share Receipt";
+"receipt.back_to_home" = "Back to Home";
+
+// MARK: - Common
+"common.currency_symbol" = "₹";
+"common.phone_number" = "0987654321";
+"common.receiver_upi" = "receiver@oksbi";
+"common.loading" = "Loading...";
+"common.error" = "Error";
+"common.success" = "Success";
+"common.ok" = "OK";
+"common.cancel" = "Cancel";
+"common.back" = "Back";
+"common.done" = "Done";
+"common.save" = "Save";
+"common.delete" = "Delete";
+"common.edit" = "Edit";
+"common.close" = "Close";
+
+// MARK: - Date Formats
+"date.format.full" = "MMM dd, yyyy • hh:mm a";
+"date.format.short" = "MMM dd, yyyy";
+"date.format.time" = "hh:mm a";
+"date.format.month_day_time" = "MMM dd, hh:mm a";
+
+// MARK: - Error Messages
+"error.something_went_wrong" = "Something went wrong";
+"error.try_again" = "Please try again";
+"error.invalid_amount" = "Please enter a valid amount";
+"error.payment_failed" = "Payment failed";
+"error.network_error" = "Network error occurred";
+
+// MARK: - Success Messages
+"success.payment_completed" = "Payment completed successfully";
+"success.profile_updated" = "Profile updated successfully";
+"success.photo_uploaded" = "Photo uploaded successfully";
+
+// MARK: - Icons (System Names - for reference)
+"icon.person_fill" = "person.fill";
+"icon.envelope_fill" = "envelope.fill";
+"icon.phone_fill" = "phone.fill";
+"icon.calendar" = "calendar";
+"icon.gift_fill" = "gift.fill";
+"icon.creditcard_fill" = "creditcard.fill";
+"icon.checkmark_circle_fill" = "checkmark.circle.fill";
+"icon.xmark" = "xmark";
+"icon.arrow_right" = "arrow.right";
+"icon.chevron_left" = "chevron.left";
+"icon.lock_fill" = "lock.fill";
+"icon.faceid" = "faceid";
+"icon.shield_fill" = "shield.fill";
+"icon.doc_text_fill" = "doc.text.fill";
