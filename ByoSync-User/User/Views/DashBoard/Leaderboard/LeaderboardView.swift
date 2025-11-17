@@ -10,8 +10,7 @@ struct LeaderboardView: View {
     
     enum LeaderboardFilter: String, CaseIterable {
         case transactions = "Transactions"
-        case coins = "Coins"
-        case wallet = "Wallet"
+        case paidAmount = "Paid Amount"
     }
     
     // MARK: - Initialization with Dependency Injection
@@ -172,12 +171,9 @@ struct LeaderboardView: View {
         case .transactions:
             sorted = viewModel.users.sorted { $0.noOfTransactions > $1.noOfTransactions }
             print("📊 [VIEW] Sorted by transactions: \(sorted.count) users")
-        case .coins:
+        case .paidAmount:
             sorted = viewModel.users.sorted { $0.transactionCoins > $1.transactionCoins }
             print("🪙 [VIEW] Sorted by coins: \(sorted.count) users")
-        case .wallet:
-            sorted = viewModel.users.sorted { $0.wallet > $1.wallet }
-            print("💰 [VIEW] Sorted by wallet: \(sorted.count) users")
         }
         return sorted
     }
@@ -255,8 +251,7 @@ struct LeaderboardView: View {
     private func filterIcon(for filter: LeaderboardFilter) -> String {
         switch filter {
         case .transactions: return "arrow.left.arrow.right"
-        case .coins: return "bitcoinsign.circle.fill"
-        case .wallet: return "wallet.pass.fill"
+        case .paidAmount: return "bitcoinsign.circle.fill"
         }
     }
     
@@ -437,7 +432,7 @@ struct LeaderboardView: View {
                 PodiumCard(
                     user: sortedUsers[1],
                     rank: 2,
-                    height: 160,
+                    height: 240,
                     filterType: selectedFilter
                 )
                 .scaleEffect(animateTopThree ? 1 : 0.8)
@@ -447,7 +442,7 @@ struct LeaderboardView: View {
                 PodiumCard(
                     user: sortedUsers[0],
                     rank: 1,
-                    height: 200,
+                    height: 300,
                     filterType: selectedFilter
                 )
                 .scaleEffect(animateTopThree ? 1 : 0.8)
@@ -457,7 +452,7 @@ struct LeaderboardView: View {
                 PodiumCard(
                     user: sortedUsers[2],
                     rank: 3,
-                    height: 140,
+                    height: 240,
                     filterType: selectedFilter
                 )
                 .scaleEffect(animateTopThree ? 1 : 0.8)
@@ -622,10 +617,8 @@ private struct PodiumCard: View {
         switch filterType {
         case .transactions:
             return "\(user.noOfTransactions)"
-        case .coins:
+        case .paidAmount:
             return "\(user.transactionCoins)"
-        case .wallet:
-            return "$\(String(format: "%.0f", user.wallet))"
         }
     }
     
@@ -633,10 +626,8 @@ private struct PodiumCard: View {
         switch filterType {
         case .transactions:
             return "Transactions"
-        case .coins:
-            return "Coins"
-        case .wallet:
-            return "Wallet"
+        case .paidAmount:
+            return "Paid Amount"
         }
     }
     
@@ -647,7 +638,6 @@ private struct PodiumCard: View {
                 Image(systemName: "crown.fill")
                     .font(.system(size: 32, weight: .bold))
                     .foregroundStyle(rankGradient)
-                    .offset(y: -16)
                     .shadow(color: rankColor.opacity(0.5), radius: 8, x: 0, y: 4)
             }
             
@@ -734,12 +724,8 @@ private struct PodiumCard: View {
         }
         .background(
             RoundedRectangle(cornerRadius: 24)
-                .fill(.white)
+                .fill(rankGradient.opacity(0.4))
                 .shadow(color: rankColor.opacity(0.25), radius: 16, x: 0, y: 8)
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 24)
-                .stroke(rankGradient, lineWidth: rank == 1 ? 3 : 2.5)
         )
     }
 }
@@ -756,10 +742,8 @@ private struct LeaderboardRowCard: View {
         switch filterType {
         case .transactions:
             return "\(user.noOfTransactions)"
-        case .coins:
+        case .paidAmount:
             return "\(user.transactionCoins)"
-        case .wallet:
-            return "$\(String(format: "%.2f", user.wallet))"
         }
     }
     
@@ -767,10 +751,8 @@ private struct LeaderboardRowCard: View {
         switch filterType {
         case .transactions:
             return "Transactions"
-        case .coins:
-            return "Coins"
-        case .wallet:
-            return "Balance"
+        case .paidAmount:
+            return "Paid Amount"
         }
     }
     
@@ -825,23 +807,10 @@ private struct LeaderboardRowCard: View {
     var body: some View {
         HStack(spacing: 16) {
             // Rank Number
-            ZStack {
-                if rank <= 3 {
-                    Circle()
-                        .fill(rankGradient)
-                        .frame(width: 40, height: 40)
-                        .shadow(color: rankColor.opacity(0.3), radius: 6, x: 0, y: 3)
-                    
-                    Circle()
-                        .fill(.white)
-                        .frame(width: 34, height: 34)
-                }
-                
                 Text("#\(rank)")
-                    .font(.system(size: rank <= 3 ? 16 : 15, weight: .bold))
-                    .foregroundStyle(rank <= 3 ? rankGradient : LinearGradient(colors: [Color(hex: "6B7280")], startPoint: .leading, endPoint: .trailing))
+                    .font(.system(size: rank <= 3 ? 16 : 14, weight: .bold))
+                    .foregroundStyle(rank <= 3 ? rankColor : Color.black)
                     .frame(width: 40)
-            }
             
             // Profile Picture
             AsyncImage(url: URL(string: user.profilePic)) { image in
