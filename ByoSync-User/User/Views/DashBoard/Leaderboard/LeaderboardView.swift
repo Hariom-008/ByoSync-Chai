@@ -30,15 +30,33 @@ struct LeaderboardView: View {
     
     var body: some View {
         ZStack {
-            // Background Gradient
-            LinearGradient(
-                colors: [
-                    Color(hex: "4B548D"),
-                    Color(hex: "3D4475")
-                ],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
+            // Clean White Background
+            Color.white
+                .ignoresSafeArea()
+            
+            // Subtle background pattern
+            GeometryReader { geometry in
+                ForEach(0..<6, id: \.self) { index in
+                    Circle()
+                        .fill(
+                            RadialGradient(
+                                colors: [
+                                    Color(hex: "4B548D").opacity(0.03),
+                                    Color.clear
+                                ],
+                                center: .center,
+                                startRadius: 50,
+                                endRadius: 150
+                            )
+                        )
+                        .frame(width: 200, height: 200)
+                        .position(
+                            x: CGFloat.random(in: 0...geometry.size.width),
+                            y: CGFloat.random(in: 0...geometry.size.height)
+                        )
+                        .blur(radius: 20)
+                }
+            }
             .ignoresSafeArea()
             
             VStack(spacing: 0) {
@@ -46,7 +64,7 @@ struct LeaderboardView: View {
                 navigationBar
                     .padding(.horizontal, 20)
                     .padding(.top, 8)
-                    .padding(.bottom, 16)
+                    .padding(.bottom, 12)
                 
                 if viewModel.isLoading && viewModel.users.isEmpty {
                     // Loading State
@@ -60,7 +78,12 @@ struct LeaderboardView: View {
                 } else {
                     // Main Content
                     ScrollView(.vertical, showsIndicators: false) {
-                        VStack(spacing: 24) {
+                        VStack(spacing: 28) {
+                            // Filter Pills
+                            filterPillsSection
+                                .padding(.horizontal, 20)
+                                .padding(.top, 8)
+                            
                             // Top 3 Podium
                             if sortedUsers.count >= 3 {
                                 topThreePodium
@@ -161,126 +184,61 @@ struct LeaderboardView: View {
     
     // MARK: - Navigation Bar
     private var navigationBar: some View {
-        ZStack {
+        HStack(spacing: 16) {
+            Button {
+                print("⬅️ [VIEW] Back button tapped")
+                dismiss()
+            } label: {
+                ZStack {
+                    Circle()
+                        .fill(Color(hex: "F5F6FA"))
+                        .frame(width: 44, height: 44)
+                    
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(Color(hex: "4B548D"))
+                }
+            }
+            
             Spacer()
             
-            Text("Leaderboard")
-                .font(.system(size: 20, weight: .bold))
-                .foregroundColor(.white)
-            
-            Spacer()
-            
-            HStack {
-                Button {
-                    print("⬅️ [VIEW] Back button tapped")
-                    dismiss()
-                } label: {
-                    HStack(spacing: 8) {
-                        Image(systemName: "chevron.left")
-                            .font(.system(size: 16, weight: .semibold))
-                    }
-                    .foregroundColor(.white)
+            VStack(spacing: 4) {
+                HStack(spacing: 8) {
+                    Image(systemName: "trophy.fill")
+                        .font(.system(size: 20, weight: .bold))
+                        .foregroundStyle(
+                            LinearGradient(
+                                colors: [Color(hex: "FFD700"), Color(hex: "FFA500")],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                    
+                    Text("Leaderboard")
+                        .font(.system(size: 24, weight: .bold))
+                        .foregroundColor(Color(hex: "1A1F36"))
                 }
                 
-                Spacer()
-                filterSection
+                Text("Top performers")
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundColor(Color(hex: "6B7280"))
             }
+            
+            Spacer()
+            
+            // Balance spacer
+            Color.clear.frame(width: 44, height: 44)
         }
     }
     
-    // MARK: - Loading View
-    private var loadingView: some View {
-        VStack(spacing: 20) {
-            ProgressView()
-                .scaleEffect(1.5)
-                .tint(.white)
-            
-            Text("Loading Rankings...")
-                .font(.system(size: 16, weight: .medium))
-                .foregroundColor(.white.opacity(0.8))
-            
-            Text("Fetching latest data")
-                .font(.system(size: 12, weight: .regular))
-                .foregroundColor(.white.opacity(0.6))
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-    }
-    
-    // MARK: - Error View
-    private var errorView: some View {
-        VStack(spacing: 20) {
-            Image(systemName: "exclamationmark.triangle.fill")
-                .font(.system(size: 50))
-                .foregroundColor(.orange)
-            
-            Text("Failed to Load")
-                .font(.system(size: 20, weight: .bold))
-                .foregroundColor(.white)
-            
-            Text(viewModel.errorMessage)
-                .font(.system(size: 14))
-                .foregroundColor(.white.opacity(0.7))
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, 40)
-            
-            Button {
-                print("🔄 [VIEW] Retry button tapped")
-                viewModel.fetchAllUsers()
-            } label: {
-                Text("Try Again")
-                    .font(.system(size: 16, weight: .semibold))
-                    .foregroundColor(Color(hex: "4B548D"))
-                    .padding(.horizontal, 30)
-                    .padding(.vertical, 12)
-                    .background(
-                        Capsule()
-                            .fill(Color.white)
-                    )
-            }
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-    }
-    
-    // MARK: - Empty State View
-    private var emptyStateView: some View {
-        VStack(spacing: 20) {
-            Image(systemName: "person.3.fill")
-                .font(.system(size: 50))
-                .foregroundColor(.white.opacity(0.5))
-            
-            Text("No Rankings Yet")
-                .font(.system(size: 20, weight: .bold))
-                .foregroundColor(.white)
-            
-            Text("Be the first to make transactions!")
-                .font(.system(size: 14))
-                .foregroundColor(.white.opacity(0.7))
-            
-            Button {
-                print("🔄 [VIEW] Refresh button in empty state tapped")
-                viewModel.fetchAllUsers()
-            } label: {
-                Text("Refresh")
-                    .font(.system(size: 16, weight: .semibold))
-                    .foregroundColor(Color(hex: "4B548D"))
-                    .padding(.horizontal, 30)
-                    .padding(.vertical, 12)
-                    .background(
-                        Capsule()
-                            .fill(Color.white)
-                    )
-            }
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-    }
-    
-    // MARK: - Filter Section
-    private var filterSection: some View {
-        HStack(spacing: 12) {
-            Menu {
+    // MARK: - Filter Pills Section
+    private var filterPillsSection: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 12) {
                 ForEach(LeaderboardFilter.allCases, id: \.self) { filter in
-                    FilterButton(
+                    FilterPill(
                         title: filter.rawValue,
+                        icon: filterIcon(for: filter),
                         isSelected: selectedFilter == filter
                     ) {
                         print("🔄 [VIEW] Filter changed to: \(filter.rawValue)")
@@ -289,15 +247,169 @@ struct LeaderboardView: View {
                         }
                     }
                 }
-            } label: {
-                HStack {
-                    Image(systemName: "list.dash")
-                        .font(.system(size: 16))
-                        .foregroundStyle(.white)
-                }
+            }
+            .padding(.horizontal, 4)
+        }
+    }
+    
+    private func filterIcon(for filter: LeaderboardFilter) -> String {
+        switch filter {
+        case .transactions: return "arrow.left.arrow.right"
+        case .coins: return "bitcoinsign.circle.fill"
+        case .wallet: return "wallet.pass.fill"
+        }
+    }
+    
+    // MARK: - Loading View
+    private var loadingView: some View {
+        VStack(spacing: 24) {
+            ZStack {
+                Circle()
+                    .stroke(Color(hex: "E5E7F0"), lineWidth: 4)
+                    .frame(width: 60, height: 60)
+                
+                Circle()
+                    .trim(from: 0, to: 0.7)
+                    .stroke(
+                        LinearGradient(
+                            colors: [Color(hex: "4B548D"), Color(hex: "6B74A8")],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        ),
+                        style: StrokeStyle(lineWidth: 4, lineCap: .round)
+                    )
+                    .frame(width: 60, height: 60)
+                    .rotationEffect(.degrees(-90))
+                    .animation(.linear(duration: 1).repeatForever(autoreverses: false), value: UUID())
+            }
+            
+            VStack(spacing: 8) {
+                Text("Loading Rankings...")
+                    .font(.system(size: 18, weight: .bold))
+                    .foregroundColor(Color(hex: "1A1F36"))
+                
+                Text("Fetching latest data")
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundColor(Color(hex: "6B7280"))
             }
         }
-        .padding(.horizontal, 4)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+    
+    // MARK: - Error View
+    private var errorView: some View {
+        VStack(spacing: 24) {
+            ZStack {
+                Circle()
+                    .fill(Color(hex: "FEE2E2"))
+                    .frame(width: 100, height: 100)
+                
+                Image(systemName: "exclamationmark.triangle.fill")
+                    .font(.system(size: 44))
+                    .foregroundStyle(
+                        LinearGradient(
+                            colors: [Color(hex: "EF4444"), Color(hex: "DC2626")],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+            }
+            
+            VStack(spacing: 8) {
+                Text("Failed to Load")
+                    .font(.system(size: 22, weight: .bold))
+                    .foregroundColor(Color(hex: "1A1F36"))
+                
+                Text(viewModel.errorMessage)
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundColor(Color(hex: "6B7280"))
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 40)
+            }
+            
+            Button {
+                print("🔄 [VIEW] Retry button tapped")
+                viewModel.fetchAllUsers()
+            } label: {
+                HStack(spacing: 8) {
+                    Image(systemName: "arrow.clockwise")
+                        .font(.system(size: 16, weight: .semibold))
+                    
+                    Text("Try Again")
+                        .font(.system(size: 16, weight: .semibold))
+                }
+                .foregroundColor(.white)
+                .padding(.horizontal, 32)
+                .padding(.vertical, 14)
+                .background(
+                    LinearGradient(
+                        colors: [Color(hex: "4B548D"), Color(hex: "6B74A8")],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                )
+                .clipShape(Capsule())
+                .shadow(color: Color(hex: "4B548D").opacity(0.3), radius: 12, x: 0, y: 6)
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+    
+    // MARK: - Empty State View
+    private var emptyStateView: some View {
+        VStack(spacing: 24) {
+            ZStack {
+                Circle()
+                    .fill(Color(hex: "F5F6FA"))
+                    .frame(width: 120, height: 120)
+                
+                Image(systemName: "person.3.fill")
+                    .font(.system(size: 50))
+                    .foregroundStyle(
+                        LinearGradient(
+                            colors: [Color(hex: "4B548D"), Color(hex: "6B74A8")],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+            }
+            
+            VStack(spacing: 8) {
+                Text("No Rankings Yet")
+                    .font(.system(size: 22, weight: .bold))
+                    .foregroundColor(Color(hex: "1A1F36"))
+                
+                Text("Be the first to make transactions!")
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundColor(Color(hex: "6B7280"))
+            }
+            
+            Button {
+                print("🔄 [VIEW] Refresh button in empty state tapped")
+                viewModel.fetchAllUsers()
+            } label: {
+                HStack(spacing: 8) {
+                    Image(systemName: "arrow.clockwise")
+                        .font(.system(size: 16, weight: .semibold))
+                    
+                    Text("Refresh")
+                        .font(.system(size: 16, weight: .semibold))
+                }
+                .foregroundColor(.white)
+                .padding(.horizontal, 32)
+                .padding(.vertical, 14)
+                .background(
+                    LinearGradient(
+                        colors: [Color(hex: "4B548D"), Color(hex: "6B74A8")],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                )
+                .clipShape(Capsule())
+                .shadow(color: Color(hex: "4B548D").opacity(0.3), radius: 12, x: 0, y: 6)
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
     
     // MARK: - Partial Podium (for less than 3 users)
@@ -308,7 +420,7 @@ struct LeaderboardView: View {
                     PodiumCard(
                         user: user,
                         rank: index + 1,
-                        height: index == 0 ? 180 : (index == 1 ? 140 : 120),
+                        height: index == 0 ? 200 : (index == 1 ? 160 : 140),
                         filterType: selectedFilter
                     )
                 }
@@ -325,7 +437,7 @@ struct LeaderboardView: View {
                 PodiumCard(
                     user: sortedUsers[1],
                     rank: 2,
-                    height: 140,
+                    height: 160,
                     filterType: selectedFilter
                 )
                 .scaleEffect(animateTopThree ? 1 : 0.8)
@@ -335,7 +447,7 @@ struct LeaderboardView: View {
                 PodiumCard(
                     user: sortedUsers[0],
                     rank: 1,
-                    height: 180,
+                    height: 200,
                     filterType: selectedFilter
                 )
                 .scaleEffect(animateTopThree ? 1 : 0.8)
@@ -345,7 +457,7 @@ struct LeaderboardView: View {
                 PodiumCard(
                     user: sortedUsers[2],
                     rank: 3,
-                    height: 120,
+                    height: 140,
                     filterType: selectedFilter
                 )
                 .scaleEffect(animateTopThree ? 1 : 0.8)
@@ -359,16 +471,29 @@ struct LeaderboardView: View {
         VStack(spacing: 16) {
             // Section Header
             HStack {
-                Text("All Rankings")
-                    .font(.system(size: 14, weight: .bold))
-                    .foregroundColor(.white)
+                HStack(spacing: 8) {
+                    Image(systemName: "list.bullet.rectangle.fill")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(Color(hex: "4B548D"))
+                    
+                    Text("All Rankings")
+                        .font(.system(size: 16, weight: .bold))
+                        .foregroundColor(Color(hex: "1A1F36"))
+                }
                 
                 Spacer()
                 
                 Text("\(sortedUsers.count) users")
-                    .font(.system(size: 14, weight: .medium))
-                    .foregroundColor(.white.opacity(0.7))
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundColor(Color(hex: "6B7280"))
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .background(
+                        Capsule()
+                            .fill(Color(hex: "F5F6FA"))
+                    )
             }
+            .padding(.top, 8)
             
             // User List
             VStack(spacing: 12) {
@@ -389,29 +514,55 @@ struct LeaderboardView: View {
     }
 }
 
-// MARK: - Filter Button
-private struct FilterButton: View {
+// MARK: - Filter Pill
+private struct FilterPill: View {
     let title: String
+    let icon: String
     let isSelected: Bool
     let action: () -> Void
     
     var body: some View {
         Button(action: action) {
             HStack(spacing: 8) {
-                Text(title)
+                Image(systemName: icon)
                     .font(.system(size: 14, weight: .semibold))
                 
-                if isSelected {
-                    Image(systemName: "checkmark")
-                        .font(.system(size: 12, weight: .bold))
-                }
+                Text(title)
+                    .font(.system(size: 14, weight: .semibold))
             }
-            .foregroundColor(isSelected ? Color(hex: "4B548D") : .white)
-            .padding(.horizontal, 20)
-            .padding(.vertical, 10)
+            .foregroundColor(isSelected ? .white : Color(hex: "4B548D"))
+            .padding(.horizontal, 18)
+            .padding(.vertical, 12)
             .background(
+                Group {
+                    if isSelected {
+                        LinearGradient(
+                            colors: [Color(hex: "4B548D"), Color(hex: "6B74A8")],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    } else {
+                        LinearGradient(
+                            colors: [Color(hex: "F5F6FA"), Color(hex: "F5F6FA")],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    }
+                }
+            )
+            .clipShape(Capsule())
+            .overlay(
                 Capsule()
-                    .fill(isSelected ? Color.white : Color.white.opacity(0.2))
+                    .stroke(
+                        isSelected ? Color.clear : Color(hex: "E5E7F0"),
+                        lineWidth: 1.5
+                    )
+            )
+            .shadow(
+                color: isSelected ? Color(hex: "4B548D").opacity(0.3) : Color.clear,
+                radius: isSelected ? 8 : 0,
+                x: 0,
+                y: isSelected ? 4 : 0
             )
         }
     }
@@ -430,7 +581,36 @@ private struct PodiumCard: View {
         case 1: return Color(hex: "FFD700") // Gold
         case 2: return Color(hex: "C0C0C0") // Silver
         case 3: return Color(hex: "CD7F32") // Bronze
-        default: return .gray
+        default: return Color(hex: "9CA3AF")
+        }
+    }
+    
+    private var rankGradient: LinearGradient {
+        switch rank {
+        case 1:
+            return LinearGradient(
+                colors: [Color(hex: "FFD700"), Color(hex: "FFA500")],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+        case 2:
+            return LinearGradient(
+                colors: [Color(hex: "E8E8E8"), Color(hex: "C0C0C0")],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+        case 3:
+            return LinearGradient(
+                colors: [Color(hex: "CD7F32"), Color(hex: "B8733C")],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+        default:
+            return LinearGradient(
+                colors: [Color(hex: "9CA3AF"), Color(hex: "6B7280")],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
         }
     }
     
@@ -452,71 +632,114 @@ private struct PodiumCard: View {
     private var statLabel: String {
         switch filterType {
         case .transactions:
-            return "transactions"
+            return "Transactions"
         case .coins:
-            return "coins"
+            return "Coins"
         case .wallet:
-            return "wallet"
+            return "Wallet"
         }
     }
     
     var body: some View {
-        VStack(spacing: 12) {
-            // Rank Badge
-            ZStack {
-                Circle()
-                    .fill(rankColor)
-                    .frame(width: rank == 1 ? 60 : 50, height: rank == 1 ? 60 : 50)
-                    .shadow(color: rankColor.opacity(0.4), radius: 8, x: 0, y: 4)
-                
-                Image(systemName: medalIcon)
-                    .font(.system(size: rank == 1 ? 28 : 24, weight: .bold))
-                    .foregroundColor(.white)
+        VStack(spacing: 0) {
+            // Crown for 1st place
+            if rank == 1 {
+                Image(systemName: "crown.fill")
+                    .font(.system(size: 32, weight: .bold))
+                    .foregroundStyle(rankGradient)
+                    .offset(y: -16)
+                    .shadow(color: rankColor.opacity(0.5), radius: 8, x: 0, y: 4)
             }
-            .offset(y: rank == 1 ? -10 : 0)
             
-            // Profile Picture
-            AsyncImage(url: URL(string: user.profilePic)) { image in
-                image
-                    .resizable()
-                    .scaledToFill()
-            } placeholder: {
+            VStack(spacing: 14) {
+                // Rank Badge
                 ZStack {
                     Circle()
-                        .fill(rankColor.opacity(0.2))
+                        .fill(rankGradient)
+                        .frame(width: rank == 1 ? 68 : 56, height: rank == 1 ? 68 : 56)
+                        .shadow(color: rankColor.opacity(0.5), radius: 12, x: 0, y: 6)
                     
-                    Text(user.initials)
-                        .font(.system(size: rank == 1 ? 20 : 18, weight: .bold))
-                        .foregroundColor(rankColor)
+                    Circle()
+                        .fill(.white)
+                        .frame(width: rank == 1 ? 60 : 50, height: rank == 1 ? 60 : 50)
+                    
+                    Text("\(rank)")
+                        .font(.system(size: rank == 1 ? 28 : 24, weight: .black))
+                        .foregroundStyle(rankGradient)
                 }
+                .offset(y: rank == 1 ? -16 : -8)
+                
+                // Profile Picture
+                AsyncImage(url: URL(string: user.profilePic)) { image in
+                    image
+                        .resizable()
+                        .scaledToFill()
+                } placeholder: {
+                    ZStack {
+                        Circle()
+                            .fill(
+                                LinearGradient(
+                                    colors: [
+                                        rankColor.opacity(0.2),
+                                        rankColor.opacity(0.1)
+                                    ],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                        
+                        Text(user.initials)
+                            .font(.system(size: rank == 1 ? 24 : 20, weight: .bold))
+                            .foregroundStyle(rankGradient)
+                    }
+                }
+                .frame(width: rank == 1 ? 80 : 68, height: rank == 1 ? 80 : 68)
+                .clipShape(Circle())
+                .overlay(
+                    Circle()
+                        .stroke(rankGradient, lineWidth: 3.5)
+                )
+                .shadow(color: rankColor.opacity(0.3), radius: 10, x: 0, y: 5)
+                
+                // Name
+                VStack(spacing: 4) {
+                    Text("\(cryptoManager.decrypt(encryptedData: user.firstName) ?? "nil") \(cryptoManager.decrypt(encryptedData: user.lastName) ?? "nil")")
+                        .font(.system(size: rank == 1 ? 16 : 14, weight: .bold))
+                        .foregroundColor(Color(hex: "1A1F36"))
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.7)
+                    
+                    // Stat Display
+                    VStack(spacing: 2) {
+                        Text(statValue)
+                            .font(.system(size: rank == 1 ? 20 : 18, weight: .black))
+                            .foregroundStyle(rankGradient)
+                        
+                        Text(statLabel)
+                            .font(.system(size: 11, weight: .semibold))
+                            .foregroundColor(Color(hex: "6B7280"))
+                            .textCase(.uppercase)
+                            .tracking(0.5)
+                    }
+                    .padding(.top, 4)
+                }
+                .padding(.horizontal, 8)
+                
+                Spacer()
             }
-            .frame(width: rank == 1 ? 70 : 60, height: rank == 1 ? 70 : 60)
-            .clipShape(Circle())
-            .overlay(
-                Circle()
-                    .stroke(rankColor, lineWidth: 3)
-            )
-            
-            // Name
-            Text("\(cryptoManager.decrypt(encryptedData: user.firstName) ?? "nil") \(cryptoManager.decrypt(encryptedData: user.lastName) ?? "nil")")
-                .font(.system(size: rank == 1 ? 16 : 14, weight: .bold))
-                .foregroundColor(.black)
-                .lineLimit(1)
-                .minimumScaleFactor(0.8)
-            Spacer()
+            .frame(maxWidth: .infinity)
+            .frame(height: height)
+            .padding(.vertical, 20)
+            .padding(.horizontal, 12)
         }
-        .frame(maxWidth: .infinity)
-        .frame(height: height)
-        .padding(.vertical, 16)
-        .padding(.horizontal, 8)
         .background(
-            RoundedRectangle(cornerRadius: 20)
-                .fill(Color.white)
-                .shadow(color: rankColor.opacity(0.3), radius: 15, x: 0, y: 8)
+            RoundedRectangle(cornerRadius: 24)
+                .fill(.white)
+                .shadow(color: rankColor.opacity(0.25), radius: 16, x: 0, y: 8)
         )
         .overlay(
-            RoundedRectangle(cornerRadius: 20)
-                .stroke(rankColor, lineWidth: rank == 1 ? 2.5 : 2)
+            RoundedRectangle(cornerRadius: 24)
+                .stroke(rankGradient, lineWidth: rank == 1 ? 3 : 2.5)
         )
     }
 }
@@ -557,10 +780,46 @@ private struct LeaderboardRowCard: View {
             case 1: return Color(hex: "FFD700")
             case 2: return Color(hex: "C0C0C0")
             case 3: return Color(hex: "CD7F32")
-            default: return .gray
+            default: return Color(hex: "9CA3AF")
             }
         }
-        return Color(hex: "4B548D")
+        return Color(hex: "6B7280")
+    }
+    
+    private var rankGradient: LinearGradient {
+        if rank <= 3 {
+            switch rank {
+            case 1:
+                return LinearGradient(
+                    colors: [Color(hex: "FFD700"), Color(hex: "FFA500")],
+                    startPoint: .leading,
+                    endPoint: .trailing
+                )
+            case 2:
+                return LinearGradient(
+                    colors: [Color(hex: "E8E8E8"), Color(hex: "C0C0C0")],
+                    startPoint: .leading,
+                    endPoint: .trailing
+                )
+            case 3:
+                return LinearGradient(
+                    colors: [Color(hex: "CD7F32"), Color(hex: "B8733C")],
+                    startPoint: .leading,
+                    endPoint: .trailing
+                )
+            default:
+                return LinearGradient(
+                    colors: [Color(hex: "9CA3AF"), Color(hex: "6B7280")],
+                    startPoint: .leading,
+                    endPoint: .trailing
+                )
+            }
+        }
+        return LinearGradient(
+            colors: [Color(hex: "6B7280"), Color(hex: "6B7280")],
+            startPoint: .leading,
+            endPoint: .trailing
+        )
     }
     
     var body: some View {
@@ -569,14 +828,19 @@ private struct LeaderboardRowCard: View {
             ZStack {
                 if rank <= 3 {
                     Circle()
-                        .fill(rankColor.opacity(0.2))
+                        .fill(rankGradient)
+                        .frame(width: 40, height: 40)
+                        .shadow(color: rankColor.opacity(0.3), radius: 6, x: 0, y: 3)
+                    
+                    Circle()
+                        .fill(.white)
                         .frame(width: 34, height: 34)
                 }
                 
                 Text("#\(rank)")
-                    .font(.system(size: rank <= 3 ? 18 : 16, weight: .bold))
-                    .foregroundColor(rank <= 3 ? rankColor : .white)
-                    .frame(width: 34)
+                    .font(.system(size: rank <= 3 ? 16 : 15, weight: .bold))
+                    .foregroundStyle(rank <= 3 ? rankGradient : LinearGradient(colors: [Color(hex: "6B7280")], startPoint: .leading, endPoint: .trailing))
+                    .frame(width: 40)
             }
             
             // Profile Picture
@@ -587,38 +851,87 @@ private struct LeaderboardRowCard: View {
             } placeholder: {
                 ZStack {
                     Circle()
-                        .fill(Color.white.opacity(0.2))
+                        .fill(Color(hex: "F5F6FA"))
                     
                     Text(user.initials)
-                        .font(.system(size: 12, weight: .bold))
-                        .foregroundColor(.white)
+                        .font(.system(size: 16, weight: .bold))
+                        .foregroundColor(Color(hex: "4B548D"))
                 }
             }
-            .frame(width: 40, height: 40)
+            .frame(width: 48, height: 48)
             .clipShape(Circle())
             .overlay(
                 Circle()
-                    .stroke(isCurrentUser ? Color.yellow : Color.white.opacity(0.3), lineWidth: isCurrentUser ? 2.5 : 1.5)
+                    .stroke(
+                        isCurrentUser ?
+                        LinearGradient(
+                            colors: [Color(hex: "FFD700"), Color(hex: "FFA500")],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        ) :
+                        LinearGradient(
+                            colors: [Color(hex: "E5E7F0")],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        ),
+                        lineWidth: isCurrentUser ? 3 : 2
+                    )
+            )
+            .shadow(
+                color: isCurrentUser ? Color(hex: "FFD700").opacity(0.3) : Color.clear,
+                radius: isCurrentUser ? 6 : 0,
+                x: 0,
+                y: isCurrentUser ? 3 : 0
             )
             
             // User Info
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: 5) {
                 HStack(spacing: 6) {
                     Text("\(cryptoManager.decrypt(encryptedData: user.firstName) ?? "nil") \(cryptoManager.decrypt(encryptedData: user.lastName) ?? "nil")")
-                        .font(.system(size: isCurrentUser ? 8 : 12, weight: .semibold))
-                        .foregroundColor(.white)
+                        .font(.system(size: 15, weight: .bold))
+                        .foregroundColor(Color(hex: "1A1F36"))
                     
                     if isCurrentUser {
-                        Text("(You)")
-                            .font(.system(size: 12, weight: .bold))
-                            .foregroundColor(.yellow)
+                        Text("You")
+                            .font(.system(size: 10, weight: .bold))
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 3)
+                            .background(
+                                LinearGradient(
+                                    colors: [Color(hex: "FFD700"), Color(hex: "FFA500")],
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                )
+                            )
+                            .clipShape(Capsule())
                     }
                 }
                 
-                HStack(spacing: 0) {
-                    Text("\(user.noOfTransactions) sent • \(user.noOfTransactionsReceived) received")
-                        .font(.system(size: 8, weight: .medium))
-                        .foregroundColor(.white.opacity(0.7))
+                HStack(spacing: 8) {
+                    HStack(spacing: 4) {
+                        Image(systemName: "arrow.up.circle.fill")
+                            .font(.system(size: 10, weight: .semibold))
+                            .foregroundColor(Color(hex: "10B981"))
+                        
+                        Text("\(user.noOfTransactions)")
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundColor(Color(hex: "6B7280"))
+                    }
+                    
+                    Circle()
+                        .fill(Color(hex: "D1D5DB"))
+                        .frame(width: 3, height: 3)
+                    
+                    HStack(spacing: 4) {
+                        Image(systemName: "arrow.down.circle.fill")
+                            .font(.system(size: 10, weight: .semibold))
+                            .foregroundColor(Color(hex: "3B82F6"))
+                        
+                        Text("\(user.noOfTransactionsReceived)")
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundColor(Color(hex: "6B7280"))
+                    }
                 }
             }
             
@@ -627,32 +940,57 @@ private struct LeaderboardRowCard: View {
             // Stat Value
             VStack(alignment: .trailing, spacing: 4) {
                 Text(statValue)
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundColor(.white)
+                    .font(.system(size: 16, weight: .black))
+                    .foregroundColor(Color(hex: "1A1F36"))
+                
+                Text(statLabel)
+                    .font(.system(size: 10, weight: .semibold))
+                    .foregroundColor(Color(hex: "9CA3AF"))
+                    .textCase(.uppercase)
+                    .tracking(0.3)
             }
         }
         .padding(16)
         .background(
-            RoundedRectangle(cornerRadius: 18)
+            RoundedRectangle(cornerRadius: 20)
                 .fill(
                     isCurrentUser ?
                     LinearGradient(
-                        colors: [Color.yellow.opacity(0.3), Color.orange.opacity(0.2)],
+                        colors: [
+                            Color(hex: "FFF7E6"),
+                            Color(hex: "FFE8B8")
+                        ],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
                     ) :
                     LinearGradient(
-                        colors: [Color.white.opacity(0.15), Color.white.opacity(0.08)],
+                        colors: [.white, .white],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
                     )
                 )
-                .overlay(
-                    RoundedRectangle(cornerRadius: 18)
-                        .stroke(
-                            isCurrentUser ? Color.yellow.opacity(0.5) : Color.white.opacity(0.2),
-                            lineWidth: isCurrentUser ? 2 : 1
-                        )
+                .shadow(
+                    color: isCurrentUser ? Color(hex: "FFD700").opacity(0.2) : Color(hex: "4B548D").opacity(0.08),
+                    radius: isCurrentUser ? 12 : 8,
+                    x: 0,
+                    y: isCurrentUser ? 6 : 4
+                )
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 20)
+                .stroke(
+                    isCurrentUser ?
+                    LinearGradient(
+                        colors: [Color(hex: "FFD700").opacity(0.5), Color(hex: "FFA500").opacity(0.3)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    ) :
+                    LinearGradient(
+                        colors: [Color(hex: "E5E7F0")],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    ),
+                    lineWidth: isCurrentUser ? 2 : 1.5
                 )
         )
     }

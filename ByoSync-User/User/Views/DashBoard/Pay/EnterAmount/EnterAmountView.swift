@@ -104,7 +104,7 @@ struct EnterAmountView: View {
                         .frame(width: 44, height: 44)
                         .shadow(color: .black.opacity(0.06), radius: 12, x: 0, y: 4)
                     
-                    Image(systemName: "xmark")
+                    Image(systemName: "chevron.left")
                         .font(.system(size: 15, weight: .semibold))
                         .foregroundColor(Color(hex: "4B548D"))
                 }
@@ -313,9 +313,6 @@ struct EnterAmountView: View {
                 HStack(spacing: 10) {
                     Text("Continue")
                         .font(.system(size: 17, weight: .semibold))
-                    
-                    Image(systemName: "arrow.right")
-                        .font(.system(size: 16, weight: .semibold))
                 }
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 18)

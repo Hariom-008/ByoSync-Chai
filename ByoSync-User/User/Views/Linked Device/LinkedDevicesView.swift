@@ -256,7 +256,7 @@ struct LinkedDevicesView: View {
                         Capsule()
                             .fill(
                                 LinearGradient(
-                                    colors: [Color.blue, Color.purple],
+                                    colors: [Color(hex: "4B548D")],
                                     startPoint: .leading,
                                     endPoint: .trailing
                                 )
