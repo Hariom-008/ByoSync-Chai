@@ -5,6 +5,7 @@ struct UserAPIEndpoint{
     
     static let baseURL = "https://backendapi.byosync.in"
     
+    
     // Login,Register,Phone & Email Verification
     struct Auth {
         static let userRegister = "\(baseURL)/api/v1/users/user-register"

@@ -5,7 +5,6 @@ struct AuthenticationView: View {
     @State var openRegister: Bool = false
     @State var openLoginSheet: Bool = false
     @Environment(\.dismiss) var dismiss
-    @State var openTestin :Bool = false
     
     var body: some View {
         NavigationStack {
@@ -98,16 +97,6 @@ struct AuthenticationView: View {
             .navigationBarBackButtonHidden(true)
             .navigationDestination(isPresented: $openRegister) {
                 EnterNumberView()
-            }
-            .sheet(isPresented: $openTestin){
-                HashValueTesting()
-            }
-            .toolbar{
-                Button{
-                    openTestin.toggle()
-                }label: {
-                    Text("Testing")
-                }
             }
         }
     }

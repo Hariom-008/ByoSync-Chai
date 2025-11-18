@@ -83,27 +83,7 @@ final class ProfileUpdateRepository: ProfileUpdateRepositoryProtocol {
     init() {
         print("🏗️ [REPO] ProfileUpdateRepository initialized")
     }
-    
-    // MARK: - Private Helper: Get Auth Headers
-    private func getAuthHeaders() -> HTTPHeaders {
-        var headers = HTTPHeaders()
-        headers.add(name: "Content-Type", value: "application/json")
-        
-        // Retrieve token from UserDefaults
-        if let token = UserDefaults.standard.string(forKey: "token"), !token.isEmpty {
-            headers.add(name: "Authorization", value: "Bearer \(token)")
-            #if DEBUG
-            print("🔒 [REPO] Retrieved auth token from UserDefaults")
-            print("🔑 [REPO] Token: \(token.prefix(30))...")
-            #endif
-        } else {
-            #if DEBUG
-            print("⚠️ [REPO] No auth token found in UserDefaults")
-            #endif
-        }
-        return headers
-    }
-    
+
     // MARK: - Profile Update (PATCH) - Returns user directly
     func updateProfile(
         firstName: String,
@@ -117,7 +97,7 @@ final class ProfileUpdateRepository: ProfileUpdateRepositoryProtocol {
             "email": email
         ]
         
-        let headers = getAuthHeaders()
+        let headers = getHeader.shared.getAuthHeaders()
         #if DEBUG
         print("\n📤 [REPO] UPDATE PROFILE REQUEST:")
         print("📍 [REPO] URL: \(UserAPIEndpoint.EditProfile.changeDetails)")
@@ -136,7 +116,7 @@ final class ProfileUpdateRepository: ProfileUpdateRepositoryProtocol {
     
     // MARK: - Get Profile (GET) - Returns user and device
     func getProfile(completion: @escaping (Result<ProfileUpdateResponse, APIError>) -> Void) {
-        let headers = getAuthHeaders()
+        let headers = getHeader.shared.getAuthHeaders()
         
         #if DEBUG
         print("\n📥 [REPO] GET PROFILE REQUEST:")
