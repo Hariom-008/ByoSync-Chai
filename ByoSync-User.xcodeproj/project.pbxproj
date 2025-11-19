@@ -70,19 +70,19 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		BF54D06B2EBDD08900A0F3ED /* Exceptions for "ByoSync-User" folder in "ByoSync-User" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				"Resources /Info.plist",
-			);
-			target = BFC700962EBB5C03001B13C7 /* ByoSync-User */;
-		};
 		BF54D0942EBE19D500A0F3ED /* Exceptions for "NotificationServiceExtension" folder in "NotificationServiceExtension" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
 			);
 			target = BF54D0882EBE19D500A0F3ED /* NotificationServiceExtension */;
+		};
+		BFE7EB272ECD956800233D5C /* Exceptions for "ByoSync-User" folder in "ByoSync-User" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = BFC700962EBB5C03001B13C7 /* ByoSync-User */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
@@ -98,7 +98,7 @@
 		BFC700992EBB5C03001B13C7 /* ByoSync-User */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				BF54D06B2EBDD08900A0F3ED /* Exceptions for "ByoSync-User" folder in "ByoSync-User" target */,
+				BFE7EB272ECD956800233D5C /* Exceptions for "ByoSync-User" folder in "ByoSync-User" target */,
 			);
 			path = "ByoSync-User";
 			sourceTree = "<group>";
