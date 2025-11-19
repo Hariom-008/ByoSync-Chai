@@ -1,3 +1,4 @@
+// RootView.swift
 import SwiftUI
 import AVFoundation
 
@@ -8,22 +9,23 @@ private enum AppStep {
 struct RootView: View {
     @EnvironmentObject var userSession: UserSession
     @EnvironmentObject var scanGate: AppScanGate
-
+    @EnvironmentObject var router: Router
+    
     @State private var step: AppStep = .loading
     @State private var consentAccepted = false
     @State private var cameraPermissionGranted = false
-
+    
     private let consentKey = "consentAccepted"
-
+    
     var body: some View {
         Group {
             switch step {
             case .loading:
                 SplashScreenView()
-
+                
             case .auth:
                 AuthenticationView()
-
+                
             case .consent:
                 UserConsentView(onComplete: {
                     consentAccepted = true
@@ -31,26 +33,25 @@ struct RootView: View {
                     print("✅ Consent accepted, moving to camera prep")
                     withAnimation(.easeInOut) { step = .cameraPrep }
                 })
-
+                
             case .cameraPrep:
                 CameraPreparationView(onReady: {
                     print("✅ Camera ready, moving to ML scan")
                     cameraPermissionGranted = true
-                    // Small delay to ensure smooth transition
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
                         withAnimation(.easeInOut(duration: 0.3)) {
                             step = .mlScan
                         }
                     }
                 })
-
+                
             case .mlScan:
                 MLScanView(onDone: {
                     print("✅ ML scan completed")
                     scanGate.markScanCompleted()
                     withAnimation(.easeInOut) { step = .mainTab }
                 })
-
+                
             case .mainTab:
                 MainTabView()
                     .transition(.asymmetric(
@@ -64,7 +65,7 @@ struct RootView: View {
             userSession.loadUser()
             consentAccepted = UserDefaults.standard.bool(forKey: consentKey)
             scanGate.reloadFromStorage()
-
+            
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
                 step = nextStep()
                 print("📍 Moving to step: \(step)")
@@ -79,19 +80,19 @@ struct RootView: View {
             print("📸 Scan requirement changed, step: \(step)")
         }
     }
-
+    
     private func nextStep() -> AppStep {
         guard let accountType = UserDefaults.standard.string(forKey: "accountType"),
               accountType == "user" else {
             print("⚠️ Not a user account")
             return .auth
         }
-
+        
         guard userSession.currentUser != nil else {
             print("⚠️ No current user")
             return .auth
         }
-
+        
         if !consentAccepted {
             print("📋 Consent not accepted")
             return .consent

@@ -162,3 +162,37 @@ final class Router: ObservableObject {
         !path.isEmpty
     }
 }
+
+extension Router {
+    
+    // MARK: - Auth Flow Helpers
+    func navigateToAuth() {
+        print("🔑 [ROUTER] Navigating to authentication")
+        reset()
+        navigate(to: .authentication, style: .push)
+    }
+    
+    func navigateToMainApp() {
+        print("🏠 [ROUTER] Navigating to main app")
+        popToRoot()
+        navigate(to: .mainTab, style: .push)
+    }
+    
+    func handleLogout() {
+        print("🚪 [ROUTER] Handling logout")
+        reset()
+        navigate(to: .authentication, style: .push)
+    }
+    
+    // MARK: - Registration Flow
+    func startRegistrationFlow() {
+        print("📝 [ROUTER] Starting registration flow")
+        navigate(to: .enterNumber, style: .push)
+    }
+    
+    // MARK: - Onboarding Flow
+    func startOnboardingFlow() {
+        print("👋 [ROUTER] Starting onboarding flow")
+        navigate(to: .userConsent, style: .fullScreenCover)
+    }
+}

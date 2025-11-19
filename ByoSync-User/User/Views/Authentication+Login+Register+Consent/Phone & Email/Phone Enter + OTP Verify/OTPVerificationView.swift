@@ -3,12 +3,11 @@ import SwiftUI
 struct OTPVerificationView: View {
     @State var phoneNumber: String
     @ObservedObject var viewModel: PhoneOTPViewModel
+    @EnvironmentObject var router: Router
     
     @State private var otpCode: [String] = ["", "", "", "", "", ""]
-    @State private var navigateToRegister = false
     @FocusState private var focusedField: Int?
     @State var hasError: Bool = false
-    @Environment(\.dismiss) private var dismiss
     
     var body: some View {
         VStack(spacing: 0) {
@@ -46,7 +45,6 @@ struct OTPVerificationView: View {
             }
             .padding(.horizontal, 24)
             
-            // Error message
             if let error = viewModel.errorMessage {
                 Text(error)
                     .font(.caption)
@@ -102,7 +100,10 @@ struct OTPVerificationView: View {
             .padding(.bottom, 20)
             
             // Back to edit number
-            Button(action: { dismiss() }) {
+            Button(action: {
+                print("⬅️ [VIEW] Change number tapped")
+                router.pop()
+            }) {
                 Text("Change phone number")
                     .font(.subheadline)
                     .foregroundColor(.indigo)
@@ -112,7 +113,10 @@ struct OTPVerificationView: View {
         .navigationBarBackButtonHidden(true)
         .toolbar {
             ToolbarItem(placement: .navigationBarLeading) {
-                Button(action: { dismiss() }) {
+                Button(action: {
+                    print("⬅️ [VIEW] Back button tapped")
+                    router.pop()
+                }) {
                     Image(systemName: "chevron.left")
                         .foregroundColor(.primary)
                         .fontWeight(.medium)
@@ -129,10 +133,14 @@ struct OTPVerificationView: View {
                 Text(error)
             }
         }
-        .navigationDestination(isPresented: $viewModel.isAuthenticated) {
-            RegisterUserView(phoneNumber: $phoneNumber)
+        .onChange(of: viewModel.isAuthenticated) { _, newValue in
+            if newValue {
+                print("✅ [VIEW] Authentication successful, navigating to register")
+                router.navigate(to: .registerUser(phoneNumber: phoneNumber), style: .push)
+            }
         }
         .onAppear {
+            print("👀 [VIEW] OTPVerificationView appeared")
             focusedField = 0
         }
     }
@@ -148,17 +156,14 @@ struct OTPVerificationView: View {
     
     // MARK: - Methods
     private func handleOTPChange(at index: Int, oldValue: String, newValue: String) {
-        // Only allow single digit
         if newValue.count > 1 {
             otpCode[index] = String(newValue.last ?? Character(""))
         }
         
-        // Move to next field if digit entered
         if !newValue.isEmpty && index < 5 {
             focusedField = index + 1
         }
         
-        // Auto-verify when all digits entered
         if isOTPComplete {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                 verifyOTP()
@@ -175,7 +180,6 @@ struct OTPVerificationView: View {
         print("📱 Phone Number: \(phoneNumber)")
         print("🔢 OTP: \(otpString)")
         
-        // Call Firebase verification through ViewModel
         viewModel.verifyOTP(code: otpString)
     }
     
@@ -184,12 +188,8 @@ struct OTPVerificationView: View {
         focusedField = 0
     }
     
-    // Format phone number for display: +916234567890 -> +91 6234 567 890
     private func formatDisplayPhoneNumber(_ number: String) -> String {
-        // Remove +91 prefix
         let digitsOnly = number.replacingOccurrences(of: "+91", with: "")
-        
-        // Format as: +91 XXXX XXX XXX
         var formatted = "+91 "
         let digits = Array(digitsOnly)
         
@@ -203,6 +203,7 @@ struct OTPVerificationView: View {
         return formatted
     }
 }
+
 
 // MARK: - CodeDigitField Component
 struct CodeDigitField: View {

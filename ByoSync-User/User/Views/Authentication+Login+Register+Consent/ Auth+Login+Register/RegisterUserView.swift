@@ -1,166 +1,140 @@
 import SwiftUI
 
 struct RegisterUserView: View {
-    // ✅ Get crypto service from environment
     @EnvironmentObject var cryptoService: CryptoManager
-    
-    // ✅ ViewModel will be created with injected crypto service
+    @EnvironmentObject var router: Router
     @StateObject private var viewModel: RegisterUserViewModel
-    
-    @Environment(\.dismiss) private var dismiss
     @Binding var phoneNumber: String
-    @State private var shouldNavigateToMain = false
     
-    // ✅ Custom initializer to inject crypto service into view model
     init(phoneNumber: Binding<String>) {
         self._phoneNumber = phoneNumber
-        
-        // Create a temporary crypto manager for initialization
-        // The actual one from environment will be used when view appears
         let tempCrypto = CryptoManager()
         self._viewModel = StateObject(wrappedValue: RegisterUserViewModel(cryptoService: tempCrypto))
     }
     
     var body: some View {
-        NavigationStack {
-            ZStack {
-                LinearGradient(
-                    gradient: Gradient(colors: [
-                        Color(red: 0.97, green: 0.95, blue: 1.0),
-                        Color(red: 0.95, green: 0.97, blue: 1.0)
-                    ]),
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-                .ignoresSafeArea()
+        ZStack {
+            LinearGradient(
+                gradient: Gradient(colors: [
+                    Color(red: 0.97, green: 0.95, blue: 1.0),
+                    Color(red: 0.95, green: 0.97, blue: 1.0)
+                ]),
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            .ignoresSafeArea()
+            
+            VStack(spacing: 0) {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text(L("create_account"))
+                        .font(.system(size: 32, weight: .bold))
+                        .foregroundColor(.indigo)
+                    
+                    Text(L("join_byosync_start"))
+                        .font(.system(size: 16))
+                        .foregroundColor(.gray)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, 24)
+                .padding(.vertical, 32)
                 
-                VStack(spacing: 0) {
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text(L("create_account"))
-                            .font(.system(size: 32, weight: .bold))
-                            .foregroundColor(.indigo)
-                        
-                        Text(L("join_byosync_start"))
-                            .font(.system(size: 16))
-                            .foregroundColor(.gray)
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.horizontal, 24)
-                    .padding(.vertical, 32)
-                    
-                    ScrollView {
-                        VStack(spacing: 20) {
-                            FormField(
-                                icon: "person.fill",
-                                placeholder: L("first_name"),
-                                text: $viewModel.firstName,
-                                keyboardType: .default
-                            )
-                            
-                            FormField(
-                                icon: "person.fill",
-                                placeholder: L("last_name"),
-                                text: $viewModel.lastName,
-                                keyboardType: .default
-                            )
-                            
-                            FormField(
-                                icon: "envelope",
-                                placeholder: L("email"),
-                                text: $viewModel.email,
-                                keyboardType: .emailAddress
-                            )
-                            
-                            FormField(
-                                icon: "phone.fill",
-                                placeholder: L("phone_number"),
-                                text: $viewModel.phoneNumber,
-                                keyboardType: .phonePad
-                            )
-                        }
-                        .padding(.horizontal, 24)
-                        .padding(.top, 12)
-                    }
-                    
-                    Spacer()
-                    
-                    // Register Button with proper validation
-                    Button(action: {
-                        print("🔘 [VIEW] Register button tapped")
-                        print("📋 [VIEW] Can submit: \(viewModel.canSubmit)")
-                        print("📋 [VIEW] Fields filled: \(viewModel.allFieldsFilled)")
-                        print("📋 [VIEW] Email valid: \(viewModel.isValidEmail)")
-                        
-                        // Hide keyboard
-                        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-                        
-                        viewModel.registerUser()
-                    }) {
-                        HStack {
-                            if viewModel.isLoading {
-                                ProgressView()
-                                    .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                                Text("Registering...")
-                                    .foregroundColor(.white)
-                            } else {
-                                Text(L("continue"))
-                            }
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 14)
-                        .background(
-                            !viewModel.canSubmit || viewModel.isLoading
-                            ? Color(hex: "4B548D").opacity(0.5)
-                            : Color(hex: "4B548D")
+                ScrollView {
+                    VStack(spacing: 20) {
+                        FormField(
+                            icon: "person.fill",
+                            placeholder: L("first_name"),
+                            text: $viewModel.firstName,
+                            keyboardType: .default
                         )
-                        .foregroundColor(.white)
-                        .cornerRadius(12)
+                        
+                        FormField(
+                            icon: "person.fill",
+                            placeholder: L("last_name"),
+                            text: $viewModel.lastName,
+                            keyboardType: .default
+                        )
+                        
+                        FormField(
+                            icon: "envelope",
+                            placeholder: L("email"),
+                            text: $viewModel.email,
+                            keyboardType: .emailAddress
+                        )
+                        
+                        FormField(
+                            icon: "phone.fill",
+                            placeholder: L("phone_number"),
+                            text: $viewModel.phoneNumber,
+                            keyboardType: .phonePad
+                        )
                     }
-                    .disabled(!viewModel.canSubmit || viewModel.isLoading)
                     .padding(.horizontal, 24)
-                    .padding(.bottom, 32)
+                    .padding(.top, 12)
                 }
-            }
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button(action: { dismiss() }) {
-                        Image(systemName: "chevron.left")
-                            .foregroundColor(.primary)
+                
+                Spacer()
+                
+                Button(action: {
+                    print("🔘 [VIEW] Register button tapped")
+                    UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                    viewModel.registerUser()
+                }) {
+                    HStack {
+                        if viewModel.isLoading {
+                            ProgressView()
+                                .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                            Text("Registering...")
+                                .foregroundColor(.white)
+                        } else {
+                            Text(L("continue"))
+                        }
                     }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 14)
+                    .background(
+                        !viewModel.canSubmit || viewModel.isLoading
+                        ? Color(hex: "4B548D").opacity(0.5)
+                        : Color(hex: "4B548D")
+                    )
+                    .foregroundColor(.white)
+                    .cornerRadius(12)
+                }
+                .disabled(!viewModel.canSubmit || viewModel.isLoading)
+                .padding(.horizontal, 24)
+                .padding(.bottom, 32)
+            }
+        }
+        .navigationBarBackButtonHidden(true)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarLeading) {
+                Button(action: {
+                    print("⬅️ [VIEW] Back button tapped")
+                    router.pop()
+                }) {
+                    Image(systemName: "chevron.left")
+                        .foregroundColor(.primary)
                 }
             }
-            .alert(L("error"), isPresented: $viewModel.showError) {
-                Button("OK", role: .cancel) {
-                    print("⚠️ [VIEW] Error alert dismissed")
-                }
-            } message: {
-                if let errorMessage = viewModel.errorMessage {
-                    Text(errorMessage)
-                }
+        }
+        .alert(L("error"), isPresented: $viewModel.showError) {
+            Button("OK", role: .cancel) {
+                print("⚠️ [VIEW] Error alert dismissed")
             }
-            .onChange(of: viewModel.navigateToMainTab) { oldValue, newValue in
-                print("🔄 [VIEW] navigateToMainTab changed: \(oldValue) -> \(newValue)")
-                if newValue {
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                        shouldNavigateToMain = true
-                    }
-                }
+        } message: {
+            if let errorMessage = viewModel.errorMessage {
+                Text(errorMessage)
             }
-            .onChange(of: viewModel.showError) { oldValue, newValue in
-                print("🔄 [VIEW] showError changed: \(oldValue) -> \(newValue)")
+        }
+        .onChange(of: viewModel.navigateToMainTab) { _, newValue in
+            if newValue {
+                print("✅ [VIEW] Registration successful, navigating to main tab")
+                router.popToRoot()
+                router.navigate(to: .mainTab, style: .push)
             }
         }
         .onAppear {
             print("👀 [VIEW] RegisterUserView appeared")
             viewModel.phoneNumber = phoneNumber
-            print("📱 [VIEW] Phone number set to: \(phoneNumber)")
-        }
-        .fullScreenCover(isPresented: $shouldNavigateToMain) {
-            MainTabView()
-                .environmentObject(cryptoService) // ✅ Pass crypto service down
-                .onAppear {
-                    print("✅ [VIEW] MainTabView presented successfully")
-                }
         }
     }
 }

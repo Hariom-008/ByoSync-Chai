@@ -1,24 +1,11 @@
+// LoginView.swift
 import SwiftUI
 import Foundation
 
 struct LoginView: View {
     @EnvironmentObject var cryptoManager: CryptoManager
+    @EnvironmentObject var router: Router
     @StateObject private var viewModel: LoginViewModel
-    @State private var navigateToNextScreen: NavigationStep?
-    @Environment(\.dismiss) var dismiss
-    
-    // ✅ Make enum conform to Identifiable
-    enum NavigationStep: Identifiable {
-        case userConsent
-        case mainTab
-        
-        var id: String {
-            switch self {
-            case .userConsent: return "userConsent"
-            case .mainTab: return "mainTab"
-            }
-        }
-    }
     
     init() {
         let tempCrypto = CryptoManager()
@@ -40,7 +27,10 @@ struct LoginView: View {
                 
                 VStack(spacing: 16) {
                     HStack {
-                        Button(action: { dismiss() }) {
+                        Button(action: {
+                            print("⬅️ [VIEW] Back from login")
+                            router.dismissSheet()
+                        }) {
                             Image(systemName: "chevron.left")
                                 .font(.system(size: 16, weight: .semibold))
                                 .foregroundColor(.secondary)
@@ -154,41 +144,16 @@ struct LoginView: View {
         } message: {
             Text(viewModel.errorMessage)
         }
-        .onChange(of: viewModel.loginSuccess) { oldValue, newValue in
+        .onChange(of: viewModel.loginSuccess) { _, newValue in
             if newValue {
-                print("✅ [VIEW] Login successful, navigating to main tab")
-                navigateToNextScreen = .mainTab
+                print("✅ [VIEW] Login successful, dismissing sheet and navigating")
+                router.dismissSheet()
+                // Navigate to main tab or consent based on user state
+                // This should be handled by RootView logic
             }
         }
-        // ✅ Now this will work because NavigationStep is Identifiable
-        .fullScreenCover(item: $navigateToNextScreen) { step in
-            switch step {
-            case .userConsent:
-                UserConsentView(onComplete: {
-                    // 1) close the consent screen
-                    navigateToNextScreen = nil
-                    // 2) immediately present the main tab
-                    DispatchQueue.main.async {
-                        navigateToNextScreen = .mainTab
-                    }
-                })
-                .environmentObject(cryptoManager)
-
-            case .mainTab:
-                MLScanView(onDone: {
-                    navigateToNextScreen = .mainTab
-                })
-                    .environmentObject(cryptoManager)
-            }
-        }
-
         .onAppear {
             print("👀 [VIEW] LoginView appeared")
         }
     }
-}
-
-#Preview {
-    LoginView()
-        .environmentObject(CryptoManager())
 }
