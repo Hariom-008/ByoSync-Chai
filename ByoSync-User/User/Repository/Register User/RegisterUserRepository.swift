@@ -1,14 +1,23 @@
 import Foundation
 import SwiftUI
 import Alamofire
+import AVFoundation
+import UIKit
 import CryptoKit
 
 // MARK: - Response Models
 struct RegisterUserResponse: Codable {
     let success: Bool
     let message: String
-    let data: User?
+    let data: RegisterUserData?
 }
+
+struct RegisterUserData: Codable {
+    let user: UserData
+    let device: DeviceData
+}
+
+
 
 struct RegisterUserRequest: Encodable {
     let firstName: String
@@ -22,19 +31,131 @@ struct RegisterUserRequest: Encodable {
     let deviceName: String
     let fcmToken: String
     let referralCode: String?
+    let deviceData: String  // Device data should be a string
 }
 
-final class RegisterUserRepository {
+// MARK: - DeviceDetails Models
+struct DeviceDetails: Encodable {
+    let manufacturer: String
+    let model: String
+    let brand: String
+    let deviceName: String
+    let sdkInt: Int
+    let iosVersion: String
+    let supportedAbis: [String]
+
+    let cpuCoreCount: Int
+    let cpuMaxFreqHz: Int?           // best-effort (may be null)
+
+    let totalRamBytes: Int
+    let totalStorageBytes: Int
+    let freeStorageBytes: Int
+
+    let frontCamera: FrontCameraDetails?
+}
+
+struct FrontCameraDetails: Encodable {
+    let cameraId: String
+    let focalLengthMm: Float?
+    let sensorWidthMm: Float?
+    let sensorHeightMm: Float?
+
+    let pixelArrayWidth: Int?
+    let pixelArrayHeight: Int?
+
+    let horizontalFovDegrees: Double?
+    let verticalFovDegrees: Double?
+}
+
+func fetchDeviceDetails() -> DeviceDetails {
+    let device = UIDevice.current
+    let manufacturer = "Apple"  // Static for iOS
+    let model = device.model
+    let brand = "Apple"         // Static for iOS
+    let deviceName = device.name
+    let sdkInt = Int(device.systemVersion.split(separator: ".")[0]) ?? 0
+    let iosVersion = device.systemVersion
+    let supportedAbis = ["arm64"]  // iOS typically supports arm64
+
+    let cpuCoreCount = ProcessInfo.processInfo.processorCount
+    let totalRamBytes = ProcessInfo.processInfo.physicalMemory
+    let totalStorageBytes = FileManager.default.totalDiskSpace
+    let freeStorageBytes = FileManager.default.freeDiskSpace
     
-    // ✅ Remove singleton, use dependency injection instead
+    let frontCameraDetails = fetchFrontCameraDetails()
+
+    return DeviceDetails(
+        manufacturer: manufacturer,
+        model: model,
+        brand: brand,
+        deviceName: deviceName,
+        sdkInt: sdkInt,
+        iosVersion: iosVersion,
+        supportedAbis: supportedAbis,
+        cpuCoreCount: cpuCoreCount,
+        cpuMaxFreqHz: nil,  // iOS doesn't expose this directly
+        totalRamBytes: Int(totalRamBytes),
+        totalStorageBytes: totalStorageBytes,
+        freeStorageBytes: freeStorageBytes,
+        frontCamera: frontCameraDetails
+    )
+}
+
+func fetchFrontCameraDetails() -> FrontCameraDetails? {
+    guard let device = AVCaptureDevice.default(for: .video) else { return nil }
+    guard device.position == .front else { return nil }
+
+    let cameraId = device.uniqueID
+    let focalLengthMm = device.lensPosition // Approximation
+    let sensorWidthMm: Float? = nil  // iOS does not provide this directly
+    let sensorHeightMm: Float? = nil // iOS does not provide this directly
+
+    let pixelArrayWidth: Int? = nil  // iOS does not provide this directly
+    let pixelArrayHeight: Int? = nil // iOS does not provide this directly
+
+    let horizontalFovDegrees = 70.0  // Approximation for iPhone front cameras
+    let verticalFovDegrees = 55.0    // Approximation for iPhone front cameras
+
+    return FrontCameraDetails(
+        cameraId: cameraId,
+        focalLengthMm: focalLengthMm,
+        sensorWidthMm: sensorWidthMm,
+        sensorHeightMm: sensorHeightMm,
+        pixelArrayWidth: pixelArrayWidth,
+        pixelArrayHeight: pixelArrayHeight,
+        horizontalFovDegrees: horizontalFovDegrees,
+        verticalFovDegrees: verticalFovDegrees
+    )
+}
+
+extension FileManager {
+    var totalDiskSpace: Int {
+        if let attributes = try? self.attributesOfFileSystem(forPath: NSHomeDirectory()),
+           let space = attributes[.systemSize] as? NSNumber {
+            return space.intValue
+        }
+        return 0
+    }
+
+    var freeDiskSpace: Int {
+        if let attributes = try? self.attributesOfFileSystem(forPath: NSHomeDirectory()),
+           let freeSpace = attributes[.systemFreeSize] as? NSNumber {
+            return freeSpace.intValue
+        }
+        return 0
+    }
+}
+
+
+final class RegisterUserRepository {
+
     private let cryptoService: any CryptoService
     private let hmacGenerator = HMACGenerator.self
     
-    // ✅ Inject dependencies via initializer
     init(cryptoService: any CryptoService) {
         self.cryptoService = cryptoService
     }
-    
+
     func registerUser(
         firstName: String,
         lastName: String,
@@ -45,14 +166,25 @@ final class RegisterUserRepository {
         completion: @escaping (Result<APIResponse<LoginData>, APIError>) -> Void
     ) {
         print("📤 [API] POST \(UserAPIEndpoint.Auth.userRegister)")
-        
+
         var fcmToken = ""
         FCMTokenManager.shared.getFCMToken { token in
             guard let token else { return }
             fcmToken = token
         }
         
-        // ✅ Use injected cryptoService instead of @EnvironmentObject
+        let deviceDetails = fetchDeviceDetails()  // Fetch device details
+
+        // Convert DeviceDetails into JSON string to match Android format
+        let encoder = JSONEncoder()
+        guard let deviceDataJson = try? encoder.encode(deviceDetails),
+              let deviceDataString = String(data: deviceDataJson, encoding: .utf8) else {
+            print("❌ [API] Failed to encode device data")
+            completion(.failure(.failedToGenerateHmac))
+            return
+        }
+
+        // Create RegisterUserRequest
         let user = RegisterUserRequest(
             firstName: cryptoService.encrypt(text: firstName) ?? "",
             lastName: cryptoService.encrypt(text: lastName) ?? "",
@@ -61,17 +193,18 @@ final class RegisterUserRepository {
             phoneNumber: cryptoService.encrypt(text: phoneNumber) ?? "",
             phoneNumberHash: hmacGenerator.generateHMAC(jsonString: phoneNumber),
             deviceKey: deviceId,
-            deviceKeyHash: hmacGenerator.generateHMAC(jsonString: deviceId),
+            deviceKeyHash: deviceId.isEmpty ? "" : hmacGenerator.generateHMAC(jsonString: deviceId),
             deviceName: deviceName,
             fcmToken: fcmToken,
-            referralCode: ""
+            referralCode: nil,
+            deviceData: deviceDataString  // Use serialized device data string
         )
         
         // Encode User to JSON string with consistent formatting
-        let encoder = JSONEncoder()
-        encoder.outputFormatting = [.sortedKeys, .withoutEscapingSlashes]
+        let encoder2 = JSONEncoder()
+        encoder2.outputFormatting = [.sortedKeys, .withoutEscapingSlashes]
         
-        guard let jsonData = try? encoder.encode(user),
+        guard let jsonData = try? encoder2.encode(user),
               let jsonString = String(data: jsonData, encoding: .utf8) else {
             print("❌ [API] Failed to encode user data")
             completion(.failure(.failedToGenerateHmac))
