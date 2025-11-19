@@ -73,7 +73,7 @@
 		BF54D06B2EBDD08900A0F3ED /* Exceptions for "ByoSync-User" folder in "ByoSync-User" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				Info.plist,
+				"Resources /Info.plist",
 			);
 			target = BFC700962EBB5C03001B13C7 /* ByoSync-User */;
 		};
