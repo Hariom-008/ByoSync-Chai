@@ -1,4 +1,23 @@
 import SwiftUI
+import UIKit
+
+struct ActivityView: UIViewControllerRepresentable {
+    let activityItems: [Any]
+    let applicationActivities: [UIActivity]? = nil
+    var excludedActivityTypes: [UIActivity.ActivityType]? = nil
+
+    func makeUIViewController(context: Context) -> UIActivityViewController {
+        let controller = UIActivityViewController(
+            activityItems: activityItems,
+            applicationActivities: applicationActivities
+        )
+        controller.excludedActivityTypes = excludedActivityTypes
+        return controller
+    }
+
+    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
+}
+
 
 struct ReceiptView: View {
     @EnvironmentObject var cryptoManager: CryptoManager
@@ -7,18 +26,24 @@ struct ReceiptView: View {
     @State private var isAnimating = false
     @State private var showContent = false
     @State private var showButton = false
+    
+    
+    @State private var isShareSheetPresented = false
+    @State private var receiptImage: UIImage?
+
+    
     @Binding var hideTabBar: Bool
     @Binding var selectedUser: UserData
     @Binding var orderId: String
     @Binding var popToHome: Bool
-
-
+    
+    
     var amount: Int
-
+    
     var cashback: String {
         "\((Int(amount)) * 10 / 100)"
     }
-
+    
     var body: some View {
         NavigationStack{
             ZStack {
@@ -31,25 +56,10 @@ struct ReceiptView: View {
                 
                 ScrollView(showsIndicators: false) {
                     VStack(spacing: 0) {
-                        VStack(spacing: 24) {
-                            successAnimationView.frame(height: 200)
-                            successTextView
-                        }
-                        .padding(.top, 40)
-                        .padding(.bottom, 32)
+                        // Shareable content
+                        receiptContent
                         
-                        amountCardView
-                            .padding(.horizontal, 20)
-                            .padding(.bottom, 20)
-                        
-                        recipientCardView
-                            .padding(.horizontal, 20)
-                            .padding(.bottom, 20)
-                        
-                        transactionDetailsCardView
-                            .padding(.horizontal, 20)
-                            .padding(.bottom, 24)
-                        
+                        // Buttons at bottom (not in screenshot)
                         actionButtonsView
                             .padding(.horizontal, 20)
                             .padding(.bottom, 32)
@@ -67,6 +77,32 @@ struct ReceiptView: View {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
                     withAnimation { showButton = true }
                 }
+            }
+        }
+    }
+    
+    // This is everything you want in the screenshot (no buttons)
+    private var receiptContent: some View {
+        ScrollView(showsIndicators: false) {
+            VStack(spacing: 0) {
+                VStack(spacing: 24) {
+                    successAnimationView.frame(height: 200)
+                    successTextView
+                }
+                .padding(.top, 40)
+                .padding(.bottom, 32)
+                
+                amountCardView
+                    .padding(.horizontal, 20)
+                    .padding(.bottom, 20)
+                
+                recipientCardView
+                    .padding(.horizontal, 20)
+                    .padding(.bottom, 20)
+                
+                transactionDetailsCardView
+                    .padding(.horizontal, 20)
+                    .padding(.bottom, 24)
             }
         }
     }
@@ -312,7 +348,12 @@ struct ReceiptView: View {
     private var actionButtonsView: some View {
         VStack(spacing: 12) {
             Button(action: {
-                // TODO: Implement share functionality
+                if let image = generateReceiptImage() {
+                    receiptImage = image
+                    isShareSheetPresented = true
+                } else {
+                    print("❌ Failed to generate receipt image")
+                }
             }) {
                 HStack(spacing: 10) {
                     Image(systemName: "square.and.arrow.up")
@@ -331,9 +372,7 @@ struct ReceiptView: View {
             }
             
             Button(action: {
-                // 1) Tell the flow we want to go all the way home
                 popToHome = true
-                // 2) Pop this ReceiptView
                 dismiss()
                 dismiss()
                 dismiss()
@@ -357,7 +396,14 @@ struct ReceiptView: View {
         .opacity(showButton ? 1 : 0)
         .offset(y: showButton ? 0 : 20)
         .animation(.easeOut(duration: 0.5).delay(0.8), value: showButton)
+        // Present share sheet when image is ready
+        .sheet(isPresented: $isShareSheetPresented) {
+            if let image = receiptImage {
+                ActivityView(activityItems: [image])
+            }
+        }
     }
+
     
     // MARK: - Transaction Row
     private func txnDetailRow(
@@ -382,8 +428,8 @@ struct ReceiptView: View {
             
             Text(value)
                 .font(isMonospaced ?
-                      .system(size: 13, weight: .semibold, design: .monospaced) :
-                      .system(size: 14, weight: .semibold))
+                    .system(size: 13, weight: .semibold, design: .monospaced) :
+                        .system(size: 14, weight: .semibold))
                 .foregroundColor(valueColor)
         }
     }
@@ -392,5 +438,59 @@ struct ReceiptView: View {
         let formatter = DateFormatter()
         formatter.dateFormat = String(localized: "date.format.full")
         return formatter.string(from: Date())
+    }
+    
+    /// This is the version of the receipt we render into an image (no buttons, no scroll).
+    private var receiptSnapshotView: some View {
+        ZStack {
+            LinearGradient(
+                colors: [Color(hex: "F8F9FD"), Color.white],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            .ignoresSafeArea()
+
+            VStack(spacing: 0) {
+                VStack(spacing: 24) {
+                    successAnimationView.frame(height: 200)
+                    successTextView
+                }
+                .padding(.top, 40)
+                .padding(.bottom, 32)
+
+                amountCardView
+                    .padding(.horizontal, 20)
+                    .padding(.bottom, 20)
+
+                recipientCardView
+                    .padding(.horizontal, 20)
+                    .padding(.bottom, 20)
+
+                transactionDetailsCardView
+                    .padding(.horizontal, 20)
+                    .padding(.bottom, 24)
+            }
+            // Make sure it lays out fully
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        }
+    }
+    @MainActor
+    private func generateReceiptImage() -> UIImage? {
+        let screenSize = UIScreen.main.bounds.size
+
+        let renderer = ImageRenderer(
+            content: receiptSnapshotView
+                .frame(width: screenSize.width, height: screenSize.height)
+        )
+
+        renderer.scale = UIScreen.main.scale
+
+        guard let image = renderer.uiImage else {
+            print("⚠️ Failed to render uiImage")
+            return nil
+        }
+
+        print("✅ Rendered receipt image size: \(image.size)")
+        return image
     }
 }

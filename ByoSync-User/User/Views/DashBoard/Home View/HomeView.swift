@@ -383,7 +383,7 @@ struct HomeView: View {
                             isFirstRank: false
                         )
                     }
-                } else if !top3Users.isEmpty {
+                } else if !top3Users.isEmpty{
                     // Display available users (less than 3)
                     HStack(spacing: 14) {
                         ForEach(Array(top3Users.enumerated()), id: \.element.id) { index, user in

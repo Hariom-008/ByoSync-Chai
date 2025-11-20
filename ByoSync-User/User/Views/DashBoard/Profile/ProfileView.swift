@@ -9,7 +9,6 @@ struct ProfileView: View {
     @State private var openTestinLinkedDeviceView = false
     @State private var openLocationTestingView: Bool = false
     @State private var openSettingView: Bool = false
-    @State private var openHashValueTesting: Bool = false
     @State private var hasLoadedProfilePicture = false
     
     @State var testing :Bool = false
@@ -113,11 +112,6 @@ struct ProfileView: View {
                                     .fill(Color(hex: "4B548D").opacity(0.1))
                             )
                     }
-                    Button{
-                        testing.toggle()
-                    }label:{
-                        Text("Testing")
-                    }
                 }
             }
         }
@@ -127,17 +121,11 @@ struct ProfileView: View {
         .sheet(isPresented: $openTestinLinkedDeviceView) {
             LinkedDevicesView()
         }
-        .sheet(isPresented: $openHashValueTesting) {
-            HashValueTesting()
-        }
         .sheet(isPresented: $openLocationTestingView) {
             LocationTestView()
         }
         .fullScreenCover(isPresented: $openSettingView) {
             SettingsView()
-        }
-        .fullScreenCover(isPresented: $testing){
-            CameraSpecView()
         }
         .alert(viewModel.alertTitle, isPresented: $viewModel.showAlert) {
             Button(L("ok"), role: .cancel) {}

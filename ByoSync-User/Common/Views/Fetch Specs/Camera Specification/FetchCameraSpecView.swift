@@ -199,41 +199,41 @@ final class CameraSpecManager: NSObject, ObservableObject, AVCaptureVideoDataOut
     }
 }
 
-import SwiftUI
-
-struct CameraSpecView: View {
-    @StateObject private var manager = CameraSpecManager()
-
-    var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 12) {
-                if let s = manager.currentSpecs {
-                    Text("Device: \(s.deviceName)").bold()
-                    Text("Position: \(s.position)")
-                    Text("Frame: \(s.frameWidth)x\(s.frameHeight)")
-                    Text("FOV: \(s.fieldOfView)")
-                    Text("ISO: \(s.iso)")
-                    Text("Exposure: \(s.exposureDuration)")
-                    Text("Zoom: \(s.zoomFactor)")
-
-                    if let K = s.intrinsicMatrix {
-                        Text("Intrinsics:")
-                        Text("[\(K.columns.0.x), \(K.columns.1.x), \(K.columns.2.x)]")
-                        Text("[\(K.columns.0.y), \(K.columns.1.y), \(K.columns.2.y)]")
-                        Text("[\(K.columns.0.z), \(K.columns.1.z), \(K.columns.2.z)]")
-                    } else {
-                        Text("No intrinsics yet (attachment not present)")
-                            .foregroundColor(.red)
-                    }
-                } else {
-                    Text("Waiting for camera…")
-                        .foregroundStyle(.secondary)
-                }
-            }
-            .padding()
-        }
-        .onAppear {
-            manager.startCapture()
-        }
-    }
-}
+//import SwiftUI
+//
+//struct CameraSpecView: View {
+//    @StateObject private var manager = CameraSpecManager()
+//
+//    var body: some View {
+//        ScrollView {
+//            VStack(alignment: .leading, spacing: 12) {
+//                if let s = manager.currentSpecs {
+//                    Text("Device: \(s.deviceName)").bold()
+//                    Text("Position: \(s.position)")
+//                    Text("Frame: \(s.frameWidth)x\(s.frameHeight)")
+//                    Text("FOV: \(s.fieldOfView)")
+//                    Text("ISO: \(s.iso)")
+//                    Text("Exposure: \(s.exposureDuration)")
+//                    Text("Zoom: \(s.zoomFactor)")
+//
+//                    if let K = s.intrinsicMatrix {
+//                        Text("Intrinsics:")
+//                        Text("[\(K.columns.0.x), \(K.columns.1.x), \(K.columns.2.x)]")
+//                        Text("[\(K.columns.0.y), \(K.columns.1.y), \(K.columns.2.y)]")
+//                        Text("[\(K.columns.0.z), \(K.columns.1.z), \(K.columns.2.z)]")
+//                    } else {
+//                        Text("No intrinsics yet (attachment not present)")
+//                            .foregroundColor(.red)
+//                    }
+//                } else {
+//                    Text("Waiting for camera…")
+//                        .foregroundStyle(.secondary)
+//                }
+//            }
+//            .padding()
+//        }
+//        .onAppear {
+//            manager.startCapture()
+//        }
+//    }
+//}

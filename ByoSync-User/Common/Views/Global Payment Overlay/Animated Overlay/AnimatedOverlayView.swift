@@ -97,6 +97,7 @@ struct PaymentNotificationOverlay: View {
         }
         .ignoresSafeArea(edges: .top)
         .onAppear {
+            AudioManager.shared.playSound(named: "coin_recieve.mp3")
             DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
                 if isShowing {
                     print("🔔 Auto-dismiss timer fired")
@@ -192,15 +193,6 @@ struct PaymentNotificationOverlay: View {
                         .lineLimit(1)
                 }
                 .padding(.top, 2)
-                
-                // Sender info
-                HStack(spacing: 6) {
-                    Text("SenderID: \(notification.senderId)")
-                        .font(.system(size: 13, weight: .semibold, design: .default))
-                        .foregroundColor(.white)
-                        .lineLimit(1)
-                }
-                
                 // Transaction ID badge (subtle)
                 HStack(spacing: 4) {
                     Text("Txn Id: \(notification.transactionId)")

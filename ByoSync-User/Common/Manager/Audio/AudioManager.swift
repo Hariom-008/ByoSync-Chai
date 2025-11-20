@@ -22,7 +22,7 @@ final class AudioManager {
     }
     
     // General function to play any sound based on the file name
-    private func playSound(named fileName: String) {
+    func playSound(named fileName: String) {
         guard let url = Bundle.main.url(forResource: fileName, withExtension: nil) else {
             print("Audio file \(fileName) not found!")
             return
