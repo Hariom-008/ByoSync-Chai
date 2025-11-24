@@ -25,6 +25,25 @@ struct OTPVerificationView: View {
                     .font(.subheadline)
                     .fontWeight(.semibold)
                     .foregroundColor(.indigo)
+                
+                // Show OTP in development for testing
+                #if DEBUG
+                if let receivedOTP = viewModel.receivedOTP {
+                    Text("Test OTP: \(receivedOTP)")
+                        .font(.caption)
+                        .foregroundColor(.green)
+                        .padding(.top, 8)
+                        .onTapGesture {
+                            // Auto-fill OTP on tap (development only)
+                            let digits = Array(receivedOTP)
+                            for (index, digit) in digits.enumerated() {
+                                if index < otpCode.count {
+                                    otpCode[index] = String(digit)
+                                }
+                            }
+                        }
+                }
+                #endif
             }
             .padding(.top, 60)
             .padding(.bottom, 40)
@@ -60,6 +79,7 @@ struct OTPVerificationView: View {
                 
                 if viewModel.canResend {
                     Button("Resend") {
+                        print("🔄 [VIEW] Resending OTP via backend")
                         viewModel.resendOTP()
                         clearOTP()
                     }
@@ -135,12 +155,19 @@ struct OTPVerificationView: View {
         }
         .onChange(of: viewModel.isAuthenticated) { _, newValue in
             if newValue {
-                print("✅ [VIEW] Authentication successful, navigating to register")
+                print("✅ [VIEW] Authentication successful via backend, navigating to register")
                 router.navigate(to: .registerUser(phoneNumber: phoneNumber), style: .push)
+            }
+        }
+        .onChange(of: viewModel.receivedOTP) { _, newOTP in
+            if let otp = newOTP {
+                print("🔐 [VIEW] New OTP received: \(otp)")
             }
         }
         .onAppear {
             print("👀 [VIEW] OTPVerificationView appeared")
+            print("📱 [VIEW] Phone Number: \(phoneNumber)")
+            print("🔧 [VIEW] OTP Method: \(viewModel.currentOTPMethod == .backend ? "Backend" : "Firebase")")
             focusedField = 0
         }
     }
@@ -176,10 +203,13 @@ struct OTPVerificationView: View {
         
         hasError = false
         
-        print("🔐 Starting Firebase OTP verification...")
-        print("📱 Phone Number: \(phoneNumber)")
-        print("🔢 OTP: \(otpString)")
+        // Updated to show correct method
+        let methodName = viewModel.currentOTPMethod == .backend ? "Backend" : "Firebase"
+        print("🔐 [VIEW] Starting \(methodName) OTP verification...")
+        print("📱 [VIEW] Phone Number: \(phoneNumber)")
+        print("🔢 [VIEW] OTP: \(otpString)")
         
+        // This will automatically route to correct method based on currentOTPMethod
         viewModel.verifyOTP(code: otpString)
     }
     

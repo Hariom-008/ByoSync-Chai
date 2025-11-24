@@ -174,7 +174,7 @@ extension Router {
     
     func navigateToMainApp() {
         print("🏠 [ROUTER] Navigating to main app")
-        popToRoot()
+//        popToRoot()
         navigate(to: .mainTab, style: .push)
     }
     

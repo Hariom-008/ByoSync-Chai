@@ -16,7 +16,7 @@ struct EnterNumberView: View {
                         .font(.title2)
                         .fontWeight(.bold)
                     
-                    Text("We'll send you a verification code via Firebase")
+                    Text("We'll send you a verification code via SMS")
                         .font(.subheadline)
                         .foregroundColor(.secondary)
                 }
@@ -100,7 +100,8 @@ struct EnterNumberView: View {
                 // Continue Button
                 Button(action: {
                     isPhoneFieldFocused = false
-                    viewModel.sendOTP()
+                    // Changed to backend OTP
+                    viewModel.sendOTPonBackend()
                 }) {
                     HStack(spacing: 8) {
                         if viewModel.isLoading {
@@ -159,7 +160,13 @@ struct EnterNumberView: View {
         }
         .onChange(of: viewModel.otpSent) { _, newValue in
             if newValue {
-                print("✅ [VIEW] OTP sent, navigating to verification")
+                print("✅ [VIEW] OTP sent via backend, navigating to verification")
+                
+                // Show received OTP in console for testing
+                if let otp = viewModel.receivedOTP {
+                    print("🔐 [VIEW] Received OTP for testing: \(otp)")
+                }
+                
                 router.navigate(to: .otpVerification(
                     phoneNumber: viewModel.fullPhoneNumber,
                     viewModel: viewModel

@@ -9,9 +9,9 @@ import Foundation
 import Alamofire
 
 // Send OTP Data
-
-struct OTPData: Codable {
-    let phoneNumber: String
-    let otpSentAt: String?
-    let expiresIn: Int?
-}
+//
+//struct OTPData: Codable {
+//    let phoneNumber: String
+//    let otpSentAt: String?
+//    let expiresIn: Int?
+//}

@@ -4,6 +4,11 @@ import Firebase
 import FirebaseAuth
 import FirebaseMessaging
 
+enum OTPMethod {
+    case firebase
+    case backend
+}
+
 final class PhoneOTPViewModel: ObservableObject {
     @Published var phoneNumber: String = ""
     @Published var selectedCountryCode: String = "+91"
@@ -16,9 +21,17 @@ final class PhoneOTPViewModel: ObservableObject {
     @Published var verificationID: String?
     @Published var verificationCode: String = ""
     @Published var isAuthenticated: Bool = false
+    @Published var currentOTPMethod: OTPMethod = .backend  // Default to backend
+    @Published var receivedOTP: String?  // Store OTP from backend for testing
+    
+    private let repository: OTPRepository
     
     private var cancellables = Set<AnyCancellable>()
     private var resendTimer: Timer?
+    
+    init(repository: OTPRepository = .shared) {
+        self.repository = repository
+    }
     
     // MARK: - Computed Properties
     var isValidPhoneNumber: Bool {
@@ -42,6 +55,130 @@ final class PhoneOTPViewModel: ObservableObject {
         return "\(selectedCountryCode)\(digits)"
     }
     
+    // MARK: - Backend OTP Methods
+    func sendOTPonBackend() {
+        guard isValidPhoneNumber else {
+            showErrorMessage("Please enter a valid 10-digit mobile number starting with 6-9")
+            return
+        }
+        
+        print("🚀 Sending OTP via Backend for: \(fullPhoneNumber)")
+        
+        isLoading = true
+        errorMessage = nil
+        currentOTPMethod = .backend
+        
+        repository.sendPhoneOTP(phoneNumber: fullPhoneNumber) { [weak self] result in
+            guard let self = self else { return }
+            
+            DispatchQueue.main.async {
+                self.isLoading = false
+                
+                switch result {
+                case .success(let response):
+                    self.receivedOTP = response.data?.otp
+                    self.otpSent = true
+                    self.startResendTimer()
+                    self.errorMessage = nil
+                    
+                    print("✅ OTP sent successfully via backend")
+                    if let otp = self.receivedOTP {
+                        print("🔐 OTP for testing: \(otp)")
+                    }
+                    
+                case .failure(let error):
+                    let errorMsg = error.localizedDescription
+                    self.showErrorMessage(errorMsg)
+                    print("❌ Backend OTP failed: \(errorMsg)")
+                }
+            }
+        }
+    }
+    
+    func verifyOTPonBackend(code: String) {
+        guard !code.isEmpty, code.count == 6 else {
+            showErrorMessage("Please enter a valid 6-digit OTP")
+            return
+        }
+        
+        print("🔐 Verifying OTP via Backend")
+        
+        isLoading = true
+        errorMessage = nil
+        verificationCode = code
+        
+        repository.verifyOTP(phoneNumber: fullPhoneNumber, otp: code) { [weak self] result in
+            guard let self = self else { return }
+            
+            DispatchQueue.main.async {
+                self.isLoading = false
+                
+                switch result {
+                case .success(let response):
+                    print("✅ OTP verified successfully via backend")
+                    
+                    // Save tokens if available
+                    if let token = response.data?.token {
+                        UserDefaults.standard.set(token, forKey: "authToken")
+                        print("💾 Auth token saved")
+                    }
+                    
+                    if let refreshToken = response.data?.refreshToken {
+                        UserDefaults.standard.set(refreshToken, forKey: "refreshToken")
+                        print("💾 Refresh token saved")
+                    }
+                    
+                    // Generate and save FCM Token
+                    self.generateAndSaveFCMToken()
+                    
+                    self.isAuthenticated = true
+                    self.errorMessage = nil
+                    
+                case .failure(let error):
+                    let errorMsg =  error.localizedDescription
+                    self.showErrorMessage(errorMsg)
+                    print("❌ Backend OTP verification failed: \(errorMsg)")
+                }
+            }
+        }
+    }
+    
+    func resendOTPonBackend() {
+        guard canResend else { return }
+        
+        print("🔄 Resending OTP via Backend")
+        
+        isLoading = true
+        errorMessage = nil
+        canResend = false
+        
+        repository.resendOTP(phoneNumber: fullPhoneNumber) { [weak self] result in
+            guard let self = self else { return }
+            
+            DispatchQueue.main.async {
+                self.isLoading = false
+                
+                switch result {
+                case .success(let response):
+                    self.receivedOTP = response.data?.otp
+                    self.startResendTimer()
+                    self.errorMessage = nil
+                    
+                    print("✅ OTP resent successfully via backend")
+                    if let otp = self.receivedOTP {
+                        print("🔐 New OTP for testing: \(otp)")
+                    }
+                    
+                case .failure(let error):
+                    let errorMsg = error.localizedDescription
+                    self.showErrorMessage(errorMsg)
+                    print("❌ Backend OTP resend failed: \(errorMsg)")
+                    self.canResend = true
+                }
+            }
+        }
+    }
+    
     // MARK: - Firebase Phone Authentication
     func sendOTP() {
         guard isValidPhoneNumber else {
@@ -53,6 +190,7 @@ final class PhoneOTPViewModel: ObservableObject {
         
         isLoading = true
         errorMessage = nil
+        currentOTPMethod = .firebase
         
         sendVerificationCode()
     }
@@ -60,13 +198,17 @@ final class PhoneOTPViewModel: ObservableObject {
     func resendOTP() {
         guard canResend else { return }
         
-        print("🔄 Resending OTP via Firebase")
-        
-        isLoading = true
-        errorMessage = nil
-        canResend = false
-        
-        sendVerificationCode()
+        if currentOTPMethod == .backend {
+            resendOTPonBackend()
+        } else {
+            print("🔄 Resending OTP via Firebase")
+            
+            isLoading = true
+            errorMessage = nil
+            canResend = false
+            
+            sendVerificationCode()
+        }
     }
     
     func verifyOTP(code: String) {
@@ -76,10 +218,14 @@ final class PhoneOTPViewModel: ObservableObject {
         }
         
         verificationCode = code
-        isLoading = true
-        errorMessage = nil
         
-        verifyCode()
+        if currentOTPMethod == .backend {
+            verifyOTPonBackend(code: code)
+        } else {
+            isLoading = true
+            errorMessage = nil
+            verifyCode()
+        }
     }
     
     func updatePhoneNumber(_ newValue: String) {

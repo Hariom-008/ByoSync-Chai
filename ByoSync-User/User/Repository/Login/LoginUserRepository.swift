@@ -33,8 +33,6 @@ final class LoginUserRepository {
             deviceKeyHash: deviceKeyHash,
             fcmToken: fcmToken
         )
-        
-        
         // Track API call performance
         let startTime = CFAbsoluteTimeGetCurrent()
         

@@ -17,7 +17,8 @@ final class LoginViewModel: ObservableObject {
     @Published var wallet: Int?
     @Published var fcmToken: String = ""
     
-    private let hardcodedDeviceId = "123456abc"
+    //private let hardcodedDeviceId = "12345678ijhb"
+    private let deviceKey = "12345f"
     
     // ✅ Dependency injection via initializer
     init(cryptoService: any CryptoService) {
@@ -43,7 +44,7 @@ final class LoginViewModel: ObservableObject {
         
         repository.loginUser(
             name: name,
-            deviceKey: hardcodedDeviceId,
+            deviceKey: deviceKey,
             fcmToken: fcmToken
         ) { [weak self] result in
             DispatchQueue.main.async {

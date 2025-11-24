@@ -4,6 +4,7 @@ import Foundation
 struct UserAPIEndpoint{
     
     static let baseURL = "https://backendapi.byosync.in"
+    static let baseURL2 = "https://byo-sync-backend-testing.vercel.app"
     
     
     // Login,Register,Phone & Email Verification
@@ -11,14 +12,13 @@ struct UserAPIEndpoint{
         static let userRegister = "\(baseURL)/api/v1/users/user-register"
         static let phoneOTP = "\(baseURL)/api/v1/users/phone-otp"
         static let verifyOTP = "\(baseURL)/api/v1/users/verify-otp"
-        //(POST) - give name,deviceId to the api 
+        //(POST) - give name,deviceId to the api
         static let logIn = "\(baseURL)/api/v1/users/login"
         static let logOut = "\(baseURL)/api/v1/users/logout"
                     
         static let sendEmail = "\(baseURL)/api/v1/users/send-email"
         static let emailOtpVerification = "\(baseURL)/api/v1/users/email-otp-verification"
     }
-    
     
     // (GET) Fetch Logged In User Data
     struct UserData{

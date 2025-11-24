@@ -51,27 +51,34 @@ enum APIError: Error,Sendable{
     
     
     // MAP Error using status Code ->
-    
     static func map(from statusCode: Int?, error: AFError?, data: Data?) -> APIError {
+        // PRIORITY: Always try to extract backend error message first
+        if let backendMessage = extractErrorMessage(from: data), !backendMessage.isEmpty {
+            return .custom(backendMessage)
+        }
+        
+        // Fallback to status code specific errors if no message extracted
         if let statusCode = statusCode {
             switch statusCode {
             case 400:
-                let message = extractErrorMessage(from: data) ?? "Invalid request"
-                return .badRequest(message)
+                return .badRequest("Invalid request")
             case 401:
                 return .unauthorized
             case 403:
                 return .forbidden
             case 404:
                 return .notFound
+            case 409:
+                return .custom("Conflict - resource already exists")
             case 500...599:
-                let message = extractErrorMessage(from: data) ?? "Internal server error"
-                return .serverError(statusCode, message)
+                return .serverError(statusCode, "Internal server error")
             default:
-                break
+                // For any other status code, create a custom error
+                return .custom("Request failed with status code \(statusCode)")
             }
         }
         
+        // Handle AFError cases
         if let afError = error {
             if afError.isSessionTaskError || afError.isSessionInvalidatedError {
                 return .networkError("No internet connection or request timed out.")

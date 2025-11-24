@@ -8,8 +8,8 @@ struct RegisterUserView: View {
     
     init(phoneNumber: Binding<String>) {
         self._phoneNumber = phoneNumber
-        let tempCrypto = CryptoManager()
-        self._viewModel = StateObject(wrappedValue: RegisterUserViewModel(cryptoService: tempCrypto))
+        // Use a shared / consistent crypto instance instead of a new one
+        _viewModel = StateObject(wrappedValue: RegisterUserViewModel(cryptoService: CryptoManager.shared))
     }
     
     var body: some View {
@@ -125,19 +125,19 @@ struct RegisterUserView: View {
                 Text(errorMessage)
             }
         }
-        .onChange(of: viewModel.navigateToMainTab) { _, newValue in
-            if newValue {
-                print("✅ [VIEW] Registration successful, navigating to main tab")
-                router.popToRoot()
-                router.navigate(to: .mainTab, style: .push)
-            }
-        }
         .onAppear {
             print("👀 [VIEW] RegisterUserView appeared")
             viewModel.phoneNumber = phoneNumber
         }
+        .onChange(of: viewModel.navigateToMainTab) { _, newValue in
+            if newValue {
+                print("✅ [VIEW] navigateToMainTab = true → routing to MainTab")
+                router.navigate(to: .mainTab, style: .push)
+            }
+        }
     }
 }
+
 
 // MARK: - Form Field Component
 struct FormField: View {

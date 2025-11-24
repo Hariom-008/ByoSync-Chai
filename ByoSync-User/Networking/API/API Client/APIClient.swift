@@ -1,7 +1,7 @@
 import Alamofire
 import Foundation
 
-enum APIConfig {
+enum APIConfig{
     static let baseURL = URL(string: "https://backendapi.byosync.in")!
     static let host = "backendapi.byosync.in"
 }
@@ -69,6 +69,15 @@ final class APIClient {
         .responseData { response in
             switch response.result {
             case .success(let data):
+                // ADD THIS BLOCK to see raw JSON
+                   print("═══════════════════════════════════════")
+                   print("📥 RAW API RESPONSE:")
+                   print("═══════════════════════════════════════")
+                   if let jsonString = String(data: data, encoding: .utf8) {
+                       print(jsonString)
+                   }
+                   print("═══════════════════════════════════════")
+                
                 do {
                     let decoder = JSONDecoder()
                     decoder.keyDecodingStrategy = .convertFromSnakeCase
