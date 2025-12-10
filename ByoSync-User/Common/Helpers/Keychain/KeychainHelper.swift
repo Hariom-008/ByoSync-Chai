@@ -9,7 +9,7 @@ import Foundation
 import Security
 
 final class KeychainHelper {
-    static let standard = KeychainHelper()
+    static let shared = KeychainHelper()
     private init() {}
 
     func save(_ value: String, forKey key: String) {

@@ -41,7 +41,7 @@ final class DeviceRegistrationRepository {
     ) {
         // 1. Compute HMAC of the device key
         let deviceKeyHash = hmacGenerator.generateHMAC(jsonString: deviceKey)
-        
+       // let deviceKeyHash = deviceKey
         // 2. Headers (auth, token, etc.)
         let headers: HTTPHeaders = getHeader.shared.getAuthHeaders()
         

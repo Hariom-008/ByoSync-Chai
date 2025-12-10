@@ -9,6 +9,7 @@ import Combine
 @main
 struct ByoSync_UserApp: App {
     @StateObject private var cryptoManager = CryptoManager()
+    
     @StateObject private var languageManager = LanguageManager.shared
     @StateObject var userSession = UserSession.shared
     @StateObject private var socketManager = SocketIOManager.shared

@@ -11,7 +11,7 @@ final class RegisterUserViewModel: ObservableObject {
     @Published var errorMessage: String?
     @Published var showError: Bool = false
     @Published var navigateToMainTab: Bool = false
-    @Published var deviceId: String = "12345z"
+    @Published var deviceId: String = "123456789ab"
     @Published var deviceName: String = "iPhone 11"
     
     private let repository: RegisterUserRepository
@@ -88,12 +88,18 @@ final class RegisterUserViewModel: ObservableObject {
                 userDeviceId: device.id
             )
             
+            UserDefaults.standard.set(device.token, forKey: "token")
+            print("✅ Token Saved in UserDefaults")
+            KeychainHelper.shared.save("deviceKey", forKey: device.deviceKey)
+            print("🔐 Saved deviceKey to Keychain with key: \(device.deviceKey)")
+            
             UserSession.shared.saveUser(registeredUser)
             UserSession.shared.setCurrentDeviceID(device.id)
             UserSession.shared.setThisDevicePrimary(device.isPrimary)
             UserSession.shared.setUserWallet(userData.wallet)
             UserSession.shared.setEmailVerified(userData.emailVerified)
             UserSession.shared.setProfilePicture(userData.profilePic ?? "")
+            UserSession.shared.setDeviceKey(device.deviceKey)
 
             if !device.token.isEmpty {
                 UserDefaults.standard.set(device.token, forKey: "token")

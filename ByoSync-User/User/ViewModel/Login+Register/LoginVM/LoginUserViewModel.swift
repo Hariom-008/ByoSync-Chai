@@ -104,6 +104,7 @@ final class LoginViewModel: ObservableObject {
         UserSession.shared.setCurrentDeviceID(deviceData.id)
         UserSession.shared.setThisDevicePrimary(deviceData.isPrimary)
         UserSession.shared.setUserWallet(userData.wallet)
+        UserSession.shared.setDeviceKey(deviceData.deviceKey)
         
         // Save Account type
         UserDefaults.standard.set("user", forKey: "accountType")
