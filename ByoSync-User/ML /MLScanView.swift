@@ -2,7 +2,6 @@ import SwiftUI
 
 struct MLScanView: View {
     var onDone: () -> Void
-    @StateObject private var cameraManager = CameraManager()
     
     var body: some View {
         FaceDetectionView(onComplete: {

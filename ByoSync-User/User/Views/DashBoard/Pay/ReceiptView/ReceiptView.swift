@@ -208,7 +208,7 @@ struct ReceiptView: View {
             HStack(spacing: 14) {
                 // Profile Image or Initials
                 Group {
-                    if let url = URL(string: selectedUser.profilePic), !selectedUser.profilePic.isEmpty {
+                    if let url = URL(string: selectedUser.profilePic ?? ""), ((selectedUser.profilePic?.isEmpty) == nil) {
                         AsyncImage(url: url) { phase in
                             switch phase {
                             case .empty:

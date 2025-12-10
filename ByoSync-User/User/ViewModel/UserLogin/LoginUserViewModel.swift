@@ -100,7 +100,7 @@ final class LoginViewModel: ObservableObject {
         // Save to session
         UserSession.shared.saveUser(user)
         UserSession.shared.setEmailVerified(userData.emailVerified)
-        UserSession.shared.setProfilePicture(userData.profilePic)
+        UserSession.shared.setProfilePicture(userData.profilePic ?? "")
         UserSession.shared.setCurrentDeviceID(deviceData.id)
         UserSession.shared.setThisDevicePrimary(deviceData.isPrimary)
         UserSession.shared.setUserWallet(userData.wallet)

@@ -93,7 +93,7 @@ final class RegisterUserViewModel: ObservableObject {
             UserSession.shared.setThisDevicePrimary(device.isPrimary)
             UserSession.shared.setUserWallet(userData.wallet)
             UserSession.shared.setEmailVerified(userData.emailVerified)
-            UserSession.shared.setProfilePicture(userData.profilePic)
+            UserSession.shared.setProfilePicture(userData.profilePic ?? "")
 
             if !device.token.isEmpty {
                 UserDefaults.standard.set(device.token, forKey: "token")

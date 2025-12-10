@@ -28,6 +28,8 @@ struct UserAPIEndpoint{
     
     // Device Management
     struct UserDeviceManagement{
+        static let isDeviceRegistered = "\(baseURL)/api/v1/users/is-device-register"
+        static let getUserDataByDeviceID = "\(baseURL)/api/v1/users/get-user-data-by-id"
         //(POST) Unlinks all other devices using the primary device(Only primary device can logout others)
         static let unLinkOtherDevices = "\(baseURL)/api/v1/users/unlink-other-devices"
         // (GET) User's devices
@@ -79,6 +81,11 @@ struct UserAPIEndpoint{
     
     struct Leaderboard{
         static let getRankboard = "\(baseURL)/api/v1/users/get-users-rank-board"
+    }
+    
+    struct FaceId{
+        static let addFaceId = "\(baseURL)/api/v1/users/addFaceId"
+        static let getFaceId = "\(baseURL)/api/v1/users/getFaceId"
     }
 }
 

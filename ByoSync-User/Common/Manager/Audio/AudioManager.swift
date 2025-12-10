@@ -5,7 +5,7 @@
 
 import Foundation
 import SwiftUI
-import AVFoundation
+internal import AVFoundation
 
 final class AudioManager {
     

@@ -4,7 +4,7 @@
 //
 
 import SwiftUI
-import AVFoundation
+internal import AVFoundation
 import Combine
 import CoreMedia
 import simd
@@ -50,7 +50,7 @@ struct CameraSpecs {
 
 
 import SwiftUI
-import AVFoundation
+internal import AVFoundation
 import Combine
 import CoreMedia
 import CoreVideo
@@ -138,14 +138,11 @@ final class CameraSpecManager: NSObject, ObservableObject, AVCaptureVideoDataOut
             session.commitConfiguration()
         }
     }
+    
+    func updateFrom(sampleBuffer: CMSampleBuffer,
+                    connection: AVCaptureConnection,
+                    device: AVCaptureDevice) {
 
-    // MARK: - AVCaptureVideoDataOutputSampleBufferDelegate
-
-    func captureOutput(_ output: AVCaptureOutput,
-                       didOutput sampleBuffer: CMSampleBuffer,
-                       from connection: AVCaptureConnection) {
-
-        guard let device = captureDevice else { return }
         guard let format = CMSampleBufferGetFormatDescription(sampleBuffer) else { return }
 
         let dims = CMVideoFormatDescriptionGetDimensions(format)
@@ -159,16 +156,10 @@ final class CameraSpecManager: NSObject, ObservableObject, AVCaptureVideoDataOut
             key: kCMSampleBufferAttachmentKey_CameraIntrinsicMatrix,
             attachmentModeOut: nil
         ) as? Data {
-            // CFData contains a 3x3 float matrix
             let K = camData.withUnsafeBytes { $0.load(as: matrix_float3x3.self) }
             intrinsic = K
             refDims = CGSize(width: Int(dims.width), height: Int(dims.height))
         }
-
-        // We *don't* get AVCameraCalibrationData for video here, so these stay nil
-        let lut: Data? = nil
-        let invLut: Data? = nil
-        let center: CGPoint? = nil
 
         let specs = CameraSpecs(
             deviceName: device.localizedName,
@@ -177,7 +168,7 @@ final class CameraSpecManager: NSObject, ObservableObject, AVCaptureVideoDataOut
             iso: device.iso,
             lensPosition: device.lensPosition,
             zoomFactor: Float(device.videoZoomFactor),
-            focalLength: device.lensAperture, // physical focal length in mm is not exposed
+            focalLength: device.lensAperture,
             fieldOfView: device.activeFormat.videoFieldOfView,
             minISO: device.activeFormat.minISO,
             maxISO: device.activeFormat.maxISO,
@@ -186,54 +177,70 @@ final class CameraSpecManager: NSObject, ObservableObject, AVCaptureVideoDataOut
             videoOrientation: connection.videoOrientation,
             intrinsicMatrix: intrinsic,
             intrinsicMatrixReferenceDimensions: refDims,
-            lensDistortionLookupTable: lut,
-            inverseLensDistortionLookupTable: invLut,
-            lensDistortionCenter: center,
+            lensDistortionLookupTable: nil,
+            inverseLensDistortionLookupTable: nil,
+            lensDistortionCenter: nil,
             videoStabilizationMode: connection.activeVideoStabilizationMode,
             timestamp: CMSampleBufferGetPresentationTimeStamp(sampleBuffer)
         )
 
         DispatchQueue.main.async {
             self.currentSpecs = specs
+            if let K = intrinsic {
+                print("📐 Intrinsics updated, fx = \(K.columns.0.x)")
+            } else {
+                print("⚠️ No intrinsics in attachment yet")
+            }
+        }
+    }
+
+
+    // MARK: - AVCaptureVideoDataOutputSampleBufferDelegate
+    func captureOutput(_ output: AVCaptureOutput,
+                       didOutput sampleBuffer: CMSampleBuffer,
+                       from connection: AVCaptureConnection) {
+
+        guard let device = captureDevice else { return }
+        updateFrom(sampleBuffer: sampleBuffer, connection: connection, device: device)
+    }
+
+}
+
+import SwiftUI
+
+struct CameraSpecView: View {
+    @StateObject private var manager = CameraSpecManager()
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 12) {
+                if let s = manager.currentSpecs {
+                    Text("Device: \(s.deviceName)").bold()
+                    Text("Position: \(s.position)")
+                    Text("Frame: \(s.frameWidth)x\(s.frameHeight)")
+                    Text("FOV: \(s.fieldOfView)")
+                    Text("ISO: \(s.iso)")
+                    Text("Exposure: \(s.exposureDuration)")
+                    Text("Zoom: \(s.zoomFactor)")
+
+                    if let K = s.intrinsicMatrix {
+                        Text("Intrinsics:")
+                        Text("[\(K.columns.0.x), \(K.columns.1.x), \(K.columns.2.x)]")
+                        Text("[\(K.columns.0.y), \(K.columns.1.y), \(K.columns.2.y)]")
+                        Text("[\(K.columns.0.z), \(K.columns.1.z), \(K.columns.2.z)]")
+                    } else {
+                        Text("No intrinsics yet (attachment not present)")
+                            .foregroundColor(.red)
+                    }
+                } else {
+                    Text("Waiting for camera…")
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .padding()
+        }
+        .onAppear {
+            manager.startCapture()
         }
     }
 }
-
-//import SwiftUI
-//
-//struct CameraSpecView: View {
-//    @StateObject private var manager = CameraSpecManager()
-//
-//    var body: some View {
-//        ScrollView {
-//            VStack(alignment: .leading, spacing: 12) {
-//                if let s = manager.currentSpecs {
-//                    Text("Device: \(s.deviceName)").bold()
-//                    Text("Position: \(s.position)")
-//                    Text("Frame: \(s.frameWidth)x\(s.frameHeight)")
-//                    Text("FOV: \(s.fieldOfView)")
-//                    Text("ISO: \(s.iso)")
-//                    Text("Exposure: \(s.exposureDuration)")
-//                    Text("Zoom: \(s.zoomFactor)")
-//
-//                    if let K = s.intrinsicMatrix {
-//                        Text("Intrinsics:")
-//                        Text("[\(K.columns.0.x), \(K.columns.1.x), \(K.columns.2.x)]")
-//                        Text("[\(K.columns.0.y), \(K.columns.1.y), \(K.columns.2.y)]")
-//                        Text("[\(K.columns.0.z), \(K.columns.1.z), \(K.columns.2.z)]")
-//                    } else {
-//                        Text("No intrinsics yet (attachment not present)")
-//                            .foregroundColor(.red)
-//                    }
-//                } else {
-//                    Text("Waiting for camera…")
-//                        .foregroundStyle(.secondary)
-//                }
-//            }
-//            .padding()
-//        }
-//        .onAppear {
-//            manager.startCapture()
-//        }
-//    }
-//}

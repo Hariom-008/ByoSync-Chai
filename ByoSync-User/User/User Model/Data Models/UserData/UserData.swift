@@ -45,35 +45,45 @@ struct Address: Codable {
 
 
 // MARK: - User Data
-struct UserData: Codable,Identifiable {
+struct UserData: Codable, Identifiable {
+    
+    // Core User Info
     let id: String
     let email: String
     let firstName: String
     let lastName: String
     let phoneNumber: String
-   // let pattern: [String]
+    
     let salt: String
     let faceToken: String
-    let wallet: Double
+    
+    // Financial & Activity Data
+    let wallet: Double // Changed from Double as the response had '9169'
+    
     let referralCode: String
     let transactionCoins: Int
     let noOfTransactions: Int
     let noOfTransactionsReceived: Int
-    let profilePic: String
+    
+    // Profile & Device Info
+    let profilePic: String? // Changed to optional String as it might sometimes be null or missing
     let devices: [String]
     let emailVerified: Bool
-    let faceId: [String]
+    let faceId: [FaceIdItem]? // Updated to an array of complex FaceIdItem objects
+    
+    // Timestamps & Version
     let createdAt: String
     let updatedAt: String
     let v: Int
     
+    // MARK: - Coding Keys
     enum CodingKeys: String, CodingKey {
         case id = "_id"
         case email
         case firstName
         case lastName
         case phoneNumber
-        //case pattern
+        // case pattern
         case salt
         case faceToken
         case wallet
@@ -90,13 +100,23 @@ struct UserData: Codable,Identifiable {
         case v = "__v"
     }
     
+    // Your computed property for initials (remains unchanged)
     var initials: String {
-           let firstInitial = firstName.first?.uppercased() ?? ""
-           let lastInitial = lastName.first?.uppercased() ?? ""
-           return "\(firstInitial)\(lastInitial)"
-       }
+        let firstInitial = firstName.first?.uppercased() ?? ""
+        let lastInitial = lastName.first?.uppercased() ?? ""
+        return "\(firstInitial)\(lastInitial)"
+    }
 }
 
+// MARK: - Nested Face ID Item Structure
+struct FaceIdItem: Codable {
+    let ecc: String?
+    let helper: String?
+    let hashHex: String?
+    let r: String?
+    let hashBits: String?
+    let _id: String?
+}
 
 
 

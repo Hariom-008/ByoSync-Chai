@@ -1,6 +1,6 @@
 // RootView.swift
 import SwiftUI
-import AVFoundation
+internal import AVFoundation
 
 private enum AppStep {
     case loading, auth, consent, cameraPrep, mlScan, mainTab

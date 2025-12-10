@@ -1,7 +1,7 @@
 import Foundation
 import Combine
 import SwiftUI
-import AVFoundation
+internal import AVFoundation
 import MediaPipeTasksVision
 
 class NcnnLivenessViewModel: ObservableObject {
@@ -16,6 +16,9 @@ class NcnnLivenessViewModel: ObservableObject {
     private let processingQueue = DispatchQueue(label: "NcnnProcessingQueue")
     private var isProcessingFrame = false
     private var modelsLoaded = false
+    
+    // ✅ NEW: Use closure callback instead of injecting FaceManager
+    var onLivenessUpdated: ((Float) -> Void)?
     
     init() {
         debugLog("🔵 Initializing NCNN view model.")
@@ -56,6 +59,7 @@ class NcnnLivenessViewModel: ObservableObject {
             DispatchQueue.main.async {
                 self.modelsLoaded = true
                 self.isProcessingModels = false
+                debugLog("✅ NCNN models loaded successfully")
             }
         }
     }
@@ -106,6 +110,9 @@ class NcnnLivenessViewModel: ObservableObject {
                     self.detectedFaces = faces
                     if let score = liveScore {
                         self.livenessScore = score
+                        // ✅ Call the closure callback
+                        self.onLivenessUpdated?(score)
+                        debugLog("🎭 Liveness score: \(score)")
                     }
                     self.isProcessingFrame = false
                 }
@@ -164,6 +171,7 @@ class NcnnLivenessViewModel: ObservableObject {
         return rgba
     }
 }
+
 #if DEBUG
 func debugLog(_ message: @autoclosure () -> String) {
     print(message())

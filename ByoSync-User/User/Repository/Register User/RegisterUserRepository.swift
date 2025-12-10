@@ -1,7 +1,7 @@
 import Foundation
 import SwiftUI
 import Alamofire
-import AVFoundation
+internal import AVFoundation
 import UIKit
 import CryptoKit
 

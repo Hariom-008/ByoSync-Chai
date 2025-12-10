@@ -314,7 +314,7 @@ struct PaymentConfirmationView: View {
                         .frame(width: 72, height: 72)
                     
                     Group {
-                        if let url = URL(string: selectedUser.profilePic) {
+                        if let url = URL(string: selectedUser.profilePic ?? "") {
                             AsyncImage(url: url) { phase in
                                 switch phase {
                                 case .empty:

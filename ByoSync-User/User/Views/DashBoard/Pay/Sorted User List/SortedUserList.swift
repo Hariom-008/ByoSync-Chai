@@ -561,7 +561,7 @@ struct ModernUserCardView: View {
     
     private var profileImage: some View {
         Group {
-            if let url = URL(string: user.profilePic) {
+            if let url = URL(string: user.profilePic ?? "") {
                 AsyncImage(url: url) { phase in
                     switch phase {
                     case .empty:

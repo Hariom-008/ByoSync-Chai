@@ -1,31 +1,57 @@
 import SwiftUI
-import AVFoundation
+internal import AVFoundation
 import MediaPipeTasksVision
 import Combine
+import UIKit
+import CoreImage
 
 struct FaceDetectionView: View {
     
-    @StateObject private var cameraManager = CameraManager()
+    // For saving frames of count 30 (for JPEG debug / liveness etc.)
+    @State private var isSavingFrames: Bool = false
+    @State private var savedFrameCount: Int = 0
+    private let maxSavedFrames = 30
+    
+    // ✅ CORRECT: Both created as StateObjects
+    @StateObject private var faceManager: FaceManager
+    @StateObject private var cameraSpecManager: CameraSpecManager
+    
+    // ✅ CORRECT: Created without FaceManager dependency
     @StateObject private var ncnnViewModel = NcnnLivenessViewModel()
     
     let onComplete: () -> Void
-
+    
     // EAR series
     @State private var earSeries: [CGFloat] = []
     private let earMaxSamples = 180
     private let earRange: ClosedRange<CGFloat> = 0.0...0.5
     private let blinkThreshold: CGFloat = 0.21
-
+    
     // Pose buffers
     @State private var pitchSeries: [CGFloat] = []
     @State private var yawSeries:   [CGFloat] = []
     @State private var rollSeries:  [CGFloat] = []
     private let poseMaxSamples = 180
     private let poseRange: ClosedRange<CGFloat> = (-.pi)...(.pi)
-
+    
     // Animation state for frame recording indicator
     @State private var showRecordingFlash: Bool = false
     @State private var hideOverlays: Bool = false
+    
+    // UI State for enrollment/verification
+    @State private var isEnrolled: Bool = false
+    @State private var showAlert: Bool = false
+    @State private var alertTitle: String = ""
+    @State private var alertMessage: String = ""
+    @State private var isProcessing: Bool = false
+    
+    
+    init(onComplete: @escaping () -> Void) {
+        let camSpecManager = CameraSpecManager()
+        _cameraSpecManager = StateObject(wrappedValue: camSpecManager)
+        _faceManager = StateObject(wrappedValue: FaceManager(cameraSpecManager: camSpecManager))
+        self.onComplete = onComplete
+    }
     
     var body: some View {
         GeometryReader { geometry in
@@ -35,216 +61,171 @@ struct FaceDetectionView: View {
             
             ZStack {
                 // Camera preview
-                MediapipeCameraPreviewView(cameraManager: cameraManager)
+                MediapipeCameraPreviewView(faceManager: faceManager)
                     .ignoresSafeArea()
                 
-                // 👁️ Gaze vector overlay (visible after Stop)
-                if cameraManager.isMovementTracking {
+                // Face detection overlays
+                FacePointsOverlay(faceManager: faceManager)
+                TargetFaceOvalOverlay(faceManager: faceManager)
+                FaceOvalOverlay(faceManager: faceManager)
+                
+                DirectionalGuidanceOverlay(faceManager: faceManager)
+                
+                // Nose center overlay
+                NoseCenterCircleOverlay(isCentered: faceManager.isNoseTipCentered)
+                
+                // Gaze vector (shown after calibration)
+                if faceManager.isMovementTracking {
                     GazeVectorCard(
-                        gazeVector: cameraManager.GazeVector,
+                        gazeVector: faceManager.GazeVector,
                         screenSize: geometry.size
                     )
                     .transition(.opacity.combined(with: .scale))
-                    .animation(.easeInOut(duration: 0.3), value: cameraManager.isMovementTracking)
+                    .animation(.easeInOut(duration: 0.3), value: faceManager.isMovementTracking)
                 }
-
-                // 📊 Top-right: frames indicator + brightness + liveness
-                VStack {
-                    HStack {
-                        Spacer()
+                
+                // Processing overlay
+                if isProcessing {
+                    ZStack {
+                        Color.black.opacity(0.5)
+                            .ignoresSafeArea()
                         
-                        if cameraManager.totalFramesCollected > 0 {
-                            HStack(spacing: 8) {
-                                Circle()
-                                    .fill(showRecordingFlash ? Color.green : Color.green.opacity(0.3))
-                                    .frame(width: 12, height: 12)
-                                    .scaleEffect(showRecordingFlash ? 1.2 : 1.0)
-                                    .animation(.easeInOut(duration: 0.2), value: showRecordingFlash)
-                                
-                                Text("Frames: \(cameraManager.totalFramesCollected)")
-                                    .font(.system(size: 14, weight: .semibold))
-                                    .foregroundColor(.white)
-                            }
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 8)
-                            .background(
-                                RoundedRectangle(cornerRadius: 20)
-                                    .fill(Color.black.opacity(0.6))
-                            )
-                            .padding(.trailing, 16)
-                            .padding(.top, 60)
-                        }
-                    }
-                    
-                    HStack {
-                        Spacer()
-                        HStack(spacing: 8) {
-                            Circle()
-                                .fill((ncnnViewModel.livenessScore ?? 0) > 0.9 ? Color.green : Color.gray.opacity(0.3))
-                                .frame(width: 12, height: 12)
-                                .scaleEffect(showRecordingFlash ? 1.2 : 1.0)
-                                .animation(.easeInOut(duration: 0.2), value: showRecordingFlash)
+                        VStack(spacing: 16) {
+                            ProgressView()
+                                .scaleEffect(1.5)
+                                .progressViewStyle(CircularProgressViewStyle(tint: .white))
                             
-                            Text((ncnnViewModel.livenessScore ?? 0) > 0.9 ? "Real Face" : "Spoof")
-                                .font(.system(size: 14, weight: .semibold))
+                            Text("Processing...")
+                                .font(.headline)
                                 .foregroundColor(.white)
+                        }
+                        .padding(32)
+                        .background(
+                            RoundedRectangle(cornerRadius: 16)
+                                .fill(Color.black.opacity(0.8))
+                        )
+                    }
+                }
+                
+                VStack {
+                    // Top status bar
+                    HStack(spacing: 16) {
+                        // Enrollment status
+                        HStack(spacing: 8) {
+                            Image(systemName: isEnrolled ? "checkmark.circle.fill" : "xmark.circle.fill")
+                                .foregroundColor(isEnrolled ? .green : .red)
+                            Text(isEnrolled ? "Enrolled" : "Not Enrolled")
+                                .font(.system(size: 14, weight: .semibold))
                         }
                         .padding(.horizontal, 12)
                         .padding(.vertical, 8)
                         .background(
-                            RoundedRectangle(cornerRadius: 20)
-                                .fill(Color.black.opacity(0.6))
+                            RoundedRectangle(cornerRadius: 8)
+                                .fill(Color.black.opacity(0.7))
                         )
-                        .padding(.trailing, 16)
-                        .padding(.top, 60)
-                    }
-                    
-                    HStack {
-                        Spacer()
-                        BrightnessControlView()
-                    }
-                    Spacer()
-                }
-                
-                // 🔻 Bottom overlays: controls + graphs
-                VStack(spacing: 0) {
-                    Spacer()
-                    Spacer()
-                    
-                    // Head pose stability indicator
-                    HStack(spacing: 8) {
-                        if cameraManager.isHeadPoseStable() {
-                            Circle()
-                                .fill(Color.green)
-                                .frame(width: 10, height: 10)
-                            Text("Head Stable")
-                                .font(.caption)
-                                .foregroundColor(.white)
-                        } else {
-                            Circle()
-                                .fill(Color.orange)
-                                .frame(width: 10, height: 10)
-                            Text("Stabilizing...")
-                                .font(.caption)
-                                .foregroundColor(.white)
-                        }
-                    }
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 6)
-                    .background(
-                        RoundedRectangle(cornerRadius: 15)
-                            .fill(Color.black.opacity(0.6))
-                    )
-                    
-                    Spacer()
-            
-                    // Control buttons row
-                    HStack(spacing: isCompact ? 12 : 20) {
+                        .foregroundColor(.white)
+                        
                         Spacer()
                         
-                        if cameraManager.isCentreTracking {
-                            Button {
-                                cameraManager.isCentreTracking = false
-                                cameraManager.isMovementTracking = true
-                                cameraManager.calculateCenterMeans()
-                            } label: {
-                                Text("Stop")
-                                    .font(.system(size: isCompact ? 14 : 16, weight: .semibold))
-                                    .padding(.horizontal, isCompact ? 16 : 24)
-                                    .padding(.vertical, isCompact ? 10 : 12)
-                                    .background(Color.red)
-                                    .foregroundColor(.white)
-                                    .cornerRadius(isCompact ? 8 : 10)
-                            }
-                            .transition(.scale.combined(with: .opacity))
-                        } else {
-                            Button {
-                                cameraManager.isCentreTracking = true
-                                cameraManager.isMovementTracking = false
-                                cameraManager.actualLeftList.removeAll()
-                                cameraManager.actualRightList.removeAll()
-                                cameraManager.landmarkDistanceLists.removeAll()
-                                cameraManager.totalFramesCollected = 0
-                            } label: {
-                                Text("Start")
-                                    .font(.system(size: isCompact ? 14 : 16, weight: .semibold))
-                                    .padding(.horizontal, isCompact ? 16 : 24)
-                                    .padding(.vertical, isCompact ? 10 : 12)
-                                    .background(Color.green)
-                                    .foregroundColor(.white)
-                                    .cornerRadius(isCompact ? 8 : 10)
-                            }
-                            .transition(.scale.combined(with: .opacity))
+                        // Frame counter
+                        HStack(spacing: 8) {
+                            Image(systemName: "camera.fill")
+                            Text("\(faceManager.totalFramesCollected)")
+                                .font(.system(size: 14, weight: .bold))
+                                .monospacedDigit()
                         }
-                        
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 8)
+                        .background(
+                            RoundedRectangle(cornerRadius: 8)
+                                .fill(faceManager.totalFramesCollected >= 80 ? Color.green.opacity(0.8) : Color.black.opacity(0.7))
+                        )
+                        .foregroundColor(.white)
+                    }
+                    .padding(.horizontal, 24)
+                    .padding(.top, 60)
+                    
+                    Spacer()
+                    
+                    // Bottom buttons
+                    VStack(spacing: 12) {
+                        // MARK: - Register button
                         Button {
-                            hideOverlays.toggle()
+                            handleRegister()
                         } label: {
-                            Text("Hide Overlays")
-                                .font(.system(size: isCompact ? 14 : 16, weight: .semibold))
-                                .padding(.horizontal, isCompact ? 16 : 24)
-                                .padding(.vertical, isCompact ? 10 : 12)
-                                .background(Color.blue)
-                                .foregroundColor(.white)
-                                .cornerRadius(isCompact ? 8 : 10)
-                        }
-                        
-                        Button {
-                            onComplete()
-                        } label: {
-                            HStack(spacing: 6) {
-                                Text("Scan Complete")
+                            HStack {
+                                Image(systemName: "person.badge.plus.fill")
+                                Text("Register")
+                                    .font(.system(size: 16, weight: .semibold))
                             }
-                            .font(.system(size: isCompact ? 14 : 16, weight: .semibold))
-                            .padding(.horizontal, isCompact ? 16 : 24)
-                            .padding(.vertical, isCompact ? 10 : 12)
-                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 16)
                             .background(
-                                RoundedRectangle(cornerRadius: 16)
-                                    .fill(Color.green)
+                                RoundedRectangle(cornerRadius: 12)
+                                    .fill(registerButtonColor())
+                            )
+                            .foregroundColor(.white)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .strokeBorder(Color.white.opacity(0.2), lineWidth: 1)
                             )
                         }
-                        Spacer()
-                    }
-                    .padding(.horizontal, isCompact ? 12 : 16)
-                    .animation(.easeInOut(duration: 0.2), value: cameraManager.isCentreTracking)
-                    
-                    Spacer()
-                        .frame(maxHeight: isCompact ? 16 : 24)
-                    
-                    // Overlays Section (graphs + normalized points)
-                    if !hideOverlays {
-                        if isCompact {
-                            ScrollView(.horizontal, showsIndicators: false) {
-                                HStack(spacing: 20) {
-                                    overlayCards(
-                                        screenWidth: screenWidth,
-                                        screenHeight: screenHeight,
-                                        isCompact: true
-                                    )
-                                }
-                                .padding(.leading, 20)
+                        .disabled(!canRegister())
+                        .opacity(canRegister() ? 1.0 : 0.5)
+                        
+                        // MARK: - Login button
+                        Button {
+                            handleLogin()
+                        } label: {
+                            HStack {
+                                Image(systemName: "lock.shield.fill")
+                                Text("Login")
+                                    .font(.system(size: 16, weight: .semibold))
                             }
-                            .frame(height: min(screenHeight * 0.3, 220))
-                        } else {
-                            HStack(spacing: 16) {
-                                Spacer()
-                                overlayCards(
-                                    screenWidth: screenWidth,
-                                    screenHeight: screenHeight,
-                                    isCompact: false
-                                )
-                            }
-                            .padding(.horizontal, 16)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 16)
+                            .background(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .fill(loginButtonColor())
+                            )
+                            .foregroundColor(.white)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .strokeBorder(Color.white.opacity(0.2), lineWidth: 1)
+                            )
                         }
+                        .disabled(!canLogin())
+                        .opacity(canLogin() ? 1.0 : 0.5)
+                        
+                        // MARK: - Clear enrollment button (for testing)
+                        Button {
+                            handleClearEnrollment()
+                        } label: {
+                            HStack {
+                                Image(systemName: "trash.fill")
+                                Text("Clear Enrollment")
+                                    .font(.system(size: 14, weight: .medium))
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 12)
+                            .background(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .fill(Color.red.opacity(0.7))
+                            )
+                            .foregroundColor(.white)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .strokeBorder(Color.white.opacity(0.2), lineWidth: 1)
+                            )
+                        }
+                        .disabled(!isEnrolled)
+                        .opacity(isEnrolled ? 1.0 : 0.5)
                     }
-                    
-                    Spacer()
-                        .frame(height: isCompact ? 12 : 24)
+                    .padding(.horizontal, 24)
+                    .padding(.bottom, 40)
                 }
             }
-            // EAR feed (cheap, per-frame is OK)
-            .onChange(of: cameraManager.EAR) { newEAR,oldEAR in
+            .onChange(of: faceManager.EAR) { newEAR in
                 var s = earSeries
                 s.append(CGFloat(newEAR))
                 if s.count > earMaxSamples {
@@ -252,12 +233,14 @@ struct FaceDetectionView: View {
                 }
                 earSeries = s
             }
-            // Pose feed from NormalizedPoints – throttled to ~10 Hz
+            .onReceive(faceManager.$NormalizedPoints) { _ in
+                faceManager.updateNoseTipCenterStatusFromCalcCoords()
+            }
             .onReceive(
-                cameraManager.$NormalizedPoints
+                faceManager.$NormalizedPoints
                     .throttle(for: .milliseconds(100), scheduler: RunLoop.main, latest: true)
             ) { pts in
-                if let (pitch, yaw, roll) = cameraManager.computeAngles(from: pts) {
+                if let (pitch, yaw, roll) = faceManager.computeAngles(from: pts) {
                     var p = pitchSeries; p.append(CGFloat(pitch))
                     var y = yawSeries;   y.append(CGFloat(yaw))
                     var r = rollSeries;  r.append(CGFloat(roll))
@@ -273,49 +256,283 @@ struct FaceDetectionView: View {
                 }
             }
             // Trigger flash animation when new frame is recorded
-            .onChange(of: cameraManager.frameRecordedTrigger) { _,_ in
+            .onChange(of: faceManager.frameRecordedTrigger) { _ in
                 showRecordingFlash = true
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
                     showRecordingFlash = false
                 }
             }
             // Handle successful upload - go back
-            .onChange(of: cameraManager.uploadSuccess) { success in
+            .onChange(of: faceManager.uploadSuccess) { success in
                 if success {
                     DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-                        cameraManager.resetForNewUser()
+                        faceManager.resetForNewUser()
                         onComplete()
                     }
                 }
             }
-            .alert("Upload Status", isPresented: .constant(cameraManager.uploadError != nil || cameraManager.uploadSuccess)) {
+            .alert(alertTitle, isPresented: $showAlert) {
                 Button("OK") {
-                    cameraManager.uploadError = nil
+                    showAlert = false
                 }
             } message: {
-                if let error = cameraManager.uploadError {
-                    Text("Error: \(error)")
-                } else if cameraManager.uploadSuccess {
-                    Text("Face pattern uploaded successfully! ✅")
-                }
+                Text(alertMessage)
             }
         }
         .onAppear {
+            // ✅ Load models
             ncnnViewModel.loadModels()
+            
+            // ✅ Set up the callback to update FaceManager
+            ncnnViewModel.onLivenessUpdated = { [weak faceManager] score in
+                faceManager?.updateFaceLivenessScore(score)
+            }
+            
+            // Check enrollment status
+            checkEnrollmentStatus()
+            
+            debugLog("✅ FaceDetectionView appeared, callback connected")
         }
-        // NCNN frames – throttled to avoid overloading CPU/GPU
+        // NCNN frames – throttled to avoid overloading CPU/GPU & Starts saving Frames in device
         .onReceive(
-            cameraManager.$latestPixelBuffer
+            faceManager.$latestPixelBuffer
                 .compactMap { $0 }
                 .throttle(for: .milliseconds(150), scheduler: RunLoop.main, latest: true)
         ) { buffer in
+            // Existing NCNN processing
             ncnnViewModel.processFrame(buffer)
+            
+            // Optional: save JPEG frames while collecting
+            if isSavingFrames && savedFrameCount < maxSavedFrames &&
+                faceManager.isHeadPoseStable() &&
+                faceManager.isFaceReal &&
+                faceManager.FaceOvalIsInTarget &&
+                faceManager.ratioIsInRange
+            {
+                let currentIndex = savedFrameCount
+                savedFrameCount += 1
+                
+                DispatchQueue.global(qos: .userInitiated).async {
+                    saveFrame(buffer, index: currentIndex)
+                }
+                
+                if savedFrameCount == maxSavedFrames {
+                    isSavingFrames = false
+                    print("✅ Finished saving \(maxSavedFrames) frames.")
+                }
+            }
         }
     }
     
-    @ViewBuilder
-    private func phoneNumberInputOverlay(isCompact: Bool) -> some View {
-        EmptyView()
+    // MARK: - Helper Functions
+    
+    private func checkEnrollmentStatus() {
+        isEnrolled = LocalEnrollmentCache.shared.loadAll() != nil
+        print("📊 Enrollment status: \(isEnrolled ? "✅ Enrolled" : "❌ Not Enrolled")")
+    }
+    
+    private func canRegister() -> Bool {
+        return faceManager.totalFramesCollected >= 80 && !isProcessing
+    }
+    
+    private func canLogin() -> Bool {
+        return faceManager.totalFramesCollected >= 80 && isEnrolled && !isProcessing
+    }
+    
+    private func registerButtonColor() -> Color {
+        if isProcessing { return .gray }
+        if isEnrolled { return .orange }  // Already enrolled, can re-register
+        return faceManager.totalFramesCollected >= 80 ? .green : .gray
+    }
+    
+    private func loginButtonColor() -> Color {
+        if isProcessing { return .gray }
+        return (faceManager.totalFramesCollected >= 80 && isEnrolled) ? .blue : .gray
+    }
+    
+    // MARK: - Register Handler
+    private func handleRegister() {
+        print("\n" + String(repeating: "=", count: 50))
+        print("📸 REGISTER BUTTON PRESSED")
+        print("Total frames collected: \(faceManager.totalFramesCollected)")
+        print(String(repeating: "=", count: 50))
+        
+        isProcessing = true
+        
+        // Validate frames
+        let allFrames = faceManager.save316LengthDistanceArray()
+        let validFrames = allFrames.filter { $0.count == 316 }
+        let invalidCount = allFrames.count - validFrames.count
+        
+        print("📊 Frame Analysis:")
+        print("   Total frames: \(allFrames.count)")
+        print("   Valid frames (316 distances): \(validFrames.count)")
+        print("   Invalid frames: \(invalidCount)")
+        
+        // Check if we have enough valid frames
+        guard validFrames.count >= 80 else {
+            print("❌ INSUFFICIENT VALID FRAMES")
+            isProcessing = false
+            
+            alertTitle = "❌ Registration Failed"
+            alertMessage = "Need at least 80 valid frames.\n\nFound: \(validFrames.count) valid\nInvalid: \(invalidCount)"
+            showAlert = true
+            return
+        }
+        
+        // Proceed with enrollment
+        faceManager.generateAndUploadFaceID { result in
+            DispatchQueue.main.async {
+                isProcessing = false
+                
+                switch result {
+                case .success:
+                    print("✅ ========================================")
+                    print("✅ REGISTRATION SUCCESSFUL!")
+                    print("✅ 80 enrollment records saved")
+                    print("✅ ========================================")
+                    
+                    // Update enrollment status
+                    checkEnrollmentStatus()
+                    
+                    // Clear frames
+                    faceManager.AllFramesOptionalAndMandatoryDistance = []
+                    faceManager.totalFramesCollected = 0
+                    
+                    // Show success alert
+                    alertTitle = "✅ Registration Successful"
+                    alertMessage = "Your face has been enrolled!\n\nYou can now use Login to verify your identity."
+                    showAlert = true
+                    
+                case .failure(let error):
+                    print("❌ ========================================")
+                    print("❌ REGISTRATION FAILED")
+                    print("❌ Error: \(error.localizedDescription)")
+                    print("❌ ========================================")
+                    
+                    // Show error alert
+                    alertTitle = "❌ Registration Failed"
+                    alertMessage = "Error: \(error.localizedDescription)"
+                    showAlert = true
+                }
+            }
+        }
+    }
+    
+    // MARK: - Login Handler
+    private func handleLogin() {
+        print("\n" + String(repeating: "=", count: 50))
+        print("🔐 LOGIN BUTTON PRESSED")
+        print("Total frames collected: \(faceManager.totalFramesCollected)")
+        print(String(repeating: "=", count: 50))
+        
+        isProcessing = true
+        
+        // Double-check enrollment exists
+        guard let enrollment = LocalEnrollmentCache.shared.loadAll() else {
+            print("❌ NO ENROLLMENT FOUND!")
+            isProcessing = false
+            checkEnrollmentStatus()
+            
+            alertTitle = "❌ No Enrollment Found"
+            alertMessage = "Please press REGISTER first to enroll your face."
+            showAlert = true
+            return
+        }
+        
+        print("✅ Found enrollment with \(enrollment.count) records")
+        
+        // Validate frames
+        let allFrames = faceManager.save316LengthDistanceArray()
+        let validFrames = allFrames.filter { $0.count == 316 }
+        let invalidCount = allFrames.count - validFrames.count
+        
+        print("📊 Frame Analysis:")
+        print("   Total frames: \(allFrames.count)")
+        print("   Valid frames (316 distances): \(validFrames.count)")
+        print("   Invalid frames: \(invalidCount)")
+        
+        // Check if we have enough valid frames
+        guard validFrames.count >= 10 else {
+            print("❌ INSUFFICIENT VALID FRAMES")
+            isProcessing = false
+            
+            alertTitle = "❌ Login Failed"
+            alertMessage = "Need at least 60 valid frames.\n\nFound: \(validFrames.count) valid\nInvalid: \(invalidCount)"
+            showAlert = true
+            return
+        }
+        
+        // Proceed with verification
+        faceManager.verifyFaceIDAgainstLocal { result in
+            DispatchQueue.main.async {
+                isProcessing = false
+                
+                // Clear frames after verification
+                faceManager.AllFramesOptionalAndMandatoryDistance = []
+                faceManager.totalFramesCollected = 0
+                
+                switch result {
+                case .success(let verification):
+                    let matchPercent = verification.matchPercentage
+                    //let matchedFrames = verification.
+                    
+                    if verification.success {
+                        print("✅ ========================================")
+                        print("✅ LOGIN SUCCESSFUL! 🎉")
+                        print("✅ Match: \(String(format: "%.1f", matchPercent))%")
+                     //   print("✅ Matched Frames: \(matchedFrames)")
+                        print("✅ ========================================")
+                        
+                        // Show success alert
+                        alertTitle = "✅ Login Successful!"
+                      //  alertMessage = "Welcome back!\n\nMatch: \(String(format: "%.1f", matchPercent))%\nMatched Frames: \(matchedFrames)"
+                        showAlert = true
+                        
+                    } else {
+                        print("❌ ========================================")
+                        print("❌ LOGIN FAILED ⛔")
+                        print("❌ Match: \(String(format: "%.1f", matchPercent))%")
+                       // print("❌ Matched Frames: \(matchedFrames)")
+                       // print("❌ Reason: \(verification.reason ?? "Unknown")")
+                        print("❌ ========================================")
+                        
+                        // Show failure alert
+                        alertTitle = "❌ Login Failed"
+                        //alertMessage = "Face verification failed.\n\nMatch: \(String(format: "%.1f", matchPercent))%\nMatched Frames: \(matchedFrames)\n\nReason: \(verification.reason ?? "Insufficient match")"
+                        showAlert = true
+                    }
+                    
+                case .failure(let error):
+                    print("❌ ========================================")
+                    print("❌ VERIFICATION ERROR")
+                    print("❌ Error: \(error.localizedDescription)")
+                    print("❌ ========================================")
+                    
+                    // Show error alert
+                    alertTitle = "❌ Verification Error"
+                    alertMessage = "Error: \(error.localizedDescription)"
+                    showAlert = true
+                }
+            }
+        }
+    }
+    
+    // MARK: - Clear Enrollment Handler
+    private func handleClearEnrollment() {
+        print("\n🧹 CLEARING ENROLLMENT DATA")
+        
+        LocalEnrollmentCache.shared.clear()
+        faceManager.AllFramesOptionalAndMandatoryDistance = []
+        faceManager.totalFramesCollected = 0
+        
+        checkEnrollmentStatus()
+        
+        print("✅ All enrollment data cleared")
+        
+        alertTitle = "🧹 Data Cleared"
+        alertMessage = "Enrollment data has been cleared.\n\nYou can now register again."
+        showAlert = true
     }
     
     private func instructionRow(icon: String, text: String) -> some View {
@@ -333,40 +550,31 @@ struct FaceDetectionView: View {
         }
     }
     
-    @ViewBuilder
-    private func overlayCards(screenWidth: CGFloat, screenHeight: CGFloat, isCompact: Bool) -> some View {
-        let cardWidth = isCompact ? min(screenWidth * 0.6, 240) : min(screenWidth * 0.18, 260)
-        let cardHeight = isCompact ? min(screenHeight * 0.25, 160) : min(screenHeight * 0.22, 180)
+    // MARK: - Save camera frame to Documents as JPEG
+    private func saveFrame(_ pixelBuffer: CVPixelBuffer, index: Int) {
+        let ciImage = CIImage(cvPixelBuffer: pixelBuffer)
+        let context = CIContext()
         
-        PoseGraphCard(
-            pitch: pitchSeries,
-            yaw:   yawSeries,
-            roll:  rollSeries,
-            minY: poseRange.lowerBound,
-            maxY: poseRange.upperBound
-        )
-        .frame(width: cardWidth, height: cardHeight)
-
-        EARGraphCard(
-            values: earSeries,
-            minY: earRange.lowerBound,
-            maxY: earRange.upperBound,
-            threshold: blinkThreshold
-        )
-        .frame(width: cardWidth, height: cardHeight)
-        .shadow(color: .black.opacity(0.3), radius: 6)
-
-        NormalizedPointsOverlay(
-            points: cameraManager.NormalizedPoints,
-            pointSize: isCompact ? 2.5 : 3.0,
-            insetRatio: 0.12,
-            smoothingAlpha: 0.25
-        )
-        .frame(width: cardWidth, height: cardHeight)
-        .overlay(
-            RoundedRectangle(cornerRadius: 12)
-                .stroke(.white.opacity(0.2), lineWidth: 1)
-        )
-        .shadow(color: .black.opacity(0.3), radius: 6)
+        guard let cgImage = context.createCGImage(ciImage, from: ciImage.extent) else {
+            print("❌ Failed to create CGImage for frame \(index)")
+            return
+        }
+        
+        let uiImage = UIImage(cgImage: cgImage)
+        guard let jpegData = uiImage.jpegData(compressionQuality: 0.9) else {
+            print("❌ Failed to get JPEG data for frame \(index)")
+            return
+        }
+        
+        let docs = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+        let fileURL = docs.appendingPathComponent("frame_\(index).jpg")
+        
+        do {
+            try jpegData.write(to: fileURL, options: .atomic)
+            print("✅ Saved frame \(index) at: \(fileURL.path)")
+        } catch {
+            print("❌ Error saving frame \(index): \(error)")
+        }
     }
+
 }

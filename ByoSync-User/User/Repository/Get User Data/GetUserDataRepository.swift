@@ -70,8 +70,8 @@ final class GetUserDataRepository: GetUserDataRepositoryProtocol {
                 print("✅ [REPO] Email verified status: \(userData.emailVerified)")
                 
                 // Update profile picture
-                if !userData.profilePic.isEmpty {
-                    UserSession.shared.setProfilePicture(userData.profilePic)
+                if ((userData.profilePic?.isEmpty) == nil) {
+                    UserSession.shared.setProfilePicture(userData.profilePic ?? "")
                     print("✅ [REPO] Profile picture URL saved")
                 }
                 

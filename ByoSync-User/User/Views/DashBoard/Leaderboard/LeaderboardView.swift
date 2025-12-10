@@ -641,7 +641,7 @@ private struct PodiumCard: View {
                 .offset(y: rank == 1 ? -16 : -8)
                 
                 // Profile Picture
-                AsyncImage(url: URL(string: user.profilePic)) { image in
+                AsyncImage(url: URL(string: user.profilePic ?? "")) { image in
                     image
                         .resizable()
                         .scaledToFill()
@@ -794,7 +794,7 @@ private struct LeaderboardRowCard: View {
                     .frame(width: 40)
             
             // Profile Picture
-            AsyncImage(url: URL(string: user.profilePic)) { image in
+            AsyncImage(url: URL(string: user.profilePic ?? "")) { image in
                 image
                     .resizable()
                     .scaledToFill()
