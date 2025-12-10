@@ -244,7 +244,7 @@ struct FaceDetectionView: View {
                 }
             }
             // EAR feed (cheap, per-frame is OK)
-            .onChange(of: cameraManager.EAR) { newEAR in
+            .onChange(of: cameraManager.EAR) { newEAR,oldEAR in
                 var s = earSeries
                 s.append(CGFloat(newEAR))
                 if s.count > earMaxSamples {
@@ -273,7 +273,7 @@ struct FaceDetectionView: View {
                 }
             }
             // Trigger flash animation when new frame is recorded
-            .onChange(of: cameraManager.frameRecordedTrigger) { _ in
+            .onChange(of: cameraManager.frameRecordedTrigger) { _,_ in
                 showRecordingFlash = true
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
                     showRecordingFlash = false

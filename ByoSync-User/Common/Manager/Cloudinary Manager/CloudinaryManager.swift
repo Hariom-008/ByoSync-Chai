@@ -31,21 +31,20 @@ final class CloudinaryManager{
             cloudinary.createUploader().upload(
                 data: imageData,
                 uploadPreset: uploadPreset,
-                params: CLDUploadRequestParams().setFolder("profile_pictures") // 👈 Folder name from your preset
-            ) { response, error in
-                if let error = error {
-                    continuation.resume(throwing: APIError.networkError(error.localizedDescription))
-                    return
-                }
-                
-                guard let url = response?.secureUrl else {
-                    continuation.resume(throwing: APIError.unknown)
-                    return
-                }
-                
-                print("✅ Uploaded to Cloudinary: \(url)") // Useful debug log
-                continuation.resume(returning: url)
-            }
+                params: CLDUploadRequestParams().setFolder("profile_pictures"), completionHandler:  { response, error in
+                    if let error = error {
+                        continuation.resume(throwing: APIError.networkError(error.localizedDescription))
+                        return
+                    }
+                    
+                    guard let url = response?.secureUrl else {
+                        continuation.resume(throwing: APIError.unknown)
+                        return
+                    }
+                    
+                    print("✅ Uploaded to Cloudinary: \(url)") // Useful debug log
+                    continuation.resume(returning: url)
+                })
         }
     }
 }

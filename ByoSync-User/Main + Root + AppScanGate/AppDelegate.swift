@@ -102,11 +102,7 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
     // MARK: - Handle FCM Token
     private func handleFCMToken(_ token: String) {
         print("💾 Processing FCM token...")
-        
-        Task {
-            await FCMTokenManager.shared.setToken(token)
-        }
-        
+        FCMTokenManager.shared.setToken(token)
         uploadFCMToken(token)
         
         NotificationCenter.default.post(

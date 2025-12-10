@@ -9,7 +9,6 @@ protocol CryptoService: ObservableObject {
 }
 
 final class CryptoManager: CryptoService {
-    
     // MARK: - Properties
     
     private let password: String

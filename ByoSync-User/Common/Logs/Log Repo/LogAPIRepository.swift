@@ -52,13 +52,15 @@ final class LogRepository: LogRepositoryProtocol {
         .responseData { response in  // Changed from responseDecodable to responseData
             switch response.result {
             case .success(let data):
-                do {
-                    let logResponse = try JSONDecoder().decode(LogCreateResponse.self, from: data)
-                    print("✅ [LOG-REPO] Logs sent successfully: \(logResponse.message)")
-                    completion(.success(logResponse))
-                } catch {
-                    print("❌ [LOG-REPO] Failed to decode response: \(error)")
-                    completion(.failure(.custom("Failed to decode response")))
+                Task { @MainActor in
+                    do {
+                        let logResponse = try JSONDecoder().decode(LogCreateResponse.self, from: data)
+                        print("✅ [LOG-REPO] Logs sent successfully: \(logResponse.message)")
+                        completion(.success(logResponse))
+                    } catch {
+                        print("❌ [LOG-REPO] Failed to decode response: \(error)")
+                        completion(.failure(.custom("Failed to decode response")))
+                    }
                 }
                 
             case .failure(let error):
@@ -68,11 +70,13 @@ final class LogRepository: LogRepositoryProtocol {
                 let apiError: APIError
                 if let statusCode = response.response?.statusCode {
                     apiError = .serverError(statusCode,"Status Code")
-                }else {
+                } else {
                     apiError = .custom(error.localizedDescription)
                 }
                 
-                completion(.failure(apiError))
+                DispatchQueue.main.async {
+                    completion(.failure(apiError))
+                }
             }
         }
     }

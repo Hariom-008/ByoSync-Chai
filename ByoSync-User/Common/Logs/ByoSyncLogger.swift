@@ -126,7 +126,7 @@ final class Logger {
         line: Int = #line
     ) {
         // Check if we should log this level
-        guard level >= minimumLogLevel else { return }
+        guard level.rawValue >= minimumLogLevel.rawValue else { return }
         
         let entry = InternalLogEntry(
             type: type,
@@ -156,7 +156,7 @@ final class Logger {
             }
             
             // Always send critical logs immediately
-            if level >= .error {
+            if level.rawValue >= LogLevel.error.rawValue {
                 self.sendLogsIfNeeded(force: true)
             }
         }
@@ -439,3 +439,4 @@ final class Logger {
         NotificationCenter.default.removeObserver(self)
     }
 }
+

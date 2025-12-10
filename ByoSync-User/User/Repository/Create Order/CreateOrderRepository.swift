@@ -42,11 +42,9 @@ struct OrderData: Codable, Identifiable {
         case v = "__v"
     }
 }
-
 enum OrderType: String, Codable {
     case transfer = "TRANSFER"
 }
-
 enum OrderStatus: String, Codable {
     case success = "SUCCESS"
     case pending = "PENDING"

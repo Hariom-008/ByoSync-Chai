@@ -13,7 +13,6 @@ struct RouterView<Content: View>: View {
     init(@ViewBuilder rootView: () -> Content) {
         self.rootView = rootView()
     }
-    
     var body: some View {
         NavigationStack(path: $router.path) {
             rootView
