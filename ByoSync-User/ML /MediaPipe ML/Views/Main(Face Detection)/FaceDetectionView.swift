@@ -336,7 +336,7 @@ struct FaceDetectionView: View {
     }
     
     private func canLogin() -> Bool {
-        return faceManager.totalFramesCollected >= 80 && isEnrolled && !isProcessing
+        return faceManager.totalFramesCollected >= 10 && isEnrolled && !isProcessing
     }
     
     private func registerButtonColor() -> Color {
@@ -466,41 +466,42 @@ struct FaceDetectionView: View {
         // Proceed with verification
         faceManager.verifyFaceIDAgainstLocal { result in
             DispatchQueue.main.async {
-                isProcessing = false
+                self.isProcessing = false
                 
                 // Clear frames after verification
-                faceManager.AllFramesOptionalAndMandatoryDistance = []
-                faceManager.totalFramesCollected = 0
+                self.faceManager.AllFramesOptionalAndMandatoryDistance = []
+                self.faceManager.totalFramesCollected = 0
                 
                 switch result {
                 case .success(let verification):
                     let matchPercent = verification.matchPercentage
-                    //let matchedFrames = verification.
                     
                     if verification.success {
                         print("✅ ========================================")
                         print("✅ LOGIN SUCCESSFUL! 🎉")
                         print("✅ Match: \(String(format: "%.1f", matchPercent))%")
-                     //   print("✅ Matched Frames: \(matchedFrames)")
                         print("✅ ========================================")
                         
-                        // Show success alert
-                        alertTitle = "✅ Login Successful!"
-                      //  alertMessage = "Welcome back!\n\nMatch: \(String(format: "%.1f", matchPercent))%\nMatched Frames: \(matchedFrames)"
-                        showAlert = true
+                        // (Optional) keep alert if you want visual feedback
+                        self.alertTitle = "✅ Login Successful!"
+                        self.alertMessage = "Welcome back!\n\nMatch: \(String(format: "%.1f", matchPercent))%"
+                        self.showAlert = true
+                        
+                        // 🔑 Trigger MLScanView completion after a short delay
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                            print("🎯 [FaceDetectionView] Login success → calling onComplete()")
+                            self.onComplete()
+                        }
                         
                     } else {
                         print("❌ ========================================")
                         print("❌ LOGIN FAILED ⛔")
                         print("❌ Match: \(String(format: "%.1f", matchPercent))%")
-                       // print("❌ Matched Frames: \(matchedFrames)")
-                       // print("❌ Reason: \(verification.reason ?? "Unknown")")
                         print("❌ ========================================")
                         
-                        // Show failure alert
-                        alertTitle = "❌ Login Failed"
-                        //alertMessage = "Face verification failed.\n\nMatch: \(String(format: "%.1f", matchPercent))%\nMatched Frames: \(matchedFrames)\n\nReason: \(verification.reason ?? "Insufficient match")"
-                        showAlert = true
+                        self.alertTitle = "❌ Login Failed"
+                        self.alertMessage = "Face verification failed.\n\nMatch: \(String(format: "%.1f", matchPercent))%"
+                        self.showAlert = true
                     }
                     
                 case .failure(let error):
@@ -509,15 +510,13 @@ struct FaceDetectionView: View {
                     print("❌ Error: \(error.localizedDescription)")
                     print("❌ ========================================")
                     
-                    // Show error alert
-                    alertTitle = "❌ Verification Error"
-                    alertMessage = "Error: \(error.localizedDescription)"
-                    showAlert = true
+                    self.alertTitle = "❌ Verification Error"
+                    self.alertMessage = "Error: \(error.localizedDescription)"
+                    self.showAlert = true
                 }
             }
         }
     }
-    
     // MARK: - Clear Enrollment Handler
     private func handleClearEnrollment() {
         print("\n🧹 CLEARING ENROLLMENT DATA")
