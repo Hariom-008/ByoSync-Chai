@@ -3,8 +3,9 @@ import SwiftUI
 struct MLScanView: View {
     var onDone: () -> Void
     
+    // deviceKey = UserSession.shared.deviceKey
     var body: some View {
-        FaceDetectionView(onComplete: {
+        FaceDetectionView(authToken: UserDefaults.standard.string(forKey: "token") ?? "", deviceKey: "123456789ab" ,onComplete: {
             print("🎯 [MLScanView] onComplete callback received")
             // Ensure we're on the main thread
             DispatchQueue.main.async {

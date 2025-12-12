@@ -6,9 +6,17 @@
 //
 
 import Foundation
+import Alamofire
+
+struct FaceId: Codable,Equatable {
+    let helper: String
+    let k2: String
+    let token: String
+}
 
 struct GetFaceIdData: Codable {
-    let faceData: [FaceIdItem]
+    let salt: String
+    let faceData: [FaceId]
 }
 
 struct GetFaceIdResponse: Codable {
@@ -17,8 +25,6 @@ struct GetFaceIdResponse: Codable {
     let message: String
     let success: Bool
 }
-import Foundation
-import Alamofire
 
 /// Repository responsible for fetching FaceId from backend
 final class FaceIdFetchRepository {
@@ -27,18 +33,18 @@ final class FaceIdFetchRepository {
     
     private let hmacGenerator = HMACGenerator.self
     
-    /// Fetch all FaceId items for a device key
+    /// Fetch FaceId data (salt + faceData) for a device key
     ///
     /// - Parameters:
     ///   - deviceKey: raw device key string
-    ///   - completion: returns array of FaceIdItem on success
+    ///   - completion: returns `GetFaceIdData` on success
     func getFaceIds(
         deviceKey: String,
-        completion: @escaping (Result<[FaceIdItem], APIError>) -> Void
+        completion: @escaping (Result<GetFaceIdData, APIError>) -> Void
     ) {
         // 1. Generate HMAC hash
-        let deviceKeyHash = hmacGenerator.generateHMAC(jsonString: deviceKey)
-        
+       // let deviceKeyHash = hmacGenerator.generateHMAC(jsonString: deviceKey)
+        let deviceKeyHash = "12345678ijhb"
         // 2. Headers (auth + Token etc.)
         let headers: HTTPHeaders = getHeader.shared.getAuthHeaders()
         
@@ -51,10 +57,10 @@ final class FaceIdFetchRepository {
         print("📤 [FaceIdFetchRepository] Headers: \(headers)")
         print("📤 [FaceIdFetchRepository] Body: \(body)")
         
-        // 4. Fire request (GET with JSON body; backend expects body)
+        // 4. Fire request
         APIClient.shared.request(
             UserAPIEndpoint.FaceId.getFaceId,
-            method: .get,
+            method: .post,
             parameters: body,
             headers: headers
         ) { (result: Result<GetFaceIdResponse, APIError>) in
@@ -62,9 +68,12 @@ final class FaceIdFetchRepository {
             case .success(let response):
                 print("✅ [FaceIdFetchRepository] StatusCode: \(response.statusCode) " +
                       "success: \(response.success) message: \(response.message)")
-                let items = response.data.faceData
-                print("✅ [FaceIdFetchRepository] Received \(items.count) faceId items")
-                completion(.success(items))
+                
+                let data = response.data
+                print("✅ [FaceIdFetchRepository] Received salt: \(data.salt)")
+                print("✅ [FaceIdFetchRepository] Received \(data.faceData.count) FaceId items")
+                
+                completion(.success(data))
                 
             case .failure(let error):
                 print("❌ [FaceIdFetchRepository] Failed to fetch faceId: \(error)")

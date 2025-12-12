@@ -16,8 +16,16 @@ struct FaceDetectionView: View {
     @StateObject private var faceManager: FaceManager
     @StateObject private var cameraSpecManager: CameraSpecManager
     
-    // ✅ CORRECT: Created without FaceManager dependency
+    // ✅ NCNN liveness model
     @StateObject private var ncnnViewModel = NcnnLivenessViewModel()
+    
+    // ✅ New ViewModels for backend FaceId
+    @StateObject private var faceIdUploadViewModel = FaceIdViewModel()
+    @StateObject private var faceIdFetchViewModel = FaceIdFetchViewModel()
+    
+    // Auth / device identity (passed from parent)
+    let authToken: String
+    let deviceKey: String
     
     let onComplete: () -> Void
     
@@ -45,8 +53,16 @@ struct FaceDetectionView: View {
     @State private var alertMessage: String = ""
     @State private var isProcessing: Bool = false
     
+    // MARK: - Init
     
-    init(onComplete: @escaping () -> Void) {
+    init(
+        authToken: String,
+        deviceKey: String,
+        onComplete: @escaping () -> Void
+    ) {
+        self.authToken = authToken
+        self.deviceKey = deviceKey
+        
         let camSpecManager = CameraSpecManager()
         _cameraSpecManager = StateObject(wrappedValue: camSpecManager)
         _faceManager = StateObject(wrappedValue: FaceManager(cameraSpecManager: camSpecManager))
@@ -262,7 +278,7 @@ struct FaceDetectionView: View {
                     showRecordingFlash = false
                 }
             }
-            // Handle successful upload - go back
+            // When backend upload flow inside FaceManager marks success
             .onChange(of: faceManager.uploadSuccess) { success in
                 if success {
                     DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
@@ -270,6 +286,10 @@ struct FaceDetectionView: View {
                         onComplete()
                     }
                 }
+            }
+            // Keep isEnrolled in sync with remote faceIds
+            .onChange(of: faceIdFetchViewModel.faceIds) { _ in
+                checkEnrollmentStatus()
             }
             .alert(alertTitle, isPresented: $showAlert) {
                 Button("OK") {
@@ -288,18 +308,19 @@ struct FaceDetectionView: View {
                 faceManager?.updateFaceLivenessScore(score)
             }
             
-            // Check enrollment status
-            checkEnrollmentStatus()
+            // Fetch enrollment status from backend for this device
+            print("🌐 [FaceDetectionView] Fetching FaceIds on appear for deviceKey=\(deviceKey)")
+            faceIdFetchViewModel.fetchFaceIds(for: deviceKey)
             
             debugLog("✅ FaceDetectionView appeared, callback connected")
         }
-        // NCNN frames – throttled to avoid overloading CPU/GPU & Starts saving Frames in device
+        // NCNN frames – throttled to avoid overloading CPU/GPU & starts saving frames in device
         .onReceive(
             faceManager.$latestPixelBuffer
                 .compactMap { $0 }
                 .throttle(for: .milliseconds(150), scheduler: RunLoop.main, latest: true)
         ) { buffer in
-            // Existing NCNN processing
+            // NCNN processing
             ncnnViewModel.processFrame(buffer)
             
             // Optional: save JPEG frames while collecting
@@ -327,8 +348,9 @@ struct FaceDetectionView: View {
     // MARK: - Helper Functions
     
     private func checkEnrollmentStatus() {
-        isEnrolled = LocalEnrollmentCache.shared.loadAll() != nil
-        print("📊 Enrollment status: \(isEnrolled ? "✅ Enrolled" : "❌ Not Enrolled")")
+        isEnrolled = !faceIdFetchViewModel.faceIds.isEmpty
+        print("📊 Enrollment status (backend): \(isEnrolled ? "✅ Enrolled" : "❌ Not Enrolled")")
+        print("   Remote FaceId count from VM: \(faceIdFetchViewModel.faceIds.count)")
     }
     
     private func canRegister() -> Bool {
@@ -336,7 +358,11 @@ struct FaceDetectionView: View {
     }
     
     private func canLogin() -> Bool {
-        return faceManager.totalFramesCollected >= 10 && isEnrolled && !isProcessing
+        // For login we only need 10 frames + at least one backend FaceId
+        return faceManager.totalFramesCollected >= 10 &&
+               isEnrolled &&
+               !faceIdFetchViewModel.faceIds.isEmpty &&
+               !isProcessing
     }
     
     private func registerButtonColor() -> Color {
@@ -347,7 +373,11 @@ struct FaceDetectionView: View {
     
     private func loginButtonColor() -> Color {
         if isProcessing { return .gray }
-        return (faceManager.totalFramesCollected >= 80 && isEnrolled) ? .blue : .gray
+        // Consistent with canLogin(): 10 frames + enrolled + backend data present
+        return (faceManager.totalFramesCollected >= 10 &&
+                isEnrolled &&
+                !faceIdFetchViewModel.faceIds.isEmpty)
+        ? .blue : .gray
     }
     
     // MARK: - Register Handler
@@ -364,14 +394,14 @@ struct FaceDetectionView: View {
         let validFrames = allFrames.filter { $0.count == 316 }
         let invalidCount = allFrames.count - validFrames.count
         
-        print("📊 Frame Analysis:")
+        print("📊 Frame Analysis (REGISTER):")
         print("   Total frames: \(allFrames.count)")
         print("   Valid frames (316 distances): \(validFrames.count)")
         print("   Invalid frames: \(invalidCount)")
         
         // Check if we have enough valid frames
         guard validFrames.count >= 80 else {
-            print("❌ INSUFFICIENT VALID FRAMES")
+            print("❌ INSUFFICIENT VALID FRAMES FOR REGISTRATION")
             isProcessing = false
             
             alertTitle = "❌ Registration Failed"
@@ -380,20 +410,24 @@ struct FaceDetectionView: View {
             return
         }
         
-        // Proceed with enrollment
-        faceManager.generateAndUploadFaceID { result in
+        // Proceed with enrollment → generate + upload to backend
+        faceManager.generateAndUploadFaceID(
+            authToken: authToken,
+            viewModel: faceIdUploadViewModel
+        ) { result in
             DispatchQueue.main.async {
                 isProcessing = false
                 
                 switch result {
                 case .success:
                     print("✅ ========================================")
-                    print("✅ REGISTRATION SUCCESSFUL!")
-                    print("✅ 80 enrollment records saved")
+                    print("✅ REGISTRATION GENERATION COMPLETED!")
+                    print("✅ 80 enrollment records generated & upload triggered")
                     print("✅ ========================================")
                     
-                    // Update enrollment status
-                    checkEnrollmentStatus()
+                    // Refresh remote enrollment state
+                    faceIdFetchViewModel.fetchFaceIds(for: deviceKey)
+                    isEnrolled = true
                     
                     // Clear frames
                     faceManager.AllFramesOptionalAndMandatoryDistance = []
@@ -424,47 +458,51 @@ struct FaceDetectionView: View {
         print("\n" + String(repeating: "=", count: 50))
         print("🔐 LOGIN BUTTON PRESSED")
         print("Total frames collected: \(faceManager.totalFramesCollected)")
+        print("Backend FaceId count in VM: \(faceIdFetchViewModel.faceIds.count)")
+        print("isEnrolled flag: \(isEnrolled)")
         print(String(repeating: "=", count: 50))
         
         isProcessing = true
         
-        // Double-check enrollment exists
-        guard let enrollment = LocalEnrollmentCache.shared.loadAll() else {
-            print("❌ NO ENROLLMENT FOUND!")
+        // Ensure we think the device is enrolled (backend) AND we actually have remote records
+        guard isEnrolled, !faceIdFetchViewModel.faceIds.isEmpty else {
+            print("❌ NO BACKEND ENROLLMENT DATA AVAILABLE FOR LOGIN")
             isProcessing = false
-            checkEnrollmentStatus()
             
             alertTitle = "❌ No Enrollment Found"
-            alertMessage = "Please press REGISTER first to enroll your face."
+            alertMessage = "No face data found for this device on backend. Please press REGISTER first."
             showAlert = true
             return
         }
-        
-        print("✅ Found enrollment with \(enrollment.count) records")
         
         // Validate frames
         let allFrames = faceManager.save316LengthDistanceArray()
         let validFrames = allFrames.filter { $0.count == 316 }
         let invalidCount = allFrames.count - validFrames.count
         
-        print("📊 Frame Analysis:")
+        print("📊 Frame Analysis (LOGIN):")
         print("   Total frames: \(allFrames.count)")
         print("   Valid frames (316 distances): \(validFrames.count)")
         print("   Invalid frames: \(invalidCount)")
         
-        // Check if we have enough valid frames
+        // Check if we have enough valid frames (10)
         guard validFrames.count >= 10 else {
-            print("❌ INSUFFICIENT VALID FRAMES")
+            print("❌ INSUFFICIENT VALID FRAMES FOR LOGIN")
             isProcessing = false
             
             alertTitle = "❌ Login Failed"
-            alertMessage = "Need at least 60 valid frames.\n\nFound: \(validFrames.count) valid\nInvalid: \(invalidCount)"
+            alertMessage = "Need at least 10 valid frames.\n\nFound: \(validFrames.count) valid\nInvalid: \(invalidCount)"
             showAlert = true
             return
         }
         
-        // Proceed with verification
-        faceManager.verifyFaceIDAgainstLocal { result in
+        print("🚀 Starting backend token-only verification (FaceManager.verifyFaceIDAgainstBackend)...")
+        
+        // Proceed with verification against BACKEND (FaceManager will handle caching + API if needed)
+        faceManager.verifyFaceIDAgainstBackend(
+            deviceKey: deviceKey,
+            fetchViewModel: faceIdFetchViewModel
+        ) { result in
             DispatchQueue.main.async {
                 self.isProcessing = false
                 
@@ -482,12 +520,11 @@ struct FaceDetectionView: View {
                         print("✅ Match: \(String(format: "%.1f", matchPercent))%")
                         print("✅ ========================================")
                         
-                        // (Optional) keep alert if you want visual feedback
                         self.alertTitle = "✅ Login Successful!"
                         self.alertMessage = "Welcome back!\n\nMatch: \(String(format: "%.1f", matchPercent))%"
                         self.showAlert = true
                         
-                        // 🔑 Trigger MLScanView completion after a short delay
+                        // 🔑 Trigger completion after a short delay
                         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
                             print("🎯 [FaceDetectionView] Login success → calling onComplete()")
                             self.onComplete()
@@ -517,22 +554,29 @@ struct FaceDetectionView: View {
             }
         }
     }
+    
     // MARK: - Clear Enrollment Handler
     private func handleClearEnrollment() {
-        print("\n🧹 CLEARING ENROLLMENT DATA")
+        print("\n🧹 CLEARING ENROLLMENT DATA (LOCAL FLAGS)")
         
+        // Old local cache clear (harmless even if not used anymore)
         LocalEnrollmentCache.shared.clear()
+        
         faceManager.AllFramesOptionalAndMandatoryDistance = []
         faceManager.totalFramesCollected = 0
         
-        checkEnrollmentStatus()
+        // Reset remote state flags (does NOT delete from backend)
+        faceIdFetchViewModel.resetState()
+        isEnrolled = false
         
-        print("✅ All enrollment data cleared")
+        print("✅ Local enrollment state cleared (remote backend data not deleted)")
         
         alertTitle = "🧹 Data Cleared"
-        alertMessage = "Enrollment data has been cleared.\n\nYou can now register again."
+        alertMessage = "Local enrollment state has been cleared.\n\nYou can now register again."
         showAlert = true
     }
+    
+    // MARK: - Misc UI helpers
     
     private func instructionRow(icon: String, text: String) -> some View {
         HStack(spacing: 12) {
@@ -575,5 +619,93 @@ struct FaceDetectionView: View {
             print("❌ Error saving frame \(index): \(error)")
         }
     }
-
 }
+
+//// MARK: - Verification Extension (BACKEND with cache)
+//extension FaceManager {
+//    
+//    /// Token-only verification using records fetched from BACKEND:
+//    /// - Capture ~10 frames
+//    /// - Ensure remote cache is filled (salt + [FaceId]) via API if needed
+//    /// - Use current secretHash (R') of each captured frame with SALT + K2/token from backend
+//    ///   to try to match tokens.
+//    ///
+//    /// NOTE: With the current crypto design (no secretHash returned for stored frames),
+//    ///       this scheme only matches when secretHash for a login frame equals the
+//    ///       secretHash used for an enrollment frame.
+//    func verifyFaceIDAgainstBackend(
+//        deviceKey: String,
+//        fetchViewModel: FaceIdFetchViewModel,
+//        completion: @escaping (Result<BCHBiometric.VerificationResult, Error>) -> Void
+//    ) {
+//        print("\n🔍 ========== VERIFICATION (TOKEN-ONLY, BACKEND+CACHE) STARTED ==========")
+//        
+//        // 1️⃣ Capture frames
+//        let trimmedFrames = VerifyFrameDistanceArray()
+//        print("📊 Captured \(trimmedFrames.count) frames total (raw)")
+//        
+//        // 2️⃣ Filter valid frames by distance count
+//        var validFrames: [[Float]] = []
+//        var invalidFrameIndices: [Int] = []
+//        
+//        for (index, frame) in trimmedFrames.enumerated() {
+//            if frame.count == BCHBiometric.NUM_DISTANCES {
+//                validFrames.append(frame)
+//            } else {
+//                invalidFrameIndices.append(index)
+//                print("⚠️ Frame #\(index + 1) has \(frame.count) distances (expected \(BCHBiometric.NUM_DISTANCES)) - SKIPPED")
+//            }
+//        }
+//        
+//        print("✅ Valid frames (distance count OK): \(validFrames.count)")
+//        print("❌ Invalid frames (distance count mismatch): \(invalidFrameIndices.count)")
+//        
+//        let requiredCollectedFrames = 10
+//        
+//        guard validFrames.count >= requiredCollectedFrames else {
+//            print("❌ Insufficient valid frames for token-only verification.")
+//            print("   Got \(validFrames.count), but need at least \(requiredCollectedFrames) valid frames.")
+//            
+//            DispatchQueue.main.async {
+//                completion(.failure(
+//                    BCHBiometricError.invalidDistancesCount(
+//                        expected: requiredCollectedFrames,
+//                        actual: validFrames.count
+//                    )
+//                ))
+//            }
+//            print("🔚 ========== VERIFICATION ABORTED (NOT ENOUGH VALID FRAMES) ==========\n")
+//            return
+//        }
+//        
+//        // We'll only use first 10 valid frames for verification
+//        let framesToUse = Array(validFrames.prefix(requiredCollectedFrames))
+//        print("🎯 Using first \(framesToUse.count) valid frames for TOKEN comparison.\n")
+//        
+//        let totalRawFrames = trimmedFrames.count
+//        let totalValidFrames = validFrames.count
+//        let invalidIndicesCopy = invalidFrameIndices
+//        
+//        // 3️⃣ Ensure remote cache is filled (salt + [FaceId])
+//        loadRemoteFaceIdsIfNeeded(deviceKey: deviceKey, fetchViewModel: fetchViewModel) { [weak self] result in
+//            guard let self = self else { return }
+//            
+//            switch result {
+//            case .failure(let error):
+//                DispatchQueue.main.async {
+//                    completion(.failure(error))
+//                }
+//                
+//            case .success:
+//                // 4️⃣ Run the heavy verification loop using cached remote data
+//                self.performBackendTokenVerificationTokenOnly(
+//                    framesToUse: framesToUse,
+//                    totalRawFrames: totalRawFrames,
+//                    totalValidFrames: totalValidFrames,
+//                    invalidIndices: invalidIndicesCopy,
+//                    completion: completion
+//                )
+//            }
+//        }
+//    }
+//}

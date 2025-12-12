@@ -25,6 +25,87 @@ struct EnrollmentStore: Codable {
     let savedAt: String
     let enrollments: [EnrollmentRecord]
 }
+// MARK: - Remote FaceId cache (for backend verification)
+
+fileprivate struct RemoteEnrollmentRecord {
+    let helper: String
+    //let secretHash: String  // R = SHA256(secretKeyBitsString)
+    let salt: String        // same for all 80 records for this user
+    let k2: String          // per-frame
+    let token: String       // SHA256(K || R)
+    let timestamp: Date
+}
+
+fileprivate enum RemoteEnrollmentCache {
+    static var salt: String?
+    static var records: [RemoteEnrollmentRecord] = []
+    
+    static var isEmpty: Bool {
+        return salt == nil || records.isEmpty
+    }
+    
+    static func reset() {
+        salt = nil
+        records = []
+    }
+}
+// MARK: - Remote FaceId cache (for backend verification)
+
+fileprivate struct RemoteFaceIdCache {
+    static var salt: String?
+    static var faceIds: [FaceId] = []
+    
+    static var isEmpty: Bool {
+        return salt == nil || faceIds.isEmpty
+    }
+    
+    static func reset() {
+        salt = nil
+        faceIds = []
+    }
+}
+
+fileprivate func loadRemoteFaceIdsIfNeeded(
+    deviceKey: String,
+    fetchViewModel: FaceIdFetchViewModel,
+    completion: @escaping (Result<Void, Error>) -> Void
+) {
+    // If we already have salt + records, just reuse them
+    if !RemoteFaceIdCache.isEmpty {
+        print("💾 [RemoteFaceIdCache] Using cached FaceId data (salt + \(RemoteFaceIdCache.faceIds.count) records).")
+        completion(.success(()))
+        return
+    }
+    
+    print("🌐 [RemoteFaceIdCache] Cache empty → fetching FaceIds from backend...")
+    
+    fetchViewModel.fetchFaceIds(for: deviceKey) { (result: Result<GetFaceIdData, Error>) in
+        switch result {
+        case .failure(let error):
+            print("❌ [RemoteFaceIdCache] Failed to fetch FaceIds: \(error)")
+            completion(.failure(error))
+            
+        case .success(let data):
+            let saltHex = data.salt
+            let faceIds = data.faceData
+            
+            print("✅ [RemoteFaceIdCache] Fetched \(faceIds.count) FaceId items from backend")
+            print("🔑 [RemoteFaceIdCache] SALT from backend: \(saltHex) (len=\(saltHex.count))")
+            
+            guard !faceIds.isEmpty else {
+                print("❌ [RemoteFaceIdCache] faceData is empty")
+                completion(.failure(LocalEnrollmentError.noLocalEnrollment))
+                return
+            }
+            
+            RemoteFaceIdCache.salt = saltHex
+            RemoteFaceIdCache.faceIds = faceIds
+            
+            print("💾 [RemoteFaceIdCache] Cache filled (records=\(faceIds.count))")
+            completion(.success(()))
+        }
+    }
+}
 
 // MARK: - Shared BCH instance (stateful: caches init/config)
 private let BCHShared = BCHBiometric()
@@ -99,149 +180,330 @@ private func sha256Hex(_ input: String) -> String {
 // MARK: - Enrollment Extension
 extension FaceManager {
 
-    /// Generate and store ALL 80 enrollment records locally (helper + secretHash + SALT/K2/token)
-    /// plus debug-only logs for SALT / K / K1 / K2 / TOKEN for each frame.
+    /// Generate all 80 enrollment records and upload them in ONE API call.
     func generateAndUploadFaceID(
+        authToken: String,
+        viewModel: FaceIdViewModel,
         completion: ((Result<Void, Error>) -> Void)? = nil
     ) {
-        // Capture distances on the calling thread (cheap)
+
+        // Capture 80 frames
         let trimmedFrames = save316LengthDistanceArray()
 
         guard trimmedFrames.count == 80 else {
-            print("❌ Expected 80 frames for enrollment, got \(trimmedFrames.count)")
+            print("❌ Expected 80 frames, got \(trimmedFrames.count)")
             DispatchQueue.main.async {
                 completion?(.failure(BCHBiometricError.noDistanceArrays))
             }
             return
         }
 
-        print("\n🔐 ========== ENROLLMENT STARTED ==========")
-        print("📊 Processing \(trimmedFrames.count) frames for enrollment")
+        print("\n🔐 ========== ENROLLMENT + UPLOAD STARTED ==========")
+        print("📊 Frames: \(trimmedFrames.count)")
 
-        // SALT: one random 256-bit value per user enrollment (same SALT for all 80 frames)
+        // Generate 256-bit SALT for all frames
         let saltHex = randomHex(bytes: 32)
-        print("🔑 SALT (user-level 256-bit): \(saltHex)")
+        print("🔑 SALT (256-bit): \(saltHex)")
 
-        var records: [EnrollmentRecord] = []
+        var addFaceIdPayload: [AddFaceIdRequestBody] = []
         var successCount = 0
         var failureCount = 0
 
         for (index, distances) in trimmedFrames.enumerated() {
             do {
-                // Ensure BCH is ready (idempotent)
                 try BCHShared.initBCH()
 
-                // Convert to Double
                 let distancesDouble = distances.map { Double($0) }
 
-                // Register → helper + secretHash
+                // Registration → helper + secretHash (R)
                 let reg = try BCHShared.registerBiometric(
                     distances: nil,
                     single: distancesDouble
                 )
 
-                // R in the diagram
-                let secretHash = reg.secretHash
+                let helper = reg.helper
+                let secretHash = reg.secretHash   // R
 
                 // K1 = R XOR SALT
                 guard let k1 = xorHex(secretHash, saltHex) else {
-                    print("❌ Failed to compute K1 for frame \(index + 1)")
+                    print("❌ K1 failed for frame \(index+1)")
                     failureCount += 1
                     continue
                 }
 
-                // K: random 256-bit key, unique per frame
+                // Per-frame 256-bit key
                 let kHex = randomHex(bytes: 32)
 
                 // K2 = K1 XOR K
                 guard let k2Hex = xorHex(k1, kHex) else {
-                    print("❌ Failed to compute K2 for frame \(index + 1)")
+                    print("❌ K2 failed for frame \(index+1)")
                     failureCount += 1
                     continue
                 }
 
-                // token = SHA256(K || R)
-                let tokenInput = kHex + secretHash
-                let tokenHex = sha256Hex(tokenInput)
+                // TOKEN = SHA256(K || R)
+                let tokenHex = sha256Hex(kHex + secretHash)
 
-                // Debug logs for this frame's crypto
-                print("🔹 Frame #\(index + 1) CRYPTO DEBUG")
-                print("   helper (len=\(reg.helper.count))")
-                print("   R (secretHash): \(secretHash)")
-                print("   SALT: \(saltHex)")
-                print("   K1 = R XOR SALT: \(k1)")
-                print("   K (frame random 256-bit): \(kHex)")
-                print("   K2 = K1 XOR K: \(k2Hex)")
-                print("   TOKEN = SHA256(K || R): \(tokenHex)")
+                // Debug logs
+                print("🔹 Frame #\(index+1) CRYPTO DEBUG")
+                print("   helper length = \(helper.count)")
+                print("   R = \(secretHash)")
+                print("   SALT = \(saltHex)")
+                print("   K1 = \(k1)")
+                print("   K  = \(kHex)")
+                print("   K2 = \(k2Hex)")
+                print("   TOKEN = \(tokenHex)")
 
-                // Store FE + crypto data locally
-                let record = EnrollmentRecord(
-                    index: index,
-                    helper: reg.helper,
-                    secretHash: secretHash,
-                    salt: saltHex,
+                // Build backend payload object
+                let payloadObject = AddFaceIdRequestBody(
+                    helper: helper,
                     k2: k2Hex,
-                    token: tokenHex,
-                    timestamp: reg.timestamp
+                    token: tokenHex
                 )
 
-                records.append(record)
+                addFaceIdPayload.append(payloadObject)
                 successCount += 1
-
-                if (index + 1) % 10 == 0 {
-                    print("✅ Frame \(index + 1)/80 processed successfully")
-                }
 
             } catch {
                 failureCount += 1
-                print("❌ Failed to register frame \(index): \(error)")
+                print("❌ Frame \(index+1) failed: \(error)")
             }
         }
 
-        print("\n📊 ENROLLMENT SUMMARY:")
-        print("  ✅ Successfully processed: \(successCount)/80 frames")
-        print("  ❌ Failed: \(failureCount)/80 frames")
+        print("\n📊 ENROLLMENT SUMMARY")
+        print("   ✅ Success: \(successCount)/80")
+        print("   ❌ Failure: \(failureCount)/80")
 
-        guard records.count == 80 else {
-            print("❌ Enrollment failed: Only \(records.count) records generated, need 80")
-
+        guard addFaceIdPayload.count == 80 else {
+            print("❌ Enrollment failed — only \(addFaceIdPayload.count)/80 generated")
             DispatchQueue.main.async {
                 completion?(.failure(LocalEnrollmentError.noLocalEnrollment))
             }
             return
         }
 
-        // Store all 80 records locally (helper + R + SALT + K2 + token)
-        LocalEnrollmentCache.shared.saveAll(records)
+        print("📤 Uploading all 80 records in ONE API call…")
 
-        print("🎉 ========== ENROLLMENT COMPLETED ==========\n")
+        // 🚀 Upload all 80 in a single call
+        viewModel.uploadFaceIdList(
+            salt: saltHex,
+            list: addFaceIdPayload
+        )
+
+        print("🎉 ENROLLMENT COMPLETE — UPLOAD TRIGGERED\n")
 
         DispatchQueue.main.async {
             completion?(.success(()))
         }
     }
 }
-// MARK: - Verification Extension
-extension FaceManager {
 
-    /// Token-only verification:
-    /// - Capture ~10 frames
-    /// - For each captured frame, loop over 80 stored records:
-    ///       If we get even ONE token match, that frame is marked as MATCHED and we break.
-    /// - Session passes if at least 5 out of 10 frames have ≥1 token match.
-    func verifyFaceIDAgainstLocal(
+
+extension FaceManager {
+    
+    /// Heavy token-only verification loop using cached SALT + [FaceId].
+    /// This uses the "R' XOR SALT → K1' → K' → token'" logic against stored (k2, token).
+    fileprivate func performBackendTokenVerificationTokenOnly(
+        framesToUse: [[Float]],
+        totalRawFrames: Int,
+        totalValidFrames: Int,
+        invalidIndices: [Int],
         completion: @escaping (Result<BCHBiometric.VerificationResult, Error>) -> Void
     ) {
-        print("\n🔍 ========== VERIFICATION (TOKEN-ONLY) STARTED ==========")
+        guard
+            let saltHex = RemoteFaceIdCache.salt,
+            !RemoteFaceIdCache.faceIds.isEmpty
+        else {
+            print("❌ [BackendVerify] Remote cache missing salt or records.")
+            DispatchQueue.main.async {
+                completion(.failure(LocalEnrollmentError.noLocalEnrollment))
+            }
+            return
+        }
+        
+        let faceIds = RemoteFaceIdCache.faceIds
+        
+        print("✅ [BackendVerify] Using cached SALT + \(faceIds.count) FaceId records.")
+        if faceIds.count != 80 {
+            print("⚠️ [BackendVerify] Expected 80 remote records, got \(faceIds.count). Proceeding anyway.")
+        }
+        
+        print("\n🔄 Starting TOKEN-ONLY frame-by-frame verification with REMOTE records (cached)...")
+        print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n")
+        
+        DispatchQueue.global(qos: .userInitiated).async {
+            
+            var matchedFramesCount = 0
+            var unmatchedFramesCount = 0
+            var detailedFrameMatches: [(capturedIndex: Int, matched: Bool, matchedStoredIndex: Int?)] = []
+            let requiredMatches = 5
+            
+            frameLoop: for (capturedIndex, capturedFrame) in framesToUse.enumerated() {
+                let capturedDistances = capturedFrame.map { Double($0) }
+                
+                var frameMatched = false
+                var matchedStoredIndex: Int? = nil
+                
+                print("📸 Checking Captured Frame #\(capturedIndex + 1) against \(faceIds.count) stored tokens...")
+                
+                do {
+                    // BCH init for this frame, used to derive R' (secretHash')
+                    try BCHShared.initBCH()
+                    
+                    let reg = try BCHShared.registerBiometric(
+                        distances: nil,
+                        single: capturedDistances
+                    )
+                    let Rprime = reg.secretHash   // R' for this captured frame
+                    
+                    // K1' = R' XOR SALT
+                    guard let k1Prime = xorHex(Rprime, saltHex) else {
+                        print("   ⚠️ Failed to compute K1' for Captured Frame #\(capturedIndex + 1)")
+                        print("      R' len=\(Rprime.count), SALT len=\(saltHex.count)")
+                        unmatchedFramesCount += 1
+                        detailedFrameMatches.append((capturedIndex, false, nil))
+                        print("----------------------------------------------------\n")
+                        continue
+                    }
+                    
+                    // Compare against all stored K2/TOKEN pairs
+                    for (storedIndex, record) in faceIds.enumerated() {
+                        // K' = K1' XOR K2(stored)
+                        guard let kRecovered = xorHex(k1Prime, record.k2) else {
+                            print("   ⚠️ Failed to recover K' for stored frame #\(storedIndex + 1)")
+                            continue
+                        }
+                        
+                        // token' = SHA256(K' || R')
+                        let tokenCandidate = sha256Hex(kRecovered + Rprime)
+                        
+                        if tokenCandidate == record.token {
+                            frameMatched = true
+                            matchedStoredIndex = storedIndex
+                            
+                            print("   ✅ TOKEN MATCH for Captured Frame #\(capturedIndex + 1)")
+                            print("      └─ Matched Stored Frame #\(storedIndex + 1)")
+                            break
+                        }
+                    }
+                    
+                } catch {
+                    print("   ⚠️ BCH registerBiometric error for Captured Frame #\(capturedIndex + 1): \(error)")
+                }
+                
+                if frameMatched {
+                    matchedFramesCount += 1
+                    detailedFrameMatches.append((capturedIndex, true, matchedStoredIndex))
+                    
+                    if let idx = matchedStoredIndex {
+                        print("✅ RESULT for Captured Frame #\(capturedIndex + 1): MATCHED via token (Stored Frame #\(idx + 1))")
+                    } else {
+                        print("✅ RESULT for Captured Frame #\(capturedIndex + 1): MATCHED via token (Stored index: unknown)")
+                    }
+                } else {
+                    unmatchedFramesCount += 1
+                    detailedFrameMatches.append((capturedIndex, false, nil))
+                    
+                    print("❌ RESULT for Captured Frame #\(capturedIndex + 1): NO TOKEN MATCH among stored frames")
+                }
+                
+                print("----------------------------------------------------\n")
+                
+                if matchedFramesCount >= requiredMatches {
+                    print("✅ Early exit: already have required matched frames (\(matchedFramesCount)/\(requiredMatches)).")
+                    break frameLoop
+                }
+            }
+            
+            let totalUsedFrames = detailedFrameMatches.count
+            let matchPercentageAcrossFrames: Double =
+                totalUsedFrames > 0
+                ? (Double(matchedFramesCount) / Double(totalUsedFrames)) * 100.0
+                : 0.0
+            
+            let verificationPassed = matchedFramesCount >= requiredMatches
+            
+            print("\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+            print("📊 VERIFICATION SUMMARY (TOKEN-ONLY, BACKEND+CACHE):")
+            print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+            print("  Raw Frames Captured: \(totalRawFrames)")
+            print("  Valid Frames (distance count OK): \(totalValidFrames)")
+            print("  Invalid Frames (distance count mismatch): \(invalidIndices.count)")
+            print("  Frames Evaluated for Token Check: \(totalUsedFrames)")
+            print("  ✅ Frames with ≥1 TOKEN MATCH: \(matchedFramesCount)/\(totalUsedFrames)")
+            print("  ❌ Frames with NO TOKEN MATCH: \(unmatchedFramesCount)/\(totalUsedFrames)")
+            print("  📏 Required Matched Frames (token): ≥\(requiredMatches)")
+            print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+            if verificationPassed {
+                print("  🎉 RESULT: ✅ VERIFICATION PASSED (TOKEN-ONLY, BACKEND+CACHE)")
+            } else {
+                print("  ⛔ RESULT: ❌ VERIFICATION FAILED (TOKEN-ONLY, BACKEND+CACHE)")
+            }
+            print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n")
+            
+            print("📈 FRAME-BY-FRAME TOKEN MATCH DETAILS:")
+            for info in detailedFrameMatches {
+                let frameNumber = info.capturedIndex + 1
+                if info.matched, let idx = info.matchedStoredIndex {
+                    print("  • Captured Frame #\(frameNumber): ✅ MATCHED (Stored Frame #\(idx + 1))")
+                } else {
+                    print("  • Captured Frame #\(frameNumber): ❌ NO TOKEN MATCH")
+                }
+            }
+            
+            print("\n🔍 ========== VERIFICATION (TOKEN-ONLY, BACKEND+CACHE) COMPLETED ==========\n")
+            
+            let aggregated = BCHBiometric.VerificationResult(
+                success: verificationPassed,
+                matchPercentage: matchPercentageAcrossFrames,
+                registrationIndex: 0,
+                hashMatch: verificationPassed,
+                storedHashPreview: "",
+                recoveredHashPreview: "",
+                numErrorsDetected: 0,
+                totalBitsCompared: 0,
+                notes: "Backend token-only verification over \(totalUsedFrames) frames " +
+                       "using cached \(faceIds.count) records; " +
+                       "frames with ≥1 token match: \(matchedFramesCount); " +
+                       "required ≥\(requiredMatches)."
+            )
+            
+            DispatchQueue.main.async {
+                completion(.success(aggregated))
+            }
+        }
+    }
+}
 
-        // Capture current frames on calling thread (cheap)
+// MARK: - Verification Extension (BACKEND with cache)
+extension FaceManager {
+    
+    /// Forward declaration note: This method uses `loadRemoteFaceIdsIfNeeded` defined above.
+    ///
+    /// Token-only verification using records fetched from BACKEND:
+    /// - Capture ~10 frames
+    /// - Ensure remote cache is filled (salt + [FaceId]) via API if needed
+    /// - Use current secretHash (R') of each captured frame with SALT + K2/token from backend
+    ///   to try to match tokens.
+    ///
+    /// NOTE: With the current crypto design (no secretHash returned for stored frames),
+    ///       this scheme only matches when secretHash for a login frame equals the
+    ///       secretHash used for an enrollment frame.
+    func verifyFaceIDAgainstBackend(
+        deviceKey: String,
+        fetchViewModel: FaceIdFetchViewModel,
+        completion: @escaping (Result<BCHBiometric.VerificationResult, Error>) -> Void
+    ) {
+        print("\n🔍 ========== VERIFICATION (TOKEN-ONLY, BACKEND+CACHE) STARTED ==========")
+        
+        // 1️⃣ Capture frames
         let trimmedFrames = VerifyFrameDistanceArray()
         print("📊 Captured \(trimmedFrames.count) frames total (raw)")
-
-        // Filter valid frames by distance count
+        
+        // 2️⃣ Filter valid frames by distance count
         var validFrames: [[Float]] = []
         var invalidFrameIndices: [Int] = []
-
+        
         for (index, frame) in trimmedFrames.enumerated() {
             if frame.count == BCHBiometric.NUM_DISTANCES {
                 validFrames.append(frame)
@@ -250,17 +512,16 @@ extension FaceManager {
                 print("⚠️ Frame #\(index + 1) has \(frame.count) distances (expected \(BCHBiometric.NUM_DISTANCES)) - SKIPPED")
             }
         }
-
+        
         print("✅ Valid frames (distance count OK): \(validFrames.count)")
         print("❌ Invalid frames (distance count mismatch): \(invalidFrameIndices.count)")
-
-        // We want to work with 10 collected frames
+        
         let requiredCollectedFrames = 10
-
+        
         guard validFrames.count >= requiredCollectedFrames else {
             print("❌ Insufficient valid frames for token-only verification.")
             print("   Got \(validFrames.count), but need at least \(requiredCollectedFrames) valid frames.")
-
+            
             DispatchQueue.main.async {
                 completion(.failure(
                     BCHBiometricError.invalidDistancesCount(
@@ -272,231 +533,36 @@ extension FaceManager {
             print("🔚 ========== VERIFICATION ABORTED (NOT ENOUGH VALID FRAMES) ==========\n")
             return
         }
-
-        // Take only the first 10 valid frames for the token check
+        
+        // We'll only use first 10 valid frames for verification
         let framesToUse = Array(validFrames.prefix(requiredCollectedFrames))
         print("🎯 Using first \(framesToUse.count) valid frames for TOKEN comparison.\n")
-
-        // Load all 80 stored enrollment records
-        guard let storedRecords = LocalEnrollmentCache.shared.loadAll() else {
-            print("❌ No enrollment records found in local storage")
-
-            DispatchQueue.main.async {
-                completion(.failure(LocalEnrollmentError.noLocalEnrollment))
-            }
-            return
-        }
-
-        guard storedRecords.count == 80 else {
-            print("❌ Expected 80 stored records, found \(storedRecords.count)")
-
-            DispatchQueue.main.async {
-                completion(.failure(LocalEnrollmentError.noLocalEnrollment))
-            }
-            return
-        }
-
-        print("✅ Loaded 80 enrollment records from storage")
-        print("\n🔄 Starting TOKEN-ONLY frame-by-frame verification...")
-        print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n")
-
-        // Move the heavy BCH + token loop off the main thread
+        
         let totalRawFrames = trimmedFrames.count
         let totalValidFrames = validFrames.count
         let invalidIndicesCopy = invalidFrameIndices
-
-        DispatchQueue.global(qos: .userInitiated).async {
-
-            // Prebuild RegistrationData once for BCH (used only as hashMatch gate)
-            struct TokenContext {
-                let registration: BCHBiometric.RegistrationData
-                let recordIndex: Int
-                let tokenPrevalidated: Bool
-            }
-
-            var tokenContexts: [TokenContext] = []
-            tokenContexts.reserveCapacity(storedRecords.count)
-
-            for (idx, rec) in storedRecords.enumerated() {
-                let reg = BCHBiometric.RegistrationData(
-                    helper: rec.helper,
-                    secretHash: rec.secretHash,
-                    timestamp: rec.timestamp
-                )
-
-                // Precompute tokenPrime ONCE per stored record.
-                // This is logically the same as doing it every time after hashMatch,
-                // because it depends only on stored values (R, SALT, K2), not on the captured frame.
-                let R = rec.secretHash
-                let saltHex = rec.salt
-                let k2Hex = rec.k2
-                let storedToken = rec.token
-
-                var tokenPrevalidated = false
-
-                if let k1Prime = xorHex(R, saltHex),
-                   let kRecovered = xorHex(k1Prime, k2Hex) {
-                    let tokenPrime = sha256Hex(kRecovered + R)
-                    if tokenPrime == storedToken {
-                        tokenPrevalidated = true
-                    } else {
-                        print("   ⚠️ Prevalidation: tokenPrime != storedToken for stored frame #\(idx + 1)")
-                    }
-                } else {
-                    print("   ⚠️ Prevalidation: failed to compute K1'/K for stored frame #\(idx + 1)")
+        
+        // 3️⃣ Ensure remote cache is filled (salt + [FaceId])
+        loadRemoteFaceIdsIfNeeded(deviceKey: deviceKey, fetchViewModel: fetchViewModel) { [weak self] result in
+            guard let self = self else { return }
+            
+            switch result {
+            case .failure(let error):
+                DispatchQueue.main.async {
+                    completion(.failure(error))
                 }
-
-                tokenContexts.append(
-                    TokenContext(
-                        registration: reg,
-                        recordIndex: idx,
-                        tokenPrevalidated: tokenPrevalidated
-                    )
+                
+            case .success:
+                // 4️⃣ Run the heavy verification loop using cached remote data
+                self.performBackendTokenVerificationTokenOnly(
+                    framesToUse: framesToUse,
+                    totalRawFrames: totalRawFrames,
+                    totalValidFrames: totalValidFrames,
+                    invalidIndices: invalidIndicesCopy,
+                    completion: completion
                 )
             }
-
-            var matchedFramesCount = 0
-            var unmatchedFramesCount = 0
-
-            // For debug: which stored index matched for each captured frame (at most 1)
-            var detailedFrameMatches: [(capturedIndex: Int, matched: Bool, matchedStoredIndex: Int?)] = []
-
-            let requiredMatches = 5
-
-            frameLoop: for (capturedIndex, capturedFrame) in framesToUse.enumerated() {
-                let capturedDistances = capturedFrame.map { Double($0) }
-
-                var frameMatched = false
-                var matchedStoredIndex: Int? = nil
-
-                print("📸 Checking Captured Frame #\(capturedIndex + 1) against 80 stored tokens...")
-
-                // Loop over all stored frames; break on FIRST token match
-                for ctx in tokenContexts {
-                    // If token cannot possibly match for this record, skip BCH entirely
-                    guard ctx.tokenPrevalidated else {
-                        continue
-                    }
-
-                    do {
-                        // BCH used only as a gate via hashMatch
-                        let result = try BCHShared.verifyBiometric(
-                            distances: capturedDistances,
-                            registration: ctx.registration,
-                            index: 0
-                        )
-
-                        // If BCH can't align / decode, skip this pair
-                        guard result.hashMatch else {
-                            continue
-                        }
-
-                        // If we reach here, BCH agrees that the biometric matches AND
-                        // token has already been prevalidated for this stored record.
-                        frameMatched = true
-                        matchedStoredIndex = ctx.recordIndex
-
-                        print("   ✅ TOKEN MATCH for Captured Frame #\(capturedIndex + 1)")
-                        print("      └─ Matched Stored Frame #\(ctx.recordIndex + 1)")
-                        // Break on first token match for this captured frame
-                        break
-
-                    } catch {
-                        print("   ⚠️ BCH verification error for stored frame #\(ctx.recordIndex + 1): \(error)")
-                        continue
-                    }
-                }
-
-                if frameMatched {
-                    matchedFramesCount += 1
-                    detailedFrameMatches.append((capturedIndex, true, matchedStoredIndex))
-
-                    if let idx = matchedStoredIndex {
-                        print("✅ RESULT for Captured Frame #\(capturedIndex + 1): MATCHED via token (Stored Frame #\(idx + 1))")
-                    } else {
-                        print("✅ RESULT for Captured Frame #\(capturedIndex + 1): MATCHED via token (Stored index: unknown)")
-                    }
-                } else {
-                    unmatchedFramesCount += 1
-                    detailedFrameMatches.append((capturedIndex, false, nil))
-
-                    print("❌ RESULT for Captured Frame #\(capturedIndex + 1): NO TOKEN MATCH among 80 stored frames")
-                }
-
-                print("----------------------------------------------------\n")
-
-                // 🔧 Short-circuit:
-                // If we already have enough matched frames to satisfy the rule,
-                // further frames cannot change PASS → FAIL, so we can stop early.
-                if matchedFramesCount >= requiredMatches {
-                    print("✅ Early exit: already have required matched frames (\(matchedFramesCount)/\(requiredMatches)).")
-                    break frameLoop
-                }
-            }
-
-            let totalUsedFrames = detailedFrameMatches.count
-            let matchPercentageAcrossFrames: Double
-
-            if totalUsedFrames > 0 {
-                matchPercentageAcrossFrames = (Double(matchedFramesCount) / Double(totalUsedFrames)) * 100.0
-            } else {
-                matchPercentageAcrossFrames = 0.0
-            }
-
-            // RULE: Session passes if at least 5 frames (out of the target 10) get a token match
-            let verificationPassed = matchedFramesCount >= requiredMatches
-
-            print("\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
-            print("📊 VERIFICATION SUMMARY (TOKEN-ONLY):")
-            print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
-            print("  Raw Frames Captured: \(totalRawFrames)")
-            print("  Valid Frames (distance count OK): \(totalValidFrames)")
-            print("  Invalid Frames (distance count mismatch): \(invalidIndicesCopy.count)")
-            print("  Frames Evaluated for Token Check: \(totalUsedFrames) (target: \(requiredCollectedFrames))")
-            print("  ✅ Frames with ≥1 TOKEN MATCH: \(matchedFramesCount)/\(totalUsedFrames)")
-            print("  ❌ Frames with NO TOKEN MATCH: \(unmatchedFramesCount)/\(totalUsedFrames)")
-            print("  📏 Required Matched Frames (token): ≥\(requiredMatches)")
-            print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
-            if verificationPassed {
-                print("  🎉 RESULT: ✅ VERIFICATION PASSED (TOKEN-ONLY)")
-                print("     └─ \(matchedFramesCount) frames had matching tokens (required: ≥\(requiredMatches))")
-            } else {
-                print("  ⛔ RESULT: ❌ VERIFICATION FAILED (TOKEN-ONLY)")
-                print("     └─ Only \(matchedFramesCount) frames had matching tokens (required: ≥\(requiredMatches))")
-            }
-            print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n")
-
-            print("📈 FRAME-BY-FRAME TOKEN MATCH DETAILS:")
-            for info in detailedFrameMatches {
-                let frameNumber = info.capturedIndex + 1
-                if info.matched, let idx = info.matchedStoredIndex {
-                    print("  • Captured Frame #\(frameNumber): ✅ MATCHED (Stored Frame #\(idx + 1))")
-                } else {
-                    print("  • Captured Frame #\(frameNumber): ❌ NO TOKEN MATCH")
-                }
-            }
-
-            print("\n🔍 ========== VERIFICATION (TOKEN-ONLY) COMPLETED ==========\n")
-
-            // Aggregated result (ECC metrics unused here)
-            let aggregated = BCHBiometric.VerificationResult(
-                success: verificationPassed,
-                matchPercentage: matchPercentageAcrossFrames, // across frames (token-only)
-                registrationIndex: 0,
-                hashMatch: verificationPassed,                // session-level pass/fail
-                storedHashPreview: "",
-                recoveredHashPreview: "",
-                numErrorsDetected: 0,                         // ECC bits not used
-                totalBitsCompared: 0,                         // ECC bits not used
-                notes: "Token-only session verification over \(totalUsedFrames) frames; " +
-                       "frames with ≥1 token match: \(matchedFramesCount); " +
-                       "required ≥\(requiredMatches). BCH is used only for hashMatch gating; " +
-                       "ECC bit error thresholds are not part of the decision."
-            )
-
-            DispatchQueue.main.async {
-                completion(.success(aggregated))
-            }
-        } // end async
+        }
     }
 }
+

@@ -109,7 +109,7 @@ struct UserData: Codable, Identifiable {
 }
 
 // MARK: - Nested Face ID Item Structure
-struct FaceIdItem: Codable {
+struct FaceIdItem: Codable,Equatable {
     let ecc: String?
     let helper: String?
     let hashHex: String?

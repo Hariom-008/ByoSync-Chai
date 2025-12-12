@@ -2,70 +2,49 @@
 //  AddFaceIdRepository.swift
 //  ByoSync-User
 //
-//  Created by Hari's Mac on 10.12.2025.
-//
 
-import Foundation
 import Foundation
 import Alamofire
 
-/// Repository responsible for uploading FaceId to backend
+// MARK: - Request Body Object
+struct AddFaceIdRequestBody: Codable {
+    let helper: String
+    let k2: String
+    let token: String
+}
+
 final class FaceIdRepository {
     
     static let shared = FaceIdRepository()
     private init() {}
     
-    /// Upload a single FaceId record
-    ///
-    /// - Parameters:
-    ///   - token: auth/session token that must also go in body under "token"
-    ///   - salt: salt string for this face
-    ///   - faceId: FaceIdItem containing ecc/helper/hash/etc.
-    ///   - completion: Result<Void, APIError> (no payload expected on success)
-    func addFaceId(
-        token: String,
+    /// Upload multiple FaceId items (backend expects array)
+    func addFaceIds(
         salt: String,
-        faceId: FaceIdItem,
+        records: [AddFaceIdRequestBody],
         completion: @escaping (Result<Void, APIError>) -> Void
     ) {
-        // 1. Headers from your existing header helper
-        let headers: HTTPHeaders = getHeader.shared.getAuthHeaders()
-        
-        // 2. Build faceId dictionary (skip nils)
-        var faceIdDict: [String: Any] = [:]
-        
-        if let ecc = faceId.ecc {
-            faceIdDict["ecc"] = ecc
+        let headers = getHeader.shared.getAuthHeaders()
+
+        // Convert `[AddFaceIdRequestBody]` → `[[String: Any]]`
+        let faceIdArray: [[String: Any]]
+        do {
+            let jsonData = try JSONEncoder().encode(records)
+            faceIdArray = (try JSONSerialization.jsonObject(with: jsonData) as? [[String: Any]]) ?? []
+        } catch {
+            completion(.failure(.custom("Encoding error: \(error.localizedDescription)")))
+            return
         }
-        if let helper = faceId.helper {
-            faceIdDict["helper"] = helper
-        }
-        if let hashHex = faceId.hashHex {
-            faceIdDict["hashHex"] = hashHex
-        }
-        if let r = faceId.r {
-            faceIdDict["r"] = r
-        }
-        if let hashBits = faceId.hashBits {
-            faceIdDict["hashBits"] = hashBits
-        }
-        if let id = faceId._id {
-            faceIdDict["_id"] = id
-        }
-        
-        // 3. Final body
-        //    If backend expects key "Token" instead of "token", change it here.
+
         let body: [String: Any] = [
             "salt": salt,
-            "token": token,
-            "faceId": faceIdDict
+            "faceId": faceIdArray
         ]
-        
-        print("📤 [FaceIdRepository] addFaceId -> URL: \(UserAPIEndpoint.FaceId.addFaceId)")
-        print("📤 [FaceIdRepository] Headers: \(headers)")
-        print("📤 [FaceIdRepository] Body: \(body)")
-        
-        // 4. Fire request (no payload expected; only success flag / message)
+
+        print("\n📤 [FaceIdRepository] addFaceIds → URL: \(UserAPIEndpoint.FaceId.addFaceId)")
+        print("📤 Headers: \(headers)")
+        print("📤 Body: \(body)\n")
+
         APIClient.shared.requestWithoutResponse(
             UserAPIEndpoint.FaceId.addFaceId,
             method: .post,
@@ -74,12 +53,24 @@ final class FaceIdRepository {
         ) { result in
             switch result {
             case .success:
-                print("✅ [FaceIdRepository] Successfully added faceId")
+                print("✅ Successfully uploaded faceId list")
                 completion(.success(()))
             case .failure(let error):
-                print("❌ [FaceIdRepository] Failed to add faceId: \(error)")
+                print("❌ Failed: \(error)")
                 completion(.failure(error))
             }
         }
+    }
+    
+    /// Upload **one** record
+    func addFaceId(
+        salt: String,
+        helper: String,
+        k2: String,
+        token: String,
+        completion: @escaping (Result<Void, APIError>) -> Void
+    ) {
+        let item = AddFaceIdRequestBody(helper: helper, k2: k2, token: token)
+        addFaceIds(salt: salt, records: [item], completion: completion)
     }
 }

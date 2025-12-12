@@ -340,7 +340,7 @@ final class BCHBiometric {
     }
 
     private func bitArrayToString(_ bits: BitArray) -> String {
-        String(bits.map { $0 == 0 ? "0" : "1" })
+        bits.map { $0 == 0 ? "0" : "1" }.joined()
     }
 
     private func sha256Hex(of string: String) -> String {

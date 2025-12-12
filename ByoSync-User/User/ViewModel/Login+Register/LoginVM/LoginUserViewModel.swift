@@ -61,7 +61,7 @@ final class LoginViewModel: ObservableObject {
                     SocketIOManager.shared.connect()
                     print("✅ [VM] Socket is Connected")
                     UserDefaults.standard.set(response.data?.device.token ?? "", forKey: "token")
-                    print("✅ [VM] Token Saved in UserDefaults")
+                    print("✅ [VM] Token Saved in UserDefaults:\(response.data?.device.token ?? "")")
                     
                 case .failure(let error):
                     print("❌ [VM] Login failed: \(error.localizedDescription)")
