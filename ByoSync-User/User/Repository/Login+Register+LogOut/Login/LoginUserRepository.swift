@@ -27,8 +27,8 @@ final class LoginUserRepository {
     ) {
         
         // Generate HMAC
-        //let deviceKeyHash = hmacGenerator.generateHMAC(jsonString: deviceKey)
-        let deviceKeyHash = deviceKey
+        let deviceKeyHash = hmacGenerator.generateHMAC(jsonString: deviceKey)
+      //  let deviceKeyHash = deviceKey
         let loginData = LoginRequest(
             name: name,
             deviceKeyHash: deviceKeyHash,

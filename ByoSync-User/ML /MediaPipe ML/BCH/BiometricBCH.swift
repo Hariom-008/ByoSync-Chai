@@ -1,30 +1,6 @@
-//
-//  BCHBiometricFE.swift
-//
-//  Port of updated JS BCH fuzzy-extractor logic to Swift (SwiftUI-ready)
-//  Requires: CryptoKit, and your C BCH codec linked in target
-//
-
 import Foundation
 import CryptoKit
-
-@_silgen_name("init_bch")
-func c_init_bch(_ m: Int32, _ t: Int32, _ primPoly: UInt32) -> OpaquePointer?
-
-@_silgen_name("bch_get_ecc_bits_bridge")  // <-- updated name
-func c_get_ecc_bits(_ ctl: OpaquePointer?) -> Int32
-
-@_silgen_name("encodebits_bch")
-func c_encodebits_bch(_ ctl: OpaquePointer?, _ data: UnsafeMutablePointer<UInt8>!, _ ecc: UnsafeMutablePointer<UInt8>!)
-
-@_silgen_name("decodebits_bch")
-func c_decodebits_bch(_ ctl: OpaquePointer?, _ data: UnsafeMutablePointer<UInt8>!, _ recvECC: UnsafeMutablePointer<UInt8>!, _ errloc: UnsafeMutablePointer<UInt32>!) -> Int32
-
-@_silgen_name("correctbits_bch")
-func c_correctbits_bch(_ ctl: OpaquePointer?, _ databits: UnsafeMutablePointer<UInt8>!, _ errloc: UnsafeMutablePointer<UInt32>!, _ nerr: Int32)
-
-@_silgen_name("free_bch")  // optional but recommended
-func c_free_bch(_ ctl: OpaquePointer?)
+import Security
 
 // MARK: - Errors
 enum BCHBiometricError: Error, LocalizedError {
@@ -49,45 +25,63 @@ enum BCHBiometricError: Error, LocalizedError {
     }
 }
 
-// MARK: - BCHBiometric (Fuzzy Extractor)
+
+@_silgen_name("init_bch")
+func c_init_bch(_ m: Int32, _ t: Int32, _ primPoly: UInt32) -> OpaquePointer?
+
+@_silgen_name("bch_get_ecc_bits_bridge")
+func c_get_ecc_bits(_ ctl: OpaquePointer?) -> Int32
+
+@_silgen_name("encodebits_bch")
+func c_encodebits_bch(_ ctl: OpaquePointer?, _ data: UnsafeMutablePointer<UInt8>!, _ ecc: UnsafeMutablePointer<UInt8>!)
+
+@_silgen_name("decodebits_bch")
+func c_decodebits_bch(_ ctl: OpaquePointer?, _ data: UnsafeMutablePointer<UInt8>!, _ recvECC: UnsafeMutablePointer<UInt8>!, _ errloc: UnsafeMutablePointer<UInt32>!) -> Int32
+
+@_silgen_name("correctbits_bch")
+func c_correctbits_bch(_ ctl: OpaquePointer?, _ databits: UnsafeMutablePointer<UInt8>!, _ errloc: UnsafeMutablePointer<UInt32>!, _ nerr: Int32)
+
+@_silgen_name("free_bch")
+func c_free_bch(_ ctl: OpaquePointer?)
+
+
 final class BCHBiometric {
 
-    // === Parameters: keep in sync with your compiled bch_codec ===
-    // NOTE: BCH_T MUST match your compiled library (JS uses 455). If it differs,
-    // the library's internally computed ecc_bits will still be authoritative.
+    // Keep in sync with Android/JS
     static let NUM_DISTANCES = 316
     static let BITS_PER_DISTANCE = 8
     static let TOTAL_DATA_BITS = NUM_DISTANCES * BITS_PER_DISTANCE
 
-    // Updated JS uses 18% max error budget for early checks (used informationally)
-    static let MAX_CORRECTABLE_ERRORS = Int((Double(TOTAL_DATA_BITS) * 0.18).rounded())
-
-    // BCH params from your JS
     static let BCH_M: Int32 = 13
-    static let BCH_T: Int32 = 455 // IMPORTANT: must match your linked codec config
+    static let BCH_T: Int32 = 455
 
-    // MARK: - Types
     typealias BitArray = [UInt8]
 
-    struct RegistrationData: Codable {
-        /// "0/1" string of helper = codeword XOR biometricBits
-        let helper: String
-        /// hex string: SHA256(secretKeyBitsString)
-        let secretHash: String
-        /// ISO timestamp for debugging/auditing
-        let timestamp: Date
-    }
-
+    // ---- Public types you already used elsewhere ----
     struct VerificationResult: Codable {
         let success: Bool
-        let matchPercentage: Double       // 100 on exact hash match, else 0
+        let matchPercentage: Double
         let registrationIndex: Int
         let hashMatch: Bool
         let storedHashPreview: String
         let recoveredHashPreview: String
-        let numErrorsDetected: Int        // decoder-reported, if available
+        let numErrorsDetected: Int
         let totalBitsCompared: Int
         let notes: String?
+    }
+
+    // ---- Android-equivalent frame primitives ----
+    struct FrameRecord {
+        let helper: String         // length n, "0/1" string
+        let rBytesFull: Data       // packed R (K bits -> bytes)
+        let rBytes32: Data         // first 32 bytes of R
+    }
+
+    struct FrameVerification {
+        let success: Bool
+        let rBytesFull: Data
+        let rBytes32: Data
+        let numErrors: Int
     }
 
     // MARK: - State
@@ -97,133 +91,71 @@ final class BCHBiometric {
     private var K: Int = 0
     private var initialized = false
 
-    // MARK: - Init/Teardown
+    deinit {
+        if let c = ctl {
+            c_free_bch(c)
+        }
+    }
+
+    // MARK: - Init
     func initBCH() throws {
         if initialized { return }
-        guard let handle = c_init_bch(BCHBiometric.BCH_M, BCHBiometric.BCH_T, 0) else {
-            throw BCHBiometricError.codec("init_bch returned null")
+        guard let handle = c_init_bch(Self.BCH_M, Self.BCH_T, 0) else {
+            throw NSError(domain: "BCH", code: 1, userInfo: [NSLocalizedDescriptionKey: "init_bch returned null"])
         }
-        self.ctl = handle
-        let eb = Int(c_get_ecc_bits(handle))
-        self.eccBits = eb
-        self.n = (1 << Int(BCHBiometric.BCH_M)) - 1
-        self.K = n - eb
-        self.initialized = true
+        ctl = handle
+        eccBits = Int(c_get_ecc_bits(handle))
+        n = (1 << Int(Self.BCH_M)) - 1
+        K = n - eccBits
+        initialized = true
     }
 
-    // MARK: - Public API (mirrors JS)
-
-    /// Register — single array or array-of-arrays (averaged)
-    func registerBiometric(distances: [[Double]]?, single: [Double]? = nil) throws -> RegistrationData {
+    // MARK: - Public: register/verify frame (Android-aligned)
+    func registerFrame(distances: [Double]) throws -> FrameRecord {
         try ensureInit()
 
-        // resolve distances
-        let d: [Double]
-        if let arrays = distances, !arrays.isEmpty {
-            d = try averageDistances(arrays)
-        } else if let s = single {
-            d = s
-        } else {
-            throw BCHBiometricError.invalidDistancesCount(expected: Self.NUM_DISTANCES, actual: 0)
-        }
+        let biometricBits = try distancesToBits(distances)     // 2528 bits
+        let alignedBio = alignBits(biometricBits, to: n)       // pad to n with zeros
 
-        // 1) distances -> bits
-        let biometricBits = try distancesToBits(d)
-
-        // 2) random secretKeyBits of length K (same as JS, K is typically ~>2k for m=13)
+        // R: K random bits (0/1 bytes)
         let secretKeyBits = generateRandomBits(length: K)
 
-        // 3) BCH encode → ecc; build codeword = data(K) || ecc(eccBits) = n
-        let codeword = try encodeSecretKeyBCH(secretKeyBits)
+        // codeword = R || ECC
+        let codeword = try encodeSecretKeyBCH(secretKeyBits)   // length n (K + eccBits)
 
-        // 4) align biometric bits to n and XOR
-        let alignedBiometric = alignBits(biometricBits, to: codeword.count, padWithZeros: true)
-        let helperBits = xorBits(codeword, alignedBiometric)
+        // helper = codeword XOR biometricAligned
+        let helperBits = xorBits(codeword, alignedBio)
 
-        // 5) secretHash = SHA256(secretKeyBitsString)
-        let secretBitsStr = bitArrayToString(secretKeyBits)
-        let secretHashHex = sha256Hex(of: secretBitsStr)
+        let rFull = bitsToBytes(secretKeyBits)                 // packed bytes of R
+        guard rFull.count >= 32 else {
+            throw NSError(domain: "BCH", code: 2, userInfo: [NSLocalizedDescriptionKey: "R must be >= 32 bytes"])
+        }
 
-        return RegistrationData(
+        return FrameRecord(
             helper: bitArrayToString(helperBits),
-            secretHash: secretHashHex,
-            timestamp: Date()
+            rBytesFull: rFull,
+            rBytes32: Data(rFull.prefix(32))
         )
     }
 
-    /// Verify — accepts either a single reg object or [reg] with index
-    func verifyBiometric(distances: [Double],
-                         registration: RegistrationData,
-                         index: Int = 0) throws -> VerificationResult {
+    func verifyFrame(distances: [Double], helper: String) throws -> FrameVerification {
         try ensureInit()
 
-        guard !registration.helper.isEmpty, !registration.secretHash.isEmpty else {
-            throw BCHBiometricError.missingRegistrationData
+        guard helper.count == n else {
+            return FrameVerification(success: false, rBytesFull: Data(), rBytes32: Data(), numErrors: 0)
         }
 
-        // helper string -> bits
-        let helperBits = bitStringToArray(registration.helper)
-
-        // 1) distances -> bits
+        let helperBits = bitStringToArray(helper)
         let biometricBits = try distancesToBits(distances)
+        let alignedBio = alignBits(biometricBits, to: n)
 
-        // 2) codeword' = helper XOR aligned(biometricBits)
-        let alignedBiometric = alignBits(biometricBits, to: helperBits.count, padWithZeros: true)
-        let codewordPrime = xorBits(helperBits, alignedBiometric)
+        // codeword' = helper XOR biometricAligned
+        let codewordPrime = xorBits(helperBits, alignedBio)
 
-        // 3) BCH decode → secret'
-        let decode = try decodeCodewordBCH(codewordPrime)
-        let secretPrime = decode.correctedBits
-
-        // 4) hash(secret') and compare
-        let recoveredHash = sha256Hex(of: bitArrayToString(secretPrime))
-        let isMatch = timingSafeEqHex(recoveredHash, registration.secretHash)
-
-        return VerificationResult(
-            success: isMatch,
-            matchPercentage: isMatch ? 100 : 0,
-            registrationIndex: index,
-            hashMatch: isMatch,
-            storedHashPreview: String(registration.secretHash.prefix(16)) + "...",
-            recoveredHashPreview: String(recoveredHash.prefix(16)) + "...",
-            numErrorsDetected: decode.numErrors,
-            totalBitsCompared: secretPrime.count,
-            notes: "K=\(K), eccBits=\(eccBits), n=\(n)"
-        )
-    }
-
-    // MARK: - Core BCH encode/decode (1 byte per bit, like your JS/WASM port)
-
-    private func encodeSecretKeyBCH(_ secretKeyBits: BitArray) throws -> BitArray {
-        try ensureInit()
-
-        // Input to encoder must be exactly K bits, each as a byte {0,1}
-        let data = alignBits(secretKeyBits, to: K, padWithZeros: true)
-        var dataBuf = data // contiguous
-        var eccBuf = [UInt8](repeating: 0, count: eccBits)
-
-        // Pointers
-        let wrote = dataBuf.withUnsafeMutableBufferPointer { dataPtr -> Bool in
-            eccBuf.withUnsafeMutableBufferPointer { eccPtr -> Bool in
-                c_encodebits_bch(ctl, dataPtr.baseAddress!, eccPtr.baseAddress!)
-                return true
-            }
-        }
-        if !wrote { throw BCHBiometricError.memory }
-
-        // codeword = data(K) || ecc(eccBits) == n
-        return dataBuf + eccBuf
-    }
-
-    private func decodeCodewordBCH(_ codewordBits: BitArray) throws -> (correctedBits: BitArray, numErrors: Int) {
-        try ensureInit()
-        let cw = alignBits(codewordBits, to: n, padWithZeros: true)
-
-        let dataBits = Array(cw[0..<K])
-        let recvECC = Array(cw[K..<(K + eccBits)])
-
-        var dataBuf = dataBits
-        var eccBuf = recvECC
+        // split (approxR, approxECC)
+        let cw = alignBits(codewordPrime, to: n)
+        var dataBuf = Array(cw[0..<K])
+        var eccBuf = Array(cw[K..<(K + eccBits)])
         var errloc = [UInt32](repeating: 0, count: Int(Self.BCH_T))
 
         let nerr: Int32 = dataBuf.withUnsafeMutableBufferPointer { dataPtr in
@@ -234,33 +166,84 @@ final class BCHBiometric {
             }
         }
 
-        var corrected = dataBuf
+        // Convention: <0 => decode failure
+        if nerr < 0 {
+            return FrameVerification(success: false, rBytesFull: Data(), rBytes32: Data(), numErrors: Int(nerr))
+        }
+
         if nerr > 0 {
-            _ = corrected.withUnsafeMutableBufferPointer { dataPtr in
+            _ = dataBuf.withUnsafeMutableBufferPointer { dataPtr in
                 errloc.withUnsafeMutableBufferPointer { errPtr in
                     c_correctbits_bch(ctl, dataPtr.baseAddress!, errPtr.baseAddress!, nerr)
                 }
             }
         }
 
-        // Read back corrected bits (each byte is 0/1)
-        corrected = corrected.map { $0 & 1 }
-        return (correctedBits: corrected, numErrors: max(0, Int(nerr)))
+        let correctedSecretBits = dataBuf.map { $0 & 1 }
+        let rFull = bitsToBytes(correctedSecretBits)
+        guard rFull.count >= 32 else {
+            return FrameVerification(success: false, rBytesFull: Data(), rBytes32: Data(), numErrors: Int(nerr))
+        }
+
+        return FrameVerification(
+            success: true,
+            rBytesFull: rFull,
+            rBytes32: Data(rFull.prefix(32)),
+            numErrors: Int(nerr)
+        )
     }
 
-    // MARK: - Utilities (1:1 with your JS)
+    // MARK: - BCH encode (1 byte per bit)
+    private func encodeSecretKeyBCH(_ secretKeyBits: BitArray) throws -> BitArray {
+        try ensureInit()
 
+        let data = alignBits(secretKeyBits, to: K)
+        var dataBuf = data
+        var eccBuf = [UInt8](repeating: 0, count: eccBits)
+
+        dataBuf.withUnsafeMutableBufferPointer { dataPtr in
+            eccBuf.withUnsafeMutableBufferPointer { eccPtr in
+                c_encodebits_bch(ctl, dataPtr.baseAddress!, eccPtr.baseAddress!)
+            }
+        }
+
+        return dataBuf + eccBuf
+    }
+
+    // MARK: - Distances -> bits (Android-style normalization)
     private func distancesToBits(_ distances: [Double]) throws -> BitArray {
         guard distances.count == Self.NUM_DISTANCES else {
-            throw BCHBiometricError.invalidDistancesCount(
-                expected: Self.NUM_DISTANCES, actual: distances.count
-            )
+            throw NSError(domain: "BCH", code: 3, userInfo: [NSLocalizedDescriptionKey: "Expected \(Self.NUM_DISTANCES) distances, got \(distances.count)"])
         }
-        let normalized: [Int] = normalizeDistances(distances)
+
+        // Guard NaN/Inf like Android validateDistances()
+        for d in distances {
+            if d.isNaN || d.isInfinite {
+                throw NSError(domain: "BCH", code: 4, userInfo: [NSLocalizedDescriptionKey: "Distance contained NaN/Inf"])
+            }
+        }
+
+        guard let minVal = distances.min(), let maxVal = distances.max() else {
+            return Array(repeating: 0, count: Self.TOTAL_DATA_BITS)
+        }
+
+        let range = maxVal - minVal
+        let normalized: [Int]
+        if range == 0 || range.isNaN {
+            normalized = Array(repeating: 128, count: distances.count)
+        } else {
+            normalized = distances.map { d in
+                let x = (d - minVal) / range
+                // Fixed (Correct - Round Half Up, matches Android)
+                let v = Int((x * 255.0).rounded(.toNearestOrAwayFromZero))
+                
+                return min(255, max(0, v))
+            }
+        }
+
         var bits: BitArray = []
         bits.reserveCapacity(Self.TOTAL_DATA_BITS)
         for v in normalized {
-            precondition(0...255 ~= v, "normalized distance out of range")
             for b in stride(from: 7, through: 0, by: -1) {
                 bits.append(UInt8((v >> b) & 1))
             }
@@ -268,43 +251,11 @@ final class BCHBiometric {
         return bits
     }
 
-    private func normalizeDistances(_ distances: [Double]) -> [Int] {
-        guard let minVal = distances.min(), let maxVal = distances.max() else {
-            return Array(repeating: 128, count: distances.count)
-        }
-        let range = maxVal - minVal
-        if range == 0 {
-            return Array(repeating: 128, count: distances.count)
-        }
-        return distances.map { d in
-            let x = (d - minVal) / range
-            return Int((x * 255.0).rounded())
-        }
-    }
-
-    /// Average an array of distance arrays (ignores length-mismatched rows)
-    private func averageDistances(_ arrays: [[Double]]) throws -> [Double] {
-        guard let first = arrays.first else {
-            throw BCHBiometricError.invalidDistancesCount(expected: Self.NUM_DISTANCES, actual: 0)
-        }
-        let n = first.count
-        var sum = [Double](repeating: 0, count: n)
-        var used = 0
-        for arr in arrays where arr.count == n {
-            for i in 0..<n { sum[i] += arr[i] }
-            used += 1
-        }
-        guard used > 0 else {
-            throw BCHBiometricError.invalidDistancesCount(expected: n, actual: 0)
-        }
-        return sum.map { $0 / Double(used) }
-    }
-
-    private func alignBits(_ bits: BitArray, to target: Int, padWithZeros: Bool) -> BitArray {
+    // MARK: - Bit utils
+    private func alignBits(_ bits: BitArray, to target: Int) -> BitArray {
         if bits.count == target { return bits }
         if bits.count < target {
-            let pad = [UInt8](repeating: 0, count: target - bits.count)
-            return padWithZeros ? (bits + pad) : (pad + bits)
+            return bits + [UInt8](repeating: 0, count: target - bits.count)
         }
         return Array(bits.prefix(target))
     }
@@ -316,10 +267,37 @@ final class BCHBiometric {
         return out
     }
 
+    // Matches Android bitsToBytes: MSB-first packing + pad last byte
+    private func bitsToBytes(_ bits: BitArray) -> Data {
+        let outCount = (bits.count + 7) / 8
+        var out = [UInt8](repeating: 0, count: outCount)
+
+        var cur: UInt8 = 0
+        var idx = 0
+
+        for i in 0..<bits.count {
+            cur = (cur << 1) | (bits[i] & 1)
+            if (i + 1) % 8 == 0 {
+                out[idx] = cur
+                idx += 1
+                cur = 0
+            }
+        }
+
+        if bits.count % 8 != 0 {
+            let shift = 8 - (bits.count % 8)
+            out[idx] = cur << UInt8(shift)
+        }
+
+        return Data(out)
+    }
+
     private func generateRandomBits(length: Int) -> BitArray {
         let byteCount = (length + 7) / 8
         var bytes = [UInt8](repeating: 0, count: byteCount)
-        _ = SecRandomCopyBytes(kSecRandomDefault, byteCount, &bytes)
+        let res = SecRandomCopyBytes(kSecRandomDefault, byteCount, &bytes)
+        precondition(res == errSecSuccess)
+
         var bits = BitArray()
         bits.reserveCapacity(length)
         for i in 0..<length {
@@ -333,28 +311,12 @@ final class BCHBiometric {
     private func bitStringToArray(_ s: String) -> BitArray {
         var out = BitArray()
         out.reserveCapacity(s.count)
-        for ch in s.utf8 {
-            out.append(ch == 49 ? 1 : 0) // '1' == 49
-        }
+        for ch in s.utf8 { out.append(ch == 49 ? 1 : 0) } // '1' = 49
         return out
     }
 
     private func bitArrayToString(_ bits: BitArray) -> String {
         bits.map { $0 == 0 ? "0" : "1" }.joined()
-    }
-
-    private func sha256Hex(of string: String) -> String {
-        let data = Data(string.utf8)
-        let digest = SHA256.hash(data: data)
-        return digest.map { String(format: "%02x", $0) }.joined()
-    }
-
-    private func timingSafeEqHex(_ a: String, _ b: String) -> Bool {
-        let da = Array(a.utf8), db = Array(b.utf8)
-        if da.count != db.count { return false }
-        var diff: UInt8 = 0
-        for i in 0..<da.count { diff |= da[i] ^ db[i] }
-        return diff == 0
     }
 
     private func ensureInit() throws {

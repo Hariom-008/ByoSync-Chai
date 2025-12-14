@@ -17,9 +17,10 @@ struct AuthenticationView: View {
     
     // Same key we used in RegisterUserViewModel
     private let deviceKeyKeychainKey = "deviceKey"
+    @State var openTestingView:Bool = false
     
     var body: some View {
-        NavigationStack {
+    NavigationStack {
             ZStack {
                 LinearGradient(
                     colors: [
@@ -140,8 +141,18 @@ struct AuthenticationView: View {
             .navigationDestination(isPresented: $openEnterNumber) {
                 EnterNumberView()
             }
+            .navigationDestination(isPresented: $openTestingView, destination: {
+                TestingLoginView()
+            })
             .alert(deviceAlertMessage, isPresented: $showDeviceAlert) {
                 Button("OK", role: .cancel) { }
+            }
+            .toolbar{
+                Button{
+                    openTestingView.toggle()
+                }label: {
+                    Text("Testing")
+                }
             }
             
             // 🔁 Decide what to do when API call finishes

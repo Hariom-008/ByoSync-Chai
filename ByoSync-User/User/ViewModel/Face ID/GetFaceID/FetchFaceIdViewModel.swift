@@ -83,6 +83,7 @@ final class FaceIdFetchViewModel: ObservableObject {
         for deviceKey: String,
         completion: @escaping (Result<GetFaceIdData, Error>) -> Void
     ) {
+        
         guard !deviceKey.isEmpty else {
             let err = NSError(
                 domain: "FaceIdFetchViewModel",

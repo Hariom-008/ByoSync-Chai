@@ -27,9 +27,9 @@ extension FaceManager {
         return trimmed
     }
     func VerifyFrameDistanceArray() -> [[Float]] {
-        // Require at least 80 frames collected
+        // Require at least 10 frames collected
         guard AllFramesOptionalAndMandatoryDistance.count >= 10 else {
-            print("⚠️ Not enough frames. Have \(AllFramesOptionalAndMandatoryDistance.count), need at least 80.")
+            print("⚠️ Not enough frames. Have \(AllFramesOptionalAndMandatoryDistance.count), need at least 10.")
             return []
         }
         
