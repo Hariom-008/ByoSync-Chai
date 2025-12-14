@@ -16,7 +16,7 @@ struct AuthenticationView: View {
     @State private var deviceAlertMessage: String = ""
     
     // Same key we used in RegisterUserViewModel
-    private let deviceKeyKeychainKey = "deviceKey"
+    private let deviceKeyUserDefaultKey = "deviceKey"
     @State var openTestingView:Bool = false
     
     var body: some View {
@@ -84,9 +84,9 @@ struct AuthenticationView: View {
                             didTapRegister = true
                             
                             // 1️⃣ Try to read deviceKey
-                            let deviceKey = UserSession.shared.deviceKey
+                            let deviceKey = UserSession.shared.deviceKey ?? ""
                             if !deviceKey.isEmpty {
-                                print("🔐 Using deviceKey from Keychain for registration check")
+                                print("🔐 Using deviceKey from UserDefaults for registration check")
                                 deviceRegistrationVM.checkDeviceRegistration(deviceKey: deviceKey)
                             } else {
                                 // 2️⃣ No deviceKey stored → probably first time: just proceed
@@ -142,7 +142,9 @@ struct AuthenticationView: View {
                 EnterNumberView()
             }
             .navigationDestination(isPresented: $openTestingView, destination: {
-                TestingLoginView()
+                MLScanView {
+                    print("😌 Face Detection is complete you can now LOGIN")
+                }
             })
             .alert(deviceAlertMessage, isPresented: $showDeviceAlert) {
                 Button("OK", role: .cancel) { }

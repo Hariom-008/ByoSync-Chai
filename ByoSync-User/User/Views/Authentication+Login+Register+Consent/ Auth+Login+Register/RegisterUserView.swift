@@ -5,6 +5,7 @@ struct RegisterUserView: View {
     @EnvironmentObject var router: Router
     @StateObject private var viewModel: RegisterUserViewModel
     @Binding var phoneNumber: String
+    @EnvironmentObject var faceAuthManager: FaceAuthManager
     
     init(phoneNumber: Binding<String>) {
         self._phoneNumber = phoneNumber
@@ -67,7 +68,7 @@ struct RegisterUserView: View {
                             text: $viewModel.phoneNumber,
                             keyboardType: .default
                         )
-                    
+                        
                     }
                     .padding(.horizontal, 24)
                     .padding(.top, 12)
@@ -78,6 +79,8 @@ struct RegisterUserView: View {
                 Button(action: {
                     print("🔘 [VIEW] Register button tapped")
                     UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                    // ✅ Set mode in shared manager
+                    faceAuthManager.setRegistrationMode()
                     viewModel.registerUser()
                 }) {
                     HStack {

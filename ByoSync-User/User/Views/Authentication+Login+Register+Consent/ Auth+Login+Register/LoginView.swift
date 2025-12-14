@@ -6,6 +6,7 @@ struct LoginView: View {
     @EnvironmentObject var cryptoManager: CryptoManager
     @EnvironmentObject var router: Router
     @StateObject private var viewModel: LoginViewModel
+    @EnvironmentObject var faceAuthManager: FaceAuthManager
     
     init() {
         let tempCrypto = CryptoManager()
@@ -74,8 +75,8 @@ struct LoginView: View {
                                 .foregroundColor(.secondary)
                                 .frame(width: 20)
                             TextField("", text: $viewModel.name, prompt:
-                                Text(L("enter_full_name"))
-                                    .foregroundColor(.secondary.opacity(0.5))
+                                        Text(L("enter_full_name"))
+                                .foregroundColor(.secondary.opacity(0.5))
                             )
                             .textInputAutocapitalization(.words)
                             .autocorrectionDisabled()
@@ -103,7 +104,8 @@ struct LoginView: View {
                             print("🔔 [VIEW] FCM token received")
                             viewModel.fcmToken = token
                         }
-                        
+                        // ✅ Set mode in shared manager
+                        faceAuthManager.setVerificationMode()
                         await viewModel.login()
                     }
                 } label: {

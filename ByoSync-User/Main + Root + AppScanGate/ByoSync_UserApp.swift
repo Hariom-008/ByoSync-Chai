@@ -14,7 +14,8 @@ struct ByoSync_UserApp: App {
     @StateObject var userSession = UserSession.shared
     @StateObject private var socketManager = SocketIOManager.shared
     @StateObject private var scanGate = AppScanGate.shared
-
+    @StateObject private var faceAuthManager = FaceAuthManager.shared
+    
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
     @Environment(\.scenePhase) private var scenePhase
 
@@ -26,6 +27,7 @@ struct ByoSync_UserApp: App {
                 }
                 .environmentObject(userSession)
                 .environmentObject(languageManager)
+                .environmentObject(faceAuthManager)
                 .environment(\.locale, .init(identifier: languageManager.currentLanguageCode))
                 .preferredColorScheme(.light)
                 .environmentObject(cryptoManager)

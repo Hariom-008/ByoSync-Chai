@@ -10,7 +10,7 @@ final class UserSession: ObservableObject {
     @Published var currentUserDeviceID: String = ""
     @Published var thisDeviceIsPrimary: Bool = false
     @Published var wallet: Double = 0
-    @Published var deviceKey : String = ""
+    @Published var deviceKey : String = "123456a"
     
     private let userDefaultsKey = "currentUser"
     private let emailVerifiedKey = "isEmailVerified"

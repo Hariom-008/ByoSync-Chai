@@ -7,6 +7,7 @@
 import SwiftUI
 
 struct RouterView<Content: View>: View {
+    @State var RegistrationMode:Bool = false
     @StateObject private var router = Router()
     let rootView: Content
     

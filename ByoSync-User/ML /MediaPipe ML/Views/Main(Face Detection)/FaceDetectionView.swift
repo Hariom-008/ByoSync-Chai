@@ -50,8 +50,13 @@ struct FaceDetectionView: View {
     @State private var alertMessage: String = ""
     @State private var isProcessing: Bool = false
 
-    // MARK: - Init
+    // ✅ Face auth mode manager
+    @EnvironmentObject var faceAuthManager: FaceAuthManager
+    
+    // ✅ Auto-trigger tracking (prevent multiple triggers)
+    @State private var hasAutoTriggered: Bool = false
 
+    // MARK: - Init
     init(
         authToken: String,
         deviceKey: String,
@@ -66,13 +71,13 @@ struct FaceDetectionView: View {
         self.onComplete = onComplete
     }
 
-    // MARK: - Derived UI state (updated for new enrollment schema)
+    // MARK: - Derived UI state
 
     private var isBusy: Bool {
         isProcessing || faceIdFetchViewModel.isLoading || faceIdUploadViewModel.isUploading
     }
 
-    /// Enrollment is “usable” only if backend returned BOTH salt + non-empty faceData.
+    /// Enrollment is "usable" only if backend returned BOTH salt + non-empty faceData.
     private var backendEnrollmentValid: Bool {
         guard faceIdFetchViewModel.hasLoadedOnce else { return false }
         guard let data = faceIdFetchViewModel.faceIdData else { return false }
@@ -93,12 +98,54 @@ struct FaceDetectionView: View {
         if !faceIdFetchViewModel.hasLoadedOnce { return .yellow }
         return backendEnrollmentValid ? .green : .red
     }
+    
+    // ✅ Current mode display
+    private var currentModeText: String {
+        switch faceAuthManager.currentMode {
+        case .registration:
+            return "Registration Mode"
+        case .verification:
+            return "Verification Mode"
+        }
+    }
+    
+    private var currentModeIcon: String {
+        switch faceAuthManager.currentMode {
+        case .registration:
+            return "person.badge.plus.fill"
+        case .verification:
+            return "lock.shield.fill"
+        }
+    }
+    
+    private var currentModeColor: Color {
+        switch faceAuthManager.currentMode {
+        case .registration:
+            return .green
+        case .verification:
+            return .blue
+        }
+    }
+    
+    // ✅ Target frame count based on mode
+    private var targetFrameCount: Int {
+        switch faceAuthManager.currentMode {
+        case .registration:
+            return 80
+        case .verification:
+            return 10
+        }
+    }
+    
+    // ✅ Progress percentage
+    private var frameProgress: Double {
+        Double(faceManager.totalFramesCollected) / Double(targetFrameCount)
+    }
 
     var body: some View {
         GeometryReader { geometry in
             let screenWidth = geometry.size.width
             let screenHeight = geometry.size.height
-            let _ = (screenWidth < 1024 || screenHeight < 768) // kept if you want compact tweaks later
 
             ZStack {
                 // Camera preview
@@ -149,13 +196,13 @@ struct FaceDetectionView: View {
                 }
 
                 VStack {
-                    // Top status bar
+                    // ✅ Top status bar
                     HStack(spacing: 16) {
-                        // Enrollment status
+                        // Current mode indicator
                         HStack(spacing: 8) {
-                            Image(systemName: enrollmentStatusIcon)
-                                .foregroundColor(enrollmentStatusColor)
-                            Text(enrollmentStatusText)
+                            Image(systemName: currentModeIcon)
+                                .foregroundColor(currentModeColor)
+                            Text(currentModeText)
                                 .font(.system(size: 14, weight: .semibold))
                         }
                         .padding(.horizontal, 12)
@@ -165,81 +212,64 @@ struct FaceDetectionView: View {
                                 .fill(Color.black.opacity(0.7))
                         )
                         .foregroundColor(.white)
-
+                        
                         Spacer()
 
-                        // Frame counter
-                        HStack(spacing: 8) {
-                            Image(systemName: "camera.fill")
-                            Text("\(faceManager.totalFramesCollected)")
-                                .font(.system(size: 14, weight: .bold))
-                                .monospacedDigit()
+                        // Frame counter with progress
+                        VStack(spacing: 4) {
+                            HStack(spacing: 8) {
+                                Image(systemName: "camera.fill")
+                                Text("\(faceManager.totalFramesCollected) / \(targetFrameCount)")
+                                    .font(.system(size: 14, weight: .bold))
+                                    .monospacedDigit()
+                            }
+                            
+                            // Progress bar
+                            GeometryReader { geo in
+                                ZStack(alignment: .leading) {
+                                    RoundedRectangle(cornerRadius: 2)
+                                        .fill(Color.white.opacity(0.3))
+                                        .frame(height: 3)
+                                    
+                                    RoundedRectangle(cornerRadius: 2)
+                                        .fill(frameProgress >= 1.0 ? Color.green : currentModeColor)
+                                        .frame(width: geo.size.width * min(frameProgress, 1.0), height: 3)
+                                }
+                            }
+                            .frame(height: 3)
                         }
                         .padding(.horizontal, 12)
                         .padding(.vertical, 8)
                         .background(
                             RoundedRectangle(cornerRadius: 8)
-                                .fill(faceManager.totalFramesCollected >= 80 ? Color.green.opacity(0.8) : Color.black.opacity(0.7))
+                                .fill(faceManager.totalFramesCollected >= targetFrameCount ? Color.green.opacity(0.8) : Color.black.opacity(0.7))
                         )
                         .foregroundColor(.white)
                     }
                     .padding(.horizontal, 24)
                     .padding(.top, 60)
+                    
+                    // ✅ Status message
+                    if faceManager.totalFramesCollected >= targetFrameCount && !hasAutoTriggered {
+                        HStack(spacing: 8) {
+                            ProgressView()
+                                .scaleEffect(0.8)
+                            Text(faceAuthManager.currentMode == .registration ? "Processing registration..." : "Processing verification...")
+                                .font(.system(size: 14, weight: .medium))
+                        }
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 10)
+                        .background(
+                            RoundedRectangle(cornerRadius: 8)
+                                .fill(Color.black.opacity(0.7))
+                        )
+                        .foregroundColor(.white)
+                        .padding(.top, 8)
+                    }
 
                     Spacer()
 
-                    // Bottom buttons
-                    VStack(spacing: 12) {
-                        // MARK: - Register button
-                        Button {
-                            handleRegister()
-                        } label: {
-                            HStack {
-                                Image(systemName: "person.badge.plus.fill")
-                                Text("Register")
-                                    .font(.system(size: 16, weight: .semibold))
-                            }
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 16)
-                            .background(
-                                RoundedRectangle(cornerRadius: 12)
-                                    .fill(registerButtonColor())
-                            )
-                            .foregroundColor(.white)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 12)
-                                    .strokeBorder(Color.white.opacity(0.2), lineWidth: 1)
-                            )
-                        }
-                        .disabled(!canRegister())
-                        .opacity(canRegister() ? 1.0 : 0.5)
-
-                        // MARK: - Login button
-                        Button {
-                            handleLogin()
-                        } label: {
-                            HStack {
-                                Image(systemName: "lock.shield.fill")
-                                Text("Login")
-                                    .font(.system(size: 16, weight: .semibold))
-                            }
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 16)
-                            .background(
-                                RoundedRectangle(cornerRadius: 12)
-                                    .fill(loginButtonColor())
-                            )
-                            .foregroundColor(.white)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 12)
-                                    .strokeBorder(Color.white.opacity(0.2), lineWidth: 1)
-                            )
-                        }
-                        .disabled(!canLogin())
-                        .opacity(canLogin() ? 1.0 : 0.5)
-                    }
-                    .padding(.horizontal, 24)
-                    .padding(.bottom, 40)
+                    // ✅ No buttons - automatic processing
                 }
             }
             // EAR series update
@@ -280,6 +310,29 @@ struct FaceDetectionView: View {
                     showRecordingFlash = false
                 }
             }
+            // ✅ Auto-trigger based on frame count and mode
+            .onChange(of: faceManager.totalFramesCollected) { oldValue, newValue in
+                guard !hasAutoTriggered && !isBusy else { return }
+                
+                switch faceAuthManager.currentMode {
+                case .registration:
+                    if newValue >= 80 {
+                        print("📸 [FaceDetectionView] 80 frames collected → Auto-triggering registration")
+                        hasAutoTriggered = true
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                            handleRegister()
+                        }
+                    }
+                case .verification:
+                    if newValue >= 10 {
+                        print("🔐 [FaceDetectionView] 10 frames collected → Auto-triggering verification")
+                        hasAutoTriggered = true
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                            handleLogin()
+                        }
+                    }
+                }
+            }
             // (If FaceManager has its own upload flow)
             .onChange(of: faceManager.uploadSuccess) { success in
                 if success {
@@ -296,40 +349,61 @@ struct FaceDetectionView: View {
             .onChange(of: faceIdFetchViewModel.faceIds) { _ in
                 checkEnrollmentStatus()
             }
-            // Show upload success only when actual upload finishes
+            // ✅ UPDATED: Show upload success and navigate for registration
             .onChange(of: faceIdUploadViewModel.uploadSuccess) { ok in
                 guard ok else { return }
 
                 // Refresh backend data (new salt + faceData should be visible)
                 faceIdFetchViewModel.fetchFaceIds(for: deviceKey)
 
-                // Clear frames after successful upload (so user must capture fresh frames next time)
+                // Clear frames after successful upload
                 faceManager.AllFramesOptionalAndMandatoryDistance = []
                 faceManager.totalFramesCollected = 0
+                hasAutoTriggered = false
 
                 alertTitle = "✅ Registration Successful"
-                alertMessage = "Your face has been enrolled!\n\nYou can now use Login to verify your identity."
+                alertMessage = "Your face has been enrolled successfully!"
                 showAlert = true
 
-                // reset the VM flag if you want to avoid repeated alerts
+                // reset the VM flag
                 faceIdUploadViewModel.resetState()
             }
-            // Fetch errors → your alert
+            // Fetch errors
             .onChange(of: faceIdFetchViewModel.showError) { show in
                 guard show else { return }
                 alertTitle = "❌ Fetch Failed"
                 alertMessage = faceIdFetchViewModel.errorMessage ?? "Unknown fetch error"
                 showAlert = true
+                hasAutoTriggered = false
             }
-            // Upload errors → your alert
+            // Upload errors
             .onChange(of: faceIdUploadViewModel.showError) { show in
                 guard show else { return }
                 alertTitle = "❌ Upload Failed"
                 alertMessage = faceIdUploadViewModel.errorMessage ?? "Unknown upload error"
                 showAlert = true
+                hasAutoTriggered = false
             }
+            // ✅ UPDATED: Alert handler with navigation logic
             .alert(alertTitle, isPresented: $showAlert) {
-                Button("OK") { showAlert = false }
+                Button("OK") {
+                    showAlert = false
+                    
+                    // ✅ Navigate on success (both registration and verification)
+                    if alertTitle.contains("Successful") {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                            print("🎯 [FaceDetectionView] Success → calling onComplete() to navigate to MainTabView")
+                            self.onComplete()
+                        }
+                    }
+                    
+                    // Reset on failure to allow retry
+                    if alertTitle.contains("Failed") || alertTitle.contains("Error") {
+                        faceManager.AllFramesOptionalAndMandatoryDistance = []
+                        faceManager.totalFramesCollected = 0
+                        hasAutoTriggered = false
+                    }
+                }
             } message: {
                 Text(alertMessage)
             }
@@ -345,7 +419,11 @@ struct FaceDetectionView: View {
 
             // Fetch enrollment status from backend for this device
             print("🌐 [FaceDetectionView] Fetching FaceIds on appear for deviceKey=\(deviceKey)")
+            print("🎯 [FaceDetectionView] Current mode: \(faceAuthManager.currentMode)")
             faceIdFetchViewModel.fetchFaceIds(for: deviceKey)
+            
+            // ✅ Reset trigger flag on appear
+            hasAutoTriggered = false
         }
         // NCNN frames – throttled
         .onReceive(
@@ -368,32 +446,11 @@ struct FaceDetectionView: View {
         print("   Remote salt len: \(saltLen)")
     }
 
-    private func canRegister() -> Bool {
-        faceManager.totalFramesCollected >= 80 && !isBusy
-    }
-
-    private func canLogin() -> Bool {
-        faceManager.totalFramesCollected >= 10 &&
-        backendEnrollmentValid &&
-        !isBusy
-    }
-
-    private func registerButtonColor() -> Color {
-        if isBusy { return .gray }
-        if backendEnrollmentValid { return .orange } // re-register allowed
-        return faceManager.totalFramesCollected >= 80 ? .green : .gray
-    }
-
-    private func loginButtonColor() -> Color {
-        if isBusy { return .gray }
-        return (faceManager.totalFramesCollected >= 10 && backendEnrollmentValid) ? .blue : .gray
-    }
-
     // MARK: - Register Handler
 
     private func handleRegister() {
         print("\n" + String(repeating: "=", count: 50))
-        print("📸 REGISTER BUTTON PRESSED")
+        print("📸 AUTO-REGISTER TRIGGERED")
         print("Total frames collected: \(faceManager.totalFramesCollected)")
         print(String(repeating: "=", count: 50))
 
@@ -419,11 +476,6 @@ struct FaceDetectionView: View {
             return
         }
 
-        // Optional (recommended): re-fetch before register to ensure UI is current
-        // faceIdFetchViewModel.fetchFaceIds(for: deviceKey)
-
-        // NOTE: generateAndUploadFaceID() triggers upload via FaceIdViewModel,
-        // but its completion only indicates generation succeeded (not that upload finished).
         faceManager.generateAndUploadFaceID(
             authToken: authToken,
             viewModel: faceIdUploadViewModel
@@ -457,7 +509,7 @@ struct FaceDetectionView: View {
 
     private func handleLogin() {
         print("\n" + String(repeating: "=", count: 50))
-        print("🔐 LOGIN BUTTON PRESSED")
+        print("🔐 AUTO-LOGIN TRIGGERED")
         print("Total frames collected: \(faceManager.totalFramesCollected)")
         print("Backend FaceId count in VM: \(faceIdFetchViewModel.faceIds.count)")
         print("backendEnrollmentValid: \(backendEnrollmentValid)")
@@ -470,7 +522,7 @@ struct FaceDetectionView: View {
             isProcessing = false
 
             alertTitle = "❌ No Enrollment Found"
-            alertMessage = "No usable face data found for this device on backend. Please press REGISTER first."
+            alertMessage = "No usable face data found for this device on backend. Please register first."
             showAlert = true
             return
         }
@@ -497,11 +549,6 @@ struct FaceDetectionView: View {
 
         print("🚀 Starting backend token-only verification (FaceManager.verifyFaceIDAgainstBackend)...")
 
-        // Build invalid indices list (frames that are not length 316)
-        let invalidIndices: [Int] = allFrames.enumerated().compactMap { index, frame in
-            frame.count == 316 ? nil : index
-        }
-
         faceManager.verifyFaceIDAgainstBackend(framesToUse: validFrames) { result in
             DispatchQueue.main.async {
                 self.isProcessing = false
@@ -509,6 +556,7 @@ struct FaceDetectionView: View {
                 // Clear frames after verification
                 self.faceManager.AllFramesOptionalAndMandatoryDistance = []
                 self.faceManager.totalFramesCollected = 0
+                self.hasAutoTriggered = false
 
                 switch result {
                 case .success(let verification):
@@ -523,11 +571,7 @@ struct FaceDetectionView: View {
                         self.alertTitle = "✅ Login Successful!"
                         self.alertMessage = "Welcome back!\n\nMatch: \(String(format: "%.1f", matchPercent))%"
                         self.showAlert = true
-
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-                            print("🎯 [FaceDetectionView] Login success → calling onComplete()")
-                            self.onComplete()
-                        }
+                        // ✅ onComplete() will be called when alert is dismissed
 
                     } else {
                         print("❌ ========================================")

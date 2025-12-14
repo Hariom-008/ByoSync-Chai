@@ -10,6 +10,7 @@ struct RootView: View {
     @EnvironmentObject var userSession: UserSession
     @EnvironmentObject var scanGate: AppScanGate
     @EnvironmentObject var router: Router
+    @EnvironmentObject var faceAuthManager: FaceAuthManager
     
     @State private var step: AppStep = .loading
     @State private var consentAccepted = false
