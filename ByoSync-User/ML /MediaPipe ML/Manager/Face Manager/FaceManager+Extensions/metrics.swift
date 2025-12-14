@@ -128,9 +128,6 @@ extension FaceManager {
             CalculationCoordinates[rightIdxB]
         )
         
-        print("🔘 Diameter of Left IRIS: \(diameterLeft_px)")
-        print("🔘 Diameter of RIGHT IRIS: \(diameterRight_px)")
-        
         let d_mean_px: Float = (diameterLeft_px + diameterRight_px) / 2.0
         self.dMeanPx = d_mean_px
         guard irisTargetPx > 0 else {
@@ -149,7 +146,7 @@ extension FaceManager {
             print("✅ ACCEPT (ratio = \(ratio))")
         } else {
             self.ratioIsInRange = false
-            print("❌ REJECT (ratio = \(ratio))")
+          //  print("❌ REJECT (ratio = \(ratio))")
         }
         
         // Calculate face bounding box using face oval landmarks

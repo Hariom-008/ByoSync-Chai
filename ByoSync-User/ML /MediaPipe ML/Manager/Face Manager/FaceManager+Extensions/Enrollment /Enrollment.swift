@@ -83,7 +83,7 @@ fileprivate func loadRemoteFaceIdsIfNeeded(
     print("🌐 [RemoteFaceIdCache] Cache empty → fetching FaceIds from backend...")
     
     // Replaced with hardcoded deviceKey
-    fetchViewModel.fetchFaceIds(for: "1234abcde") { (result: Result<GetFaceIdData, Error>) in
+    fetchViewModel.fetchFaceIds(for: "123456a") { (result: Result<GetFaceIdData, Error>) in
         switch result {
         case .failure(let error):
             print("❌ [RemoteFaceIdCache] Failed to fetch FaceIds: \(error)")
@@ -249,8 +249,7 @@ extension FaceManager {
 
 // MARK: - Verification
 extension FaceManager {
-
-     func verifyFaceIDAgainstBackend(
+    func verifyFaceIDAgainstBackend(
         framesToUse: [[Float]],
         completion: @escaping (Result<BCHBiometric.VerificationResult, Error>) -> Void
     ) {
@@ -269,6 +268,18 @@ extension FaceManager {
         let requiredMatches = 5
         let expectedN = (1 << Int(BCHBiometric.BCH_M)) - 1
 
+        print("\n" + String(repeating: "=", count: 70))
+        print("🔍 VERIFICATION DEBUG - START")
+        print(String(repeating: "=", count: 70))
+        print("📦 Cache Info:")
+        print("   • Salt: \(saltHex)")
+        print("   • Salt bytes: \(saltBytes.count) bytes")
+        print("   • Stored records: \(faceIds.count)")
+        print("   • Frames to verify: \(framesToUse.count)")
+        print("   • Expected helper length (n): \(expectedN)")
+        print("   • Required matches: \(requiredMatches)")
+        print(String(repeating: "=", count: 70))
+
         DispatchQueue.global(qos: .userInitiated).async {
 
             var matchedFramesCount = 0
@@ -280,36 +291,113 @@ extension FaceManager {
                 var frameMatched = false
                 var matchedStoredIndex: Int? = nil
 
-                // Android: try each stored record helper against the current frame
+                print("\n" + String(repeating: "-", count: 70))
+                print("🎯 CAPTURED FRAME #\(capturedIndex)")
+                print(String(repeating: "-", count: 70))
+
+                // Sample first 5 distances
+                let sampleDistances = capturedDistances.prefix(5).map { String(format: "%.4f", $0) }.joined(separator: ", ")
+                print("   📊 Distance sample (first 5): [\(sampleDistances)]")
+                print("   🔢 Total distances: \(capturedDistances.count)")
+
                 for (storedIndex, record) in faceIds.enumerated() {
+                    
+                    // CHECKPOINT 1: Helper validation
+                    guard record.helper.count == expectedN else {
+                        if storedIndex < 2 { // Only log first 2 to avoid spam
+                            print("   ❌ Stored[\(storedIndex)] INVALID helper length: \(record.helper.count) (expected \(expectedN))")
+                        }
+                        continue
+                    }
+                    
+                    // CHECKPOINT 2: K2 validation
+                    guard isHex(record.k2), record.k2.count == 64,
+                          let k2Bytes = dataFromHex(record.k2),
+                          k2Bytes.count == 32 else {
+                        if storedIndex < 2 {
+                            print("   ❌ Stored[\(storedIndex)] INVALID K2: len=\(record.k2.count), isHex=\(isHex(record.k2))")
+                        }
+                        continue
+                    }
+                    
+                    // CHECKPOINT 3: Token validation
+                    guard isHex(record.token), record.token.count == 64 else {
+                        if storedIndex < 2 {
+                            print("   ❌ Stored[\(storedIndex)] INVALID token: len=\(record.token.count), isHex=\(isHex(record.token))")
+                        }
+                        continue
+                    }
 
-                    // Fast sanity checks to avoid wrong XOR / decode
-                    guard record.helper.count == expectedN else { continue }
-                    guard isHex(record.k2), record.k2.count == 64, let k2Bytes = dataFromHex(record.k2), k2Bytes.count == 32 else { continue }
-                    guard isHex(record.token), record.token.count == 64 else { continue }
-
+                    // CHECKPOINT 4: BCH decode
                     let v: BCHBiometric.FrameVerification
                     do {
                         v = try bchQueue.sync {
                             try BCHShared.initBCH()
-                            return try BCHShared.verifyFrame(distances: capturedDistances, helper: record.helper)
+                            return try BCHShared.verifyFrame(
+                                distances: capturedDistances,
+                                helper: record.helper
+                            )
                         }
                     } catch {
+                        if storedIndex < 2 {
+                            print("   ❌ Stored[\(storedIndex)] BCH decode EXCEPTION: \(error)")
+                        }
                         continue
                     }
 
-                    if !v.success { continue }
+                    if !v.success {
+                        if storedIndex < 2 {
+                            print("   ⏭️  Stored[\(storedIndex)] BCH decode FAILED (v.success = false)")
+                        }
+                        continue
+                    }
 
-                    // K1' = R'[0..31] XOR SALT
+                    // CHECKPOINT 5: BCH decode SUCCESS - detailed logging
+                    if storedIndex == 0 {
+                        print("   ✅ Stored[\(storedIndex)] BCH decode SUCCESS!")
+                        print("      📦 v.rBytes32.count = \(v.rBytes32.count)")
+                        print("      📦 v.rBytesFull.count = \(v.rBytesFull.count)")
+                        print("      📦 v.numErrors = \(v.numErrors)")
+                        print("      🔑 rBytes32 hex: \(hexFromData(v.rBytes32.prefix(8)))...")
+                        print("      🔑 rBytesFull hex (first 16 bytes): \(hexFromData(v.rBytesFull.prefix(16)))...")
+                    }
+
+                    // CHECKPOINT 6: K1' calculation
                     let k1Prime = xorData(v.rBytes32, saltBytes)
+                    if storedIndex == 0 {
+                        print("      🔄 k1Prime = rBytes32 ⊕ salt")
+                        print("      📦 k1Prime.count = \(k1Prime.count)")
+                        print("      🔑 k1Prime hex: \(hexFromData(k1Prime.prefix(8)))...")
+                    }
 
-                    // K' = K2 XOR K1'
+                    // CHECKPOINT 7: K' recovery
                     let kRecovered = xorData(k2Bytes, k1Prime)
+                    if storedIndex == 0 {
+                        print("      🔄 kRecovered = k2 ⊕ k1Prime")
+                        print("      📦 kRecovered.count = \(kRecovered.count)")
+                        print("      🔑 kRecovered hex: \(hexFromData(kRecovered.prefix(8)))...")
+                        print("      🔑 k2 (stored) hex: \(record.k2.prefix(16))...")
+                    }
 
-                    // token' = SHA256(K' || FULL_R')
-                    let tokenCandidate = hexFromData(sha256(kRecovered + v.rBytesFull))
+                    // CHECKPOINT 8: Token computation
+                    let tokenInput = kRecovered + v.rBytesFull
+                    let tokenHash = sha256(tokenInput)
+                    let tokenCandidate = hexFromData(tokenHash)
+                    
+                    if storedIndex == 0 {
+                        print("      🔄 tokenInput = kRecovered || rBytesFull")
+                        print("      📦 tokenInput.count = \(tokenInput.count) bytes (should be 32 + \(v.rBytesFull.count))")
+                        print("      🔑 tokenInput hex (first 16): \(hexFromData(tokenInput.prefix(16)))...")
+                        print("      🔐 tokenCandidate = SHA256(tokenInput)")
+                        print("      🔑 tokenCandidate: \(tokenCandidate)")
+                        print("      🔑 stored token:   \(record.token)")
+                        print("      ✅ MATCH? \(tokenCandidate.caseInsensitiveCompare(record.token) == .orderedSame)")
+                        print("")
+                    }
 
+                    // CHECKPOINT 9: Token comparison
                     if tokenCandidate.caseInsensitiveCompare(record.token) == .orderedSame {
+                        print("   🎉 TOKEN MATCH FOUND! Captured[\(capturedIndex)] ↔ Stored[\(storedIndex)]")
                         frameMatched = true
                         matchedStoredIndex = storedIndex
                         break
@@ -319,15 +407,29 @@ extension FaceManager {
                 if frameMatched {
                     matchedFramesCount += 1
                     detailed.append((capturedIndex, true, matchedStoredIndex))
-                    if matchedFramesCount >= requiredMatches { break frameLoop }
+                    print("✅ Frame #\(capturedIndex) MATCHED (total: \(matchedFramesCount)/\(requiredMatches))")
+                    
+                    if matchedFramesCount >= requiredMatches {
+                        print("🎉 Required matches reached!")
+                        break frameLoop
+                    }
                 } else {
                     detailed.append((capturedIndex, false, nil))
+                    print("❌ Frame #\(capturedIndex) NO MATCH (checked \(faceIds.count) stored records)")
                 }
             }
 
             let totalUsed = detailed.count
             let matchPct = totalUsed > 0 ? (Double(matchedFramesCount) / Double(totalUsed)) * 100.0 : 0.0
             let passed = matchedFramesCount >= requiredMatches
+
+            print("\n" + String(repeating: "=", count: 70))
+            print("📊 FINAL RESULT:")
+            print("   • Matched frames: \(matchedFramesCount)/\(totalUsed)")
+            print("   • Match percentage: \(String(format: "%.1f", matchPct))%")
+            print("   • Required: \(requiredMatches)")
+            print("   • PASSED: \(passed)")
+            print(String(repeating: "=", count: 70))
 
             let aggregated = BCHBiometric.VerificationResult(
                 success: passed,
@@ -338,7 +440,7 @@ extension FaceManager {
                 recoveredHashPreview: "",
                 numErrorsDetected: 0,
                 totalBitsCompared: 0,
-                notes: "Token-only verification: matchedFrames=\(matchedFramesCount)/\(totalUsed), required=\(requiredMatches), storedRecords=\(faceIds.count)"
+                notes: "Token verification: matched=\(matchedFramesCount)/\(totalUsed), required=\(requiredMatches), stored=\(faceIds.count)"
             )
 
             DispatchQueue.main.async { completion(.success(aggregated)) }

@@ -527,8 +527,8 @@ struct FaceDetectionView: View {
             return
         }
 
-        // Validate frames
-        let allFrames = faceManager.save316LengthDistanceArray()
+        // ✅ FIX #1: Use VerifyFrameDistanceArray() for VERIFICATION mode
+        let allFrames = faceManager.VerifyFrameDistanceArray()
         let validFrames = allFrames.filter { $0.count == 316 }
         let invalidCount = allFrames.count - validFrames.count
 
@@ -547,9 +547,16 @@ struct FaceDetectionView: View {
             return
         }
 
-        print("🚀 Starting backend token-only verification (FaceManager.verifyFaceIDAgainstBackend)...")
+        print("🚀 Starting verification using loadAndVerifyFaceID wrapper...")
 
-        faceManager.verifyFaceIDAgainstBackend(framesToUse: validFrames) { result in
+        // ✅ FIX #2: Use the wrapper method (like TestingLoginView)
+        // This handles BOTH cache loading AND verification
+        faceManager.loadAndVerifyFaceID(
+            deviceKey: deviceKey,
+            framesToVerify: validFrames,
+            requiredMatches: 4,  // ✅ FIX #3: 4 out of 10 matches (40%)
+            fetchViewModel: faceIdFetchViewModel
+        ) { result in
             DispatchQueue.main.async {
                 self.isProcessing = false
 
@@ -566,6 +573,7 @@ struct FaceDetectionView: View {
                         print("✅ ========================================")
                         print("✅ LOGIN SUCCESSFUL! 🎉")
                         print("✅ Match: \(String(format: "%.1f", matchPercent))%")
+                        print("✅ Notes: \(verification.notes)")
                         print("✅ ========================================")
 
                         self.alertTitle = "✅ Login Successful!"
@@ -577,10 +585,11 @@ struct FaceDetectionView: View {
                         print("❌ ========================================")
                         print("❌ LOGIN FAILED ⛔")
                         print("❌ Match: \(String(format: "%.1f", matchPercent))%")
+                        print("❌ Notes: \(verification.notes)")
                         print("❌ ========================================")
 
                         self.alertTitle = "❌ Login Failed"
-                        self.alertMessage = "Face verification failed.\n\nMatch: \(String(format: "%.1f", matchPercent))%"
+                        self.alertMessage = "Face verification failed.\n\nMatch: \(String(format: "%.1f", matchPercent))%\n\n\(verification.notes)"
                         self.showAlert = true
                     }
 

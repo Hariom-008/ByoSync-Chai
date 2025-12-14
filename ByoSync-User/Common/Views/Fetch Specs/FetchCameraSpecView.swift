@@ -186,11 +186,11 @@ final class CameraSpecManager: NSObject, ObservableObject, AVCaptureVideoDataOut
 
         DispatchQueue.main.async {
             self.currentSpecs = specs
-            if let K = intrinsic {
-                print("📐 Intrinsics updated, fx = \(K.columns.0.x)")
-            } else {
-                print("⚠️ No intrinsics in attachment yet")
-            }
+//            if let K = intrinsic {
+//              //  print("📐 Intrinsics updated, fx = \(K.columns.0.x)")
+//            } else {
+//             //   print("⚠️ No intrinsics in attachment yet")
+//            }
         }
     }
 

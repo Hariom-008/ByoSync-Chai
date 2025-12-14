@@ -266,14 +266,14 @@ static std::vector<CFaceBox> run_detector(
 
     int ret = ex.input("data", x);
     if (ret != 0) {
-        NSLog(@"[NCNN] ❌ detector: failed to set input 'data' (ret=%d)", ret);
+       // NSLog(@"[NCNN] ❌ detector: failed to set input 'data' (ret=%d)", ret);
         return results;
     }
 
     ncnn::Mat out;
     ret = ex.extract("detection_out", out);
     if (ret != 0 || out.empty()) {
-        NSLog(@"[NCNN] ❌ detector: failed to extract 'detection_out' (ret=%d)", ret);
+       // NSLog(@"[NCNN] ❌ detector: failed to extract 'detection_out' (ret=%d)", ret);
         return results;
     }
 
@@ -301,7 +301,7 @@ static std::vector<CFaceBox> run_detector(
     std::vector<CFaceBox> finalBoxes;
     for (int idx : keep) finalBoxes.push_back(results[idx]);
 
-    NSLog(@"[NCNN] 🎯 Faces after NMS: %zu", finalBoxes.size());
+   // NSLog(@"[NCNN] 🎯 Faces after NMS: %zu", finalBoxes.size());
     return finalBoxes;
 }
 
@@ -594,9 +594,9 @@ float engine_live_detect_yuv(
     float sum = 0.f;
     int   valid_models = 0;
 
-    NSLog(@"[NCNN] 🔍 Original face box: [%d,%d,%d,%d] size=%dx%d (frame %dx%d)",
-          left, top, right, bottom, face_w, face_h, width, height);
-    NSLog(@"[NCNN] Running %zu liveness models...", live->nets.size());
+//    NSLog(@"[NCNN] 🔍 Original face box: [%d,%d,%d,%d] size=%dx%d (frame %dx%d)",
+//          left, top, right, bottom, face_w, face_h, width, height);
+//    NSLog(@"[NCNN] Running %zu liveness models...", live->nets.size());
 
     for (int i = 0; i < (int)live->nets.size(); ++i) {
         const LiveModelConfig& cfg = live->configs[i];
@@ -655,11 +655,11 @@ float engine_live_detect_yuv(
     }
 
     float avgScore = sum / valid_models;
-    NSLog(@"[NCNN] 🎯 Final liveness score: %.3f (avg of %d models)",
-          avgScore, valid_models);
-    NSLog(@"[NCNN] 💡 Interpretation: %.3f = %s",
-          avgScore,
-          avgScore > 0.5f ? "REAL FACE ✅" : "FAKE/SPOOF ❌");
+   // NSLog(@"[NCNN] 🎯 Final liveness score: %.3f (avg of %d models)",
+       //   avgScore, valid_models);
+   // NSLog(@"[NCNN] 💡 Interpretation: %.3f = %s",
+       //   avgScore,
+      //    avgScore > 0.5f ? "REAL FACE ✅" : "FAKE/SPOOF ❌");
 
     return avgScore;
 }

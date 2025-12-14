@@ -86,7 +86,7 @@ extension FaceManager {
         
         allDistances.append(round4(dRef))
         
-        print("📏 Reference distance (33-263): \(round4(dRef))")
+        //print("📏 Reference distance (33-263): \(round4(dRef))")
         
         // Safety check
         guard dRef > 1e-6 else {
@@ -156,33 +156,32 @@ extension FaceManager {
         // ----------------------------------------------------------------
         // Log summary
         // ----------------------------------------------------------------
-        print("""
-        📏 Pattern Vector Computed:
-           Total elements: \(allDistances.count) [expected 363]
-           - Reference (33-263):     1
-           - Mandatory×Mandatory:    \(mandatoryCount) [expected 135]
-           - Optional chain:         \(optionalChainCount) [expected 10]
-           - Optional×Mandatory:     \(bipartiteCount) [expected 170]
-           - Angles:                 \(anglesCount) [expected 47]
-        """)
+//        print("""
+//        📏 Pattern Vector Computed:
+//           Total elements: \(allDistances.count) [expected 363]
+//           - Reference (33-263):     1
+//           - Mandatory×Mandatory:    \(mandatoryCount) [expected 135]
+//           - Optional chain:         \(optionalChainCount) [expected 10]
+//           - Optional×Mandatory:     \(bipartiteCount) [expected 170]
+//           - Angles:                 \(anglesCount) [expected 47]
+//        """)
         
         // Sanity check
-        if allDistances.count != 363 {
-            print("⚠️ WARNING: Expected 363 elements, got \(allDistances.count)")
-        }
-        
+//        if allDistances.count != 363 {
+//            print("⚠️ WARNING: Expected 363 elements, got \(allDistances.count)")
+//        }
         // ----------------------------------------------------------------
         // CONDITION CHECK with detailed logging
         // ----------------------------------------------------------------
-        print("""
-        🔍 Frame Collection Conditions:
-           isFaceReal:      \(isFaceReal)
-           ratioIsInRange:  \(ratioIsInRange)
-           isHeadPoseStable: \(isHeadPoseStable())
-           Pitch: \(Pitch), Yaw: \(Yaw), Roll: \(Roll)
-           Ratio: \(irisDistanceRatio ?? -1)
-        """)
-        
+//        print("""
+//        🔍 Frame Collection Conditions:
+//           isFaceReal:      \(isFaceReal)
+//           ratioIsInRange:  \(ratioIsInRange)
+//           isHeadPoseStable: \(isHeadPoseStable())
+//           Pitch: \(Pitch), Yaw: \(Yaw), Roll: \(Roll)
+//           Ratio: \(irisDistanceRatio ?? -1)
+//        """)
+//        
         // LIVENESS GATE: Only store if ALL conditions pass
         if isFaceReal && ratioIsInRange && isHeadPoseStable() && allDistances.count != 0{
             AllFramesOptionalAndMandatoryDistance.append(allDistances)
@@ -204,12 +203,12 @@ extension FaceManager {
             if !ratioIsInRange { reasons.append("DISTANCE") }
             if !isHeadPoseStable() { reasons.append("HEAD_POSE") }
             
-            print("""
-            ❌ FRAME REJECTED:
-               Reasons: \(reasons.joined(separator: ", "))
-               rejectedFrames = \(rejectedFrames)
-               vector computed (len=\(allDistances.count)) but NOT stored
-            """)
+//            print("""
+//            ❌ FRAME REJECTED:
+//               Reasons: \(reasons.joined(separator: ", "))
+//               rejectedFrames = \(rejectedFrames)
+//               vector computed (len=\(allDistances.count)) but NOT stored
+//            """)
         }
     }
 }

@@ -112,7 +112,7 @@ class NcnnLivenessViewModel: ObservableObject {
                         self.livenessScore = score
                         // ✅ Call the closure callback
                         self.onLivenessUpdated?(score)
-                        debugLog("🎭 Liveness score: \(score)")
+                       // debugLog("🎭 Liveness score: \(score)")
                     }
                     self.isProcessingFrame = false
                 }
