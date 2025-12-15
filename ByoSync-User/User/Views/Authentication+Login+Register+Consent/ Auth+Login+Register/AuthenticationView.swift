@@ -84,7 +84,7 @@ struct AuthenticationView: View {
                             didTapRegister = true
                             
                             // 1️⃣ Try to read deviceKey
-                            let deviceKey = UserSession.shared.deviceKey ?? ""
+                            let deviceKey = DeviceIdentity.resolve()
                             if !deviceKey.isEmpty {
                                 print("🔐 Using deviceKey from UserDefaults for registration check")
                                 deviceRegistrationVM.checkDeviceRegistration()

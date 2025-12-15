@@ -44,7 +44,6 @@ final class FaceIdFetchRepository {
     ) {
         // 1. Generate HMAC hash
         let deviceKeyHash = hmacGenerator.generateHMAC(jsonString: deviceKey)
-      //  let deviceKeyHash = "12345678ijhb"
         // 2. Headers (auth + Token etc.)
         let headers: HTTPHeaders = getHeader.shared.getAuthHeaders()
         

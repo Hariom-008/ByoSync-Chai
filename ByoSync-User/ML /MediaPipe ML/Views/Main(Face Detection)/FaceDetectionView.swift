@@ -25,7 +25,6 @@ struct FaceDetectionView: View {
 
     // Auth / device identity (passed from parent)
     let authToken: String
-//    let deviceKey: String
     let onComplete: () -> Void
 
     // EAR series
@@ -59,11 +58,9 @@ struct FaceDetectionView: View {
     // MARK: - Init
     init(
         authToken: String,
-        deviceKey: String,
         onComplete: @escaping () -> Void
     ) {
         self.authToken = authToken
-     //   self.deviceKey = deviceKey
 
         let camSpecManager = CameraSpecManager()
         _cameraSpecManager = StateObject(wrappedValue: camSpecManager)

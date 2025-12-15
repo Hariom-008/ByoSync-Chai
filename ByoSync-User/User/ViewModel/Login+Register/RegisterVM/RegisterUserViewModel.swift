@@ -101,7 +101,6 @@ final class RegisterUserViewModel: ObservableObject {
             UserDefaults.standard.set("user", forKey: "accountType")
 
             UserSession.shared.saveUser(user)
-            UserSession.shared.setDeviceKey(device.deviceKey)
             UserSession.shared.setCurrentDeviceID(device.id)
             UserSession.shared.setThisDevicePrimary(device.isPrimary)
             UserSession.shared.setUserWallet(userData.wallet)

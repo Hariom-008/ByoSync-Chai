@@ -81,7 +81,6 @@ fileprivate func loadRemoteFaceIdsIfNeeded(
     
     print("🌐 [RemoteFaceIdCache] Cache empty → fetching FaceIds from backend...")
     
-    // Replaced with hardcoded deviceKey
     fetchViewModel.fetchFaceIds() { (result: Result<GetFaceIdData, Error>) in
         switch result {
         case .failure(let error):

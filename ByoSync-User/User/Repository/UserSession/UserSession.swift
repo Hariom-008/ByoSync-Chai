@@ -10,7 +10,6 @@ final class UserSession: ObservableObject {
     @Published var currentUserDeviceID: String = ""
     @Published var thisDeviceIsPrimary: Bool = false
     @Published var wallet: Double = 0
-    @Published var deviceKey : String = "123456a"
     
     private let userDefaultsKey = "currentUser"
     private let emailVerifiedKey = "isEmailVerified"
@@ -34,10 +33,6 @@ final class UserSession: ObservableObject {
         self.userProfilePicture = urlString
         UserDefaults.standard.set(urlString, forKey: profilePictureKey)
     }
-    func setDeviceKey(_ deviceKey: String) {
-        self.deviceKey = deviceKey
-        UserDefaults.standard.set(deviceKey, forKey: "deviceKey")
-    }
 
     func setUserWallet(_ balance: Double){
         self.wallet = balance
@@ -49,9 +44,6 @@ final class UserSession: ObservableObject {
     }
     private func loadProfilePicture() {
         self.userProfilePicture = UserDefaults.standard.string(forKey: profilePictureKey) ?? ""
-    }
-    private func loadDeviceKey() {
-        self.deviceKey = UserDefaults.standard.string(forKey: "deviceKey") ?? ""
     }
 
     // MARK: - Save and Load User
