@@ -68,7 +68,6 @@ fileprivate struct RemoteFaceIdCache {
 }
 
 fileprivate func loadRemoteFaceIdsIfNeeded(
-    deviceKey: String,
     fetchViewModel: FaceIdFetchViewModel,
     completion: @escaping (Result<Void, Error>) -> Void
 ) {
@@ -83,7 +82,7 @@ fileprivate func loadRemoteFaceIdsIfNeeded(
     print("🌐 [RemoteFaceIdCache] Cache empty → fetching FaceIds from backend...")
     
     // Replaced with hardcoded deviceKey
-    fetchViewModel.fetchFaceIds(for: "123456a") { (result: Result<GetFaceIdData, Error>) in
+    fetchViewModel.fetchFaceIds() { (result: Result<GetFaceIdData, Error>) in
         switch result {
         case .failure(let error):
             print("❌ [RemoteFaceIdCache] Failed to fetch FaceIds: \(error)")
@@ -464,12 +463,10 @@ extension FaceManager {
     /// Public wrapper to load FaceIds into RemoteFaceIdCache for testing
     /// This must be called before verifyFaceIDAgainstBackend() for testing flows
     func loadRemoteFaceIdsForVerification(
-        deviceKey: String,
         fetchViewModel: FaceIdFetchViewModel,
         completion: @escaping (Result<Void, Error>) -> Void
     ) {
         loadRemoteFaceIdsIfNeeded(
-            deviceKey: deviceKey,
             fetchViewModel: fetchViewModel,
             completion: completion
         )

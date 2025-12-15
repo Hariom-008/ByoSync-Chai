@@ -18,7 +18,6 @@ extension FaceManager {
     ///   - fetchViewModel: ViewModel to fetch FaceIds
     ///   - completion: Result with verification outcome
     func loadAndVerifyFaceID(
-        deviceKey: String,
         framesToVerify: [[Float]],
         requiredMatches: Int = 4,
         fetchViewModel: FaceIdFetchViewModel,
@@ -30,7 +29,7 @@ extension FaceManager {
         
         // IMPORTANT: This must call the wrapper method you add to Enrollment.swift
         // The method will populate RemoteFaceIdCache which is needed for verification
-        loadRemoteFaceIdsForVerification(deviceKey: deviceKey, fetchViewModel: fetchViewModel) { [weak self] result in
+        loadRemoteFaceIdsForVerification(fetchViewModel: fetchViewModel) { [weak self] result in
             guard let self = self else { return }
             
             switch result {

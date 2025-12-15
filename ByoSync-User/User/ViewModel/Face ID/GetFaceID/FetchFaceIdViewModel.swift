@@ -32,7 +32,8 @@ final class FaceIdFetchViewModel: ObservableObject {
     // MARK: - Public API (UI-driven)
     
     /// UI-style API (no completion, just updates @Published)
-    func fetchFaceIds(for deviceKey: String) {
+    func fetchFaceIds() {
+        let deviceKey = DeviceIdentity.resolve()
         guard !deviceKey.isEmpty else {
             setError("Missing device key")
             return
@@ -80,10 +81,9 @@ final class FaceIdFetchViewModel: ObservableObject {
     
     /// Completion-based API for non-UI callers (e.g. FaceManager)
     func fetchFaceIds(
-        for deviceKey: String,
         completion: @escaping (Result<GetFaceIdData, Error>) -> Void
     ) {
-        
+        let deviceKey = DeviceIdentity.resolve()
         guard !deviceKey.isEmpty else {
             let err = NSError(
                 domain: "FaceIdFetchViewModel",

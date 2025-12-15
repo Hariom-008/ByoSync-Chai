@@ -87,7 +87,7 @@ struct AuthenticationView: View {
                             let deviceKey = UserSession.shared.deviceKey ?? ""
                             if !deviceKey.isEmpty {
                                 print("🔐 Using deviceKey from UserDefaults for registration check")
-                                deviceRegistrationVM.checkDeviceRegistration(deviceKey: deviceKey)
+                                deviceRegistrationVM.checkDeviceRegistration()
                             } else {
                                 // 2️⃣ No deviceKey stored → probably first time: just proceed
                                 print("⚠️ No deviceKey in User Defaults, proceeding to EnterNumberView directly")

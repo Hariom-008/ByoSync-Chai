@@ -21,6 +21,7 @@ final class DeviceRegistrationViewModel: ObservableObject {
     /// - If API fails (network / decoding / etc.) → mapped error string
     @Published var errorMessage: String?
     
+    
     // MARK: - Dependencies
     
     private let repository: DeviceRegistrationRepository
@@ -31,12 +32,19 @@ final class DeviceRegistrationViewModel: ObservableObject {
     
     // MARK: - Public API
     
-    func checkDeviceRegistration(deviceKey: String) {
+    func checkDeviceRegistration() {
         // reset state
         isLoading = true
         errorMessage = nil
-        
+        let deviceKey = DeviceIdentity.resolve()
+        if deviceKey.isEmpty {
+            print("❌ Device Key is empty")
+            self.isLoading = false
+            self.errorMessage = "Device identifier unavailable."
+            return
+        }
         repository.isDeviceRegistered(deviceKey: deviceKey) { [weak self] result in
+
             guard let self = self else { return }
             
             DispatchQueue.main.async {

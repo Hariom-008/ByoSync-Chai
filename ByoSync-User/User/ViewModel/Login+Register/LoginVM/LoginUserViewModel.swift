@@ -17,7 +17,7 @@ final class LoginViewModel: ObservableObject {
     @Published var wallet: Int?
     @Published var fcmToken: String = ""
     
-    private let deviceKey = "1234abcde"
+    private let deviceKey = DeviceIdentity.resolve()
     
     // ✅ Dependency injection via initializer
     init(cryptoService: any CryptoService) {

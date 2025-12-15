@@ -25,7 +25,7 @@ struct FaceDetectionView: View {
 
     // Auth / device identity (passed from parent)
     let authToken: String
-    let deviceKey: String
+//    let deviceKey: String
     let onComplete: () -> Void
 
     // EAR series
@@ -63,7 +63,7 @@ struct FaceDetectionView: View {
         onComplete: @escaping () -> Void
     ) {
         self.authToken = authToken
-        self.deviceKey = deviceKey
+     //   self.deviceKey = deviceKey
 
         let camSpecManager = CameraSpecManager()
         _cameraSpecManager = StateObject(wrappedValue: camSpecManager)
@@ -354,7 +354,7 @@ struct FaceDetectionView: View {
                 guard ok else { return }
 
                 // Refresh backend data (new salt + faceData should be visible)
-                faceIdFetchViewModel.fetchFaceIds(for: deviceKey)
+                faceIdFetchViewModel.fetchFaceIds()
 
                 // Clear frames after successful upload
                 faceManager.AllFramesOptionalAndMandatoryDistance = []
@@ -418,9 +418,9 @@ struct FaceDetectionView: View {
             }
 
             // Fetch enrollment status from backend for this device
-            print("🌐 [FaceDetectionView] Fetching FaceIds on appear for deviceKey=\(deviceKey)")
+            print("🌐 [FaceDetectionView] Fetching FaceIds on appear for deviceKey=\(DeviceIdentity.resolve())")
             print("🎯 [FaceDetectionView] Current mode: \(faceAuthManager.currentMode)")
-            faceIdFetchViewModel.fetchFaceIds(for: deviceKey)
+            faceIdFetchViewModel.fetchFaceIds()
             
             // ✅ Reset trigger flag on appear
             hasAutoTriggered = false
@@ -552,7 +552,6 @@ struct FaceDetectionView: View {
         // ✅ FIX #2: Use the wrapper method (like TestingLoginView)
         // This handles BOTH cache loading AND verification
         faceManager.loadAndVerifyFaceID(
-            deviceKey: deviceKey,
             framesToVerify: validFrames,
             requiredMatches: 4,  // ✅ FIX #3: 4 out of 10 matches (40%)
             fetchViewModel: faceIdFetchViewModel
