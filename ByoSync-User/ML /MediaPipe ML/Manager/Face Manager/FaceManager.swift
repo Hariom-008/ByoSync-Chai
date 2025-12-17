@@ -14,6 +14,9 @@ final class FaceManager: NSObject, ObservableObject {
     
     private let bchQueue = DispatchQueue(label: "FaceManager.BCH", qos: .userInitiated)
     
+     var rollPrintTick: Int = 0
+
+    
     // MARK: - Published UI Properties
     @Published var imageSize: CGSize = .zero
     @Published var NormalizedPoints: [(x: Float, y: Float)] = []
