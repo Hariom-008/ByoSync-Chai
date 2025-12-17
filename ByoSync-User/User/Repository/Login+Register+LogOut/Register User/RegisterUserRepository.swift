@@ -296,7 +296,7 @@ final class RegisterUserRepository {
     ) {
         print("📱 Saving device session…")
 
-        UserSession.shared.setCurrentDeviceID(device.id)
+      //  UserSession.shared.setCurrentDeviceID(device.id)
         UserSession.shared.setThisDevicePrimary(device.isPrimary)
 
         if !device.token.isEmpty {

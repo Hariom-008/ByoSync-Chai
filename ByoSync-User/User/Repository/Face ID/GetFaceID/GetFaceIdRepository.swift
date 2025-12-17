@@ -39,11 +39,11 @@ final class FaceIdFetchRepository {
     ///   - deviceKey: raw device key string
     ///   - completion: returns `GetFaceIdData` on success
     func getFaceIds(
-        deviceKey: String,
+        deviceKeyHash: String,
         completion: @escaping (Result<GetFaceIdData, APIError>) -> Void
     ) {
         // 1. Generate HMAC hash
-        let deviceKeyHash = hmacGenerator.generateHMAC(jsonString: deviceKey)
+        let deviceKeyHash = deviceKeyHash
         // 2. Headers (auth + Token etc.)
         let headers: HTTPHeaders = getHeader.shared.getAuthHeaders()
         

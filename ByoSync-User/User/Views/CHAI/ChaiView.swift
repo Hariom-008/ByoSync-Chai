@@ -2,7 +2,7 @@ import SwiftUI
 
 struct ChaiUpdateView: View {
     @State private var vm = ChaiViewModel()
-    @Binding var userId: String
+    let userId: String
 
     var body: some View {
         VStack(spacing: 20) {

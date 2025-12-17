@@ -61,9 +61,9 @@ final class GetUserDataRepository: GetUserDataRepositoryProtocol {
                 print("✅ [REPO] User saved to session")
                 
                   // Save device information
-                 let deviceId = deviceData.deviceKey
-                    UserSession.shared.setCurrentDeviceID(deviceId)
-                    print("✅ [REPO] Device ID saved: \(deviceId)")
+//                 let deviceId = deviceData.deviceKey
+//                    UserSession.shared.setCurrentDeviceID(deviceId)
+//                    print("✅ [REPO] Device ID saved: \(deviceId)")
                 
                 // Update email verification status
                 UserSession.shared.setEmailVerified(userData.emailVerified)

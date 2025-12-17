@@ -46,8 +46,9 @@ final class FetchUserByPhoneNumberRepository: FetchUserByPhoneNumberRepositoryPr
         let endpoint = UserAPIEndpoint.UserData.userByPhoneNumber
 
         // Assumption: backend expects JSON like { "phoneNumber": "..." }.
+        let phoneNumberHash = HMACGenerator.generateHMAC(jsonString: phoneNumber)
         let params: Parameters = [
-            "phoneNumber": phoneNumber
+            "phoneNumberHash": phoneNumberHash
         ]
 
         client.request(

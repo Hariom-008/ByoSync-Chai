@@ -73,7 +73,7 @@ final class UserDevicesRepository {
     func unlinkOtherDevices(completion: @escaping (Result<String, APIError>) -> Void) {
         let endpoint = UserAPIEndpoint.UserDeviceManagement.unLinkOtherDevices
         let headers = getHeader.shared.getAuthHeaders()
-        let currentDeviceId = UserSession.shared.currentUserDeviceID
+        let currentDeviceId = DeviceIdentity.resolve()
         
         guard !currentDeviceId.isEmpty else {
             print("❌ [REPO] No device ID found")

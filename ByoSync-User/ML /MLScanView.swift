@@ -1,26 +1,41 @@
 import SwiftUI
 
 struct MLScanView: View {
-    var onDone: () -> Void
+    let userId: String
+    let deviceKeyHash: String
+
+    @EnvironmentObject var router: Router
     @EnvironmentObject var faceAuthManager: FaceAuthManager
-    
+
     var body: some View {
-        FaceDetectionView(authToken: UserDefaults.standard.string(forKey: "token") ?? "",onComplete: {
-            print("🎯 [MLScanView] onComplete callback received")
-           
-            print("🎯[MLScanView] deviceKey:\( DeviceIdentity.resolve())")
-            // Ensure we're on the main thread
-            DispatchQueue.main.async {
-                print("🎯 [MLScanView] Calling onDone on main thread")
-                onDone()
+        ZStack(alignment: .topLeading) {
+            FaceDetectionView(
+                authToken: UserDefaults.standard.string(forKey: "token") ?? "",
+                deviceKeyHash: deviceKeyHash,
+                onComplete: {
+                    print("🎯 [MLScanView] verification success → ClaimChaiView")
+                    DispatchQueue.main.async {
+                        router.replace(with: .claimChai(userId: userId, deviceKeyHash: deviceKeyHash))
+                    }
+                }
+            )
+            .environmentObject(faceAuthManager)
+            .environmentObject(router)
+            .navigationBarHidden(true)
+
+            Button {
+                router.pop()
+            } label: {
+                Image(systemName: "chevron.left")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(.white)
+                    .padding(12)
+                    .background(Color.black.opacity(0.45))
+                    .clipShape(Circle())
+                    .padding(.top, 14)
+                    .padding(.leading, 14)
             }
-        })
-        .navigationBarHidden(true)
-        .onAppear {
-            print("👁️ [MLScanView] View appeared")
-        }
-        .onDisappear {
-            print("👋 [MLScanView] View disappeared")
         }
     }
 }
+

@@ -25,6 +25,9 @@ struct FaceDetectionView: View {
 
     // Auth / device identity (passed from parent)
     let authToken: String
+    
+    let deviceKeyHash:String
+    
     let onComplete: () -> Void
 
     // EAR series
@@ -58,9 +61,11 @@ struct FaceDetectionView: View {
     // MARK: - Init
     init(
         authToken: String,
+        deviceKeyHash:String,
         onComplete: @escaping () -> Void
     ) {
         self.authToken = authToken
+        self.deviceKeyHash = deviceKeyHash
 
         let camSpecManager = CameraSpecManager()
         _cameraSpecManager = StateObject(wrappedValue: camSpecManager)
@@ -136,13 +141,13 @@ struct FaceDetectionView: View {
     
     // ✅ Progress percentage
     private var frameProgress: Double {
-        Double(faceManager.totalFramesCollected) / Double(targetFrameCount)
+        let collected = Double(faceManager.totalFramesCollected)
+        let target = max(1.0, Double(targetFrameCount))
+        return min(collected / target, 1.0)
     }
 
     var body: some View {
         GeometryReader { geometry in
-            let screenWidth = geometry.size.width
-            let screenHeight = geometry.size.height
 
             ZStack {
                 // Camera preview
@@ -194,57 +199,9 @@ struct FaceDetectionView: View {
 
                 VStack {
                     // ✅ Top status bar
-                    HStack(spacing: 16) {
-                        // Current mode indicator
-                        HStack(spacing: 8) {
-                            Image(systemName: currentModeIcon)
-                                .foregroundColor(currentModeColor)
-                            Text(currentModeText)
-                                .font(.system(size: 14, weight: .semibold))
-                        }
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 8)
-                        .background(
-                            RoundedRectangle(cornerRadius: 8)
-                                .fill(Color.black.opacity(0.7))
-                        )
-                        .foregroundColor(.white)
-                        
-                        Spacer()
-
-                        // Frame counter with progress
-                        VStack(spacing: 4) {
-                            HStack(spacing: 8) {
-                                Image(systemName: "camera.fill")
-                                Text("\(faceManager.totalFramesCollected) / \(targetFrameCount)")
-                                    .font(.system(size: 14, weight: .bold))
-                                    .monospacedDigit()
-                            }
-                            
-                            // Progress bar
-                            GeometryReader { geo in
-                                ZStack(alignment: .leading) {
-                                    RoundedRectangle(cornerRadius: 2)
-                                        .fill(Color.white.opacity(0.3))
-                                        .frame(height: 3)
-                                    
-                                    RoundedRectangle(cornerRadius: 2)
-                                        .fill(frameProgress >= 1.0 ? Color.green : currentModeColor)
-                                        .frame(width: geo.size.width * min(frameProgress, 1.0), height: 3)
-                                }
-                            }
-                            .frame(height: 3)
-                        }
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 8)
-                        .background(
-                            RoundedRectangle(cornerRadius: 8)
-                                .fill(faceManager.totalFramesCollected >= targetFrameCount ? Color.green.opacity(0.8) : Color.black.opacity(0.7))
-                        )
-                        .foregroundColor(.white)
-                    }
-                    .padding(.horizontal, 24)
-                    .padding(.top, 60)
+                    TopStatusBar(currentModeIcon: currentModeIcon, currentModeText: currentModeText, currentModeColor: currentModeColor, totalFramesCollected: faceManager.totalFramesCollected, targetFrameCount: targetFrameCount, frameProgress: frameProgress)
+                        .padding(.horizontal, 24)
+                        .padding(.top, 60)
                     
                     // ✅ Status message
                     if faceManager.totalFramesCollected >= targetFrameCount && !hasAutoTriggered {
@@ -351,7 +308,7 @@ struct FaceDetectionView: View {
                 guard ok else { return }
 
                 // Refresh backend data (new salt + faceData should be visible)
-                faceIdFetchViewModel.fetchFaceIds()
+                faceIdFetchViewModel.fetchFaceIds(deviceKeyHash: deviceKeyHash)
 
                 // Clear frames after successful upload
                 faceManager.AllFramesOptionalAndMandatoryDistance = []
@@ -415,9 +372,9 @@ struct FaceDetectionView: View {
             }
 
             // Fetch enrollment status from backend for this device
-            print("🌐 [FaceDetectionView] Fetching FaceIds on appear for deviceKey=\(DeviceIdentity.resolve())")
+            print("🌐 [FaceDetectionView] Fetching FaceIds on appear for deviceKeyHash=\(deviceKeyHash)")
             print("🎯 [FaceDetectionView] Current mode: \(faceAuthManager.currentMode)")
-            faceIdFetchViewModel.fetchFaceIds()
+            faceIdFetchViewModel.fetchFaceIds(deviceKeyHash: deviceKeyHash)
             
             // ✅ Reset trigger flag on appear
             hasAutoTriggered = false
@@ -549,6 +506,7 @@ struct FaceDetectionView: View {
         // ✅ FIX #2: Use the wrapper method (like TestingLoginView)
         // This handles BOTH cache loading AND verification
         faceManager.loadAndVerifyFaceID(
+            deviceKeyHash: deviceKeyHash,
             framesToVerify: validFrames,
             requiredMatches: 4,  // ✅ FIX #3: 4 out of 10 matches (40%)
             fetchViewModel: faceIdFetchViewModel
@@ -600,6 +558,64 @@ struct FaceDetectionView: View {
                     self.showAlert = true
                 }
             }
+        }
+    }
+}
+
+private struct TopStatusBar: View {
+    let currentModeIcon: String
+    let currentModeText: String
+    let currentModeColor: Color
+    let totalFramesCollected: Int
+    let targetFrameCount: Int
+    let frameProgress: Double
+
+    var body: some View {
+        HStack(spacing: 16) {
+            HStack(spacing: 8) {
+                Image(systemName: currentModeIcon)
+                    .foregroundColor(currentModeColor)
+                Text(currentModeText)
+                    .font(.system(size: 14, weight: .semibold))
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+            .background(
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(Color.black.opacity(0.7))
+            )
+            .foregroundColor(.white)
+
+            Spacer()
+
+            VStack(spacing: 4) {
+                HStack(spacing: 8) {
+                    Image(systemName: "camera.fill")
+                    Text("\(totalFramesCollected) / \(targetFrameCount)")
+                        .font(.system(size: 14, weight: .bold))
+                        .monospacedDigit()
+                }
+
+                GeometryReader { geo in
+                    ZStack(alignment: .leading) {
+                        RoundedRectangle(cornerRadius: 2)
+                            .fill(Color.white.opacity(0.3))
+                            .frame(height: 3)
+
+                        RoundedRectangle(cornerRadius: 2)
+                            .fill(frameProgress >= 1.0 ? Color.green : currentModeColor)
+                            .frame(width: geo.size.width * min(frameProgress, 1.0), height: 3)
+                    }
+                }
+                .frame(height: 3)
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+            .background(
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(totalFramesCollected >= targetFrameCount ? Color.green.opacity(0.8) : Color.black.opacity(0.7))
+            )
+            .foregroundColor(.white)
         }
     }
 }

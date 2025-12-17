@@ -32,9 +32,8 @@ final class FaceIdFetchViewModel: ObservableObject {
     // MARK: - Public API (UI-driven)
     
     /// UI-style API (no completion, just updates @Published)
-    func fetchFaceIds() {
-        let deviceKey = DeviceIdentity.resolve()
-        guard !deviceKey.isEmpty else {
+    func fetchFaceIds(deviceKeyHash: String) {
+        guard !deviceKeyHash.isEmpty else {
             setError("Missing device key")
             return
         }
@@ -45,14 +44,14 @@ final class FaceIdFetchViewModel: ObservableObject {
             return
         }
         
-        print("🚀 [FaceIdFetchViewModel] Starting fetchFaceIds() for deviceKey length: \(deviceKey.count)")
+        print("🚀 [FaceIdFetchViewModel] Starting fetchFaceIds() for deviceKey length: \(deviceKeyHash)")
         
         isLoading = true
         isRequestInFlight = true
         errorMessage = nil
         showError = false
         
-        repository.getFaceIds(deviceKey: deviceKey) { [weak self] result in
+        repository.getFaceIds(deviceKeyHash: deviceKeyHash) { [weak self] result in
             DispatchQueue.main.async {
                 guard let self = self else { return }
                 
@@ -81,10 +80,11 @@ final class FaceIdFetchViewModel: ObservableObject {
     
     /// Completion-based API for non-UI callers (e.g. FaceManager)
     func fetchFaceIds(
+        deviceKeyHash:String,
         completion: @escaping (Result<GetFaceIdData, Error>) -> Void
     ) {
-        let deviceKey = DeviceIdentity.resolve()
-        guard !deviceKey.isEmpty else {
+
+        guard !deviceKeyHash.isEmpty else {
             let err = NSError(
                 domain: "FaceIdFetchViewModel",
                 code: -1,
@@ -111,14 +111,14 @@ final class FaceIdFetchViewModel: ObservableObject {
             return
         }
         
-        print("🚀 [FaceIdFetchViewModel] (completion) Starting fetchFaceIds() for deviceKey length: \(deviceKey.count)")
+        print("🚀 [FaceIdFetchViewModel] (completion) Starting fetchFaceIds() for deviceKeyHash length: \(deviceKeyHash)")
         
         isLoading = true
         isRequestInFlight = true
         errorMessage = nil
         showError = false
         
-        repository.getFaceIds(deviceKey: deviceKey) { [weak self] result in
+        repository.getFaceIds(deviceKeyHash: deviceKeyHash) { [weak self] result in
             DispatchQueue.main.async {
                 guard let self = self else { return }
                 
