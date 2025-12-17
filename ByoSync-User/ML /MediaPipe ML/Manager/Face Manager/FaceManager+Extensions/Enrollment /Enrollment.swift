@@ -31,7 +31,6 @@ struct EnrollmentStore: Codable {
 
 fileprivate struct RemoteEnrollmentRecord {
     let helper: String
-    //let secretHash: String  // R = SHA256(secretKeyBitsString)
     let salt: String        // same for all 80 records for this user
     let k2: String          // per-frame
     let token: String       // SHA256(K || R)

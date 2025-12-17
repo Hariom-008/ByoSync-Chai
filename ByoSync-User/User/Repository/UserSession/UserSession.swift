@@ -7,14 +7,14 @@ final class UserSession: ObservableObject {
     @Published var currentUser: User?
     @Published var isEmailVerified: Bool = false
     @Published var userProfilePicture: String = ""
-    @Published var currentUserDeviceID: String = ""
+    @Published var currentUserDeviceKeyHash: String = ""
     @Published var thisDeviceIsPrimary: Bool = false
     @Published var wallet: Double = 0
     
     private let userDefaultsKey = "currentUser"
     private let emailVerifiedKey = "isEmailVerified"
     private let profilePictureKey = "userProfilePicture"
-    private let currentUserDeviceIDKey = "currentUserDeviceID"
+    private let UserDeviceKeyHashKey = "currentUserDeviceKeyHash"
     private let thisDevicePrimaryKey = "thisDevicePrimaryKey"
     private let walletKey = "walletKey"
     
@@ -23,7 +23,7 @@ final class UserSession: ObservableObject {
         loadUser()
         loadEmailVerificationStatus()
         loadProfilePicture()
-        loadCurrentDeviceID()
+        loadCurrentDeviceKeyHash()
         loadThisDevicePrimary()
         loadWalletBalance()
     }
@@ -81,16 +81,16 @@ final class UserSession: ObservableObject {
     }
     
     // MARK: - Current Device ID
-    func setCurrentDeviceID(_ deviceID: String) {
-        self.currentUserDeviceID = deviceID
-        UserDefaults.standard.set(deviceID, forKey: currentUserDeviceIDKey)
+    func setCurrentDeviceKeyHash(_ deviceID: String) {
+        self.currentUserDeviceKeyHash = deviceID
+        UserDefaults.standard.set(deviceID, forKey: UserDeviceKeyHashKey)
         print("✅ Current device ID saved: \(deviceID)")
     }
     
-    private func loadCurrentDeviceID() {
-        self.currentUserDeviceID = UserDefaults.standard.string(forKey: currentUserDeviceIDKey) ?? ""
-        if !currentUserDeviceID.isEmpty {
-            print("✅ Loaded current device ID: \(currentUserDeviceID)")
+    private func loadCurrentDeviceKeyHash() {
+        self.currentUserDeviceKeyHash = UserDefaults.standard.string(forKey: UserDeviceKeyHashKey) ?? ""
+        if !currentUserDeviceKeyHash.isEmpty {
+            print("✅ Loaded current device ID: \(currentUserDeviceKeyHash)")
         } else {
             print("⚠️ No device ID found in UserDefaults yet.")
         }
@@ -113,13 +113,13 @@ final class UserSession: ObservableObject {
         self.currentUser = nil
         self.isEmailVerified = false
         self.userProfilePicture = ""
-        self.currentUserDeviceID = ""
+        self.currentUserDeviceKeyHash = ""
         self.thisDeviceIsPrimary = false
         
         UserDefaults.standard.removeObject(forKey: userDefaultsKey)
         UserDefaults.standard.removeObject(forKey: emailVerifiedKey)
         UserDefaults.standard.removeObject(forKey: profilePictureKey)
-        UserDefaults.standard.removeObject(forKey: currentUserDeviceIDKey)
+        UserDefaults.standard.removeObject(forKey: currentUserDeviceKeyHash)
         UserDefaults.standard.removeObject(forKey: thisDevicePrimaryKey)
         UserDefaults.standard.removeObject(forKey: "token")
         UserDefaults.standard.removeObject(forKey: "accountType")

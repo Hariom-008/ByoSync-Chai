@@ -30,6 +30,7 @@ struct UserAPIEndpoint{
         }
         static let userByPhoneNumber = "\(baseURL)/api/v1/users/find-user-by-phone-number"
     }
+   
     
     
     // Device Management
@@ -116,5 +117,4 @@ struct ChaiEndpoint{
     static let baseURL = "https://backendapi.byosync.in"
     //POST
     static let updateChai = "\(baseURL)/api/v1/users/update-chai"
-    
 }
