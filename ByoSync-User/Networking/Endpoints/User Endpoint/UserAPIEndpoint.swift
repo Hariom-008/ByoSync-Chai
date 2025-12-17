@@ -4,7 +4,7 @@ import Foundation
 struct UserAPIEndpoint{
     
     static let baseURL = "https://backendapi.byosync.in"
-    static let baseURL2 = "https://byo-sync-backend-testing.vercel.app"
+   // static let baseURL2 = "https://byo-sync-backend-testing.vercel.app"
     
     
     // Login,Register,Phone & Email Verification
@@ -25,9 +25,11 @@ struct UserAPIEndpoint{
         
         static let getUserData = "\(baseURL)/api/v1/users/get-user-data"
         
-        static func userDataById(userId:String, deviceKeyHash:String) -> String{
-            return "\(baseURL)/api/v1/users/get-user-data?userId=\(userId)&deviceKeyHash=\(deviceKeyHash)"
+        static func userDataById(userId: String, deviceKeyHash: String) -> String {
+            "\(UserAPIEndpoint.baseURL)/api/v1/users/get-user-data-by-id?userId=\(userId)&deviceKeyHash=\(deviceKeyHash)"
         }
+
+        
         static let userByPhoneNumber = "\(baseURL)/api/v1/users/find-user-by-phone-number"
     }
    

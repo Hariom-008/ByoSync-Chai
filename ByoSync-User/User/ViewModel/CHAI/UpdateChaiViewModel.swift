@@ -8,9 +8,9 @@ final class ChaiViewModel: ObservableObject {
 
     // MARK: - UI State
     @Published private(set) var isLoading: Bool = false
-    @Published private(set) var chai: Int = 0              // increments on success, max 5
     @Published private(set) var lastMessage: String? = nil
     @Published private(set) var lastError: String? = nil
+    @Published var successfullyUpdateChai:Bool = false
 
     // MARK: - Dependencies
     private let repo: ChaiRepositoryProtocol
@@ -33,7 +33,7 @@ final class ChaiViewModel: ObservableObject {
             // Your API returns:
             // { statusCode: 200, data: {}, message: "...", success: true }
             if envelope.success ?? false, envelope.statusCode == 200 {
-                chai = min(chai + 1, 5)
+                self.successfullyUpdateChai = true
             }
 
             lastMessage = envelope.message
@@ -46,6 +46,6 @@ final class ChaiViewModel: ObservableObject {
 
     // Optional: if you want to reset chain manually (e.g., on logout)
     func resetChain() {
-        chai = 0
+        self.successfullyUpdateChai = false
     }
 }

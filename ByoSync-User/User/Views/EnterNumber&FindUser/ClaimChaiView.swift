@@ -366,19 +366,6 @@ private struct ConfettiBurst: View {
     }
 }
 
-// MARK: - Preview
-
-#Preview {
-    ClaimChaiView(
-        chaiAssetName: "chai",
-        onClaim: {
-            // Demo: pretend API call
-            try await Task.sleep(nanoseconds: 700_000_000)
-        }
-    )
-    .preferredColorScheme(.dark)
-}
-
 
 // MARK: - Flow wrapper (Claim button → FetchUserByID → ChaiUpdateView)
 
@@ -414,7 +401,7 @@ struct ClaimChaiFlowView: View {
 
             // ✅ Navigate to ChainUpdateView (ChaiUpdateView) if chain < 5
             await MainActor.run {
-                router.navigate(to: .chaiUpdate(userId: userId))
+                router.navigate(to: .chaiUpdate(chai:userByIdViewModel.chai,userId: userId))
             }
         })
     }

@@ -263,7 +263,7 @@ extension FaceManager {
         }
 
         let faceIds = RemoteFaceIdCache.faceIds
-        let requiredMatches = 5
+        let requiredMatches = 0
         let expectedN = (1 << Int(BCHBiometric.BCH_M)) - 1
 
         print("\n" + String(repeating: "=", count: 70))

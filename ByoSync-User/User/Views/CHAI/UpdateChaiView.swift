@@ -1,7 +1,9 @@
 import SwiftUI
 
 struct ChaiUpdateView: View {
-    @State private var vm = ChaiViewModel()
+    @StateObject private var vm = ChaiViewModel()
+    @Environment(\.dismiss) var dismiss
+    let chai: Int
     let userId: String
 
     var body: some View {
@@ -9,24 +11,10 @@ struct ChaiUpdateView: View {
             Text("Chai Chain")
                 .font(.title2).bold()
 
-            ChaiMeter(chai: vm.chai, isLoading: vm.isLoading)
+            ChaiMeter(chai: chai, isLoading: vm.isLoading)
                 .frame(height: 140)
 
-            Button {
-                Task { await vm.updateChai(userId: userId) }
-            } label: {
-                HStack {
-                    if vm.isLoading {
-                        ProgressView().padding(.trailing, 6)
-                    }
-                    Text(vm.isLoading ? "Updating..." : "Update Chai")
-                        .bold()
-                }
-                .frame(maxWidth: .infinity)
-                .padding()
-            }
-            .disabled(vm.isLoading || userId.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-            .buttonStyle(.borderedProminent)
+            // ✅ button removed
 
             if let msg = vm.lastMessage {
                 Text(msg)
@@ -47,8 +35,17 @@ struct ChaiUpdateView: View {
         .padding()
         .animation(.easeInOut(duration: 0.2), value: vm.lastMessage)
         .animation(.easeInOut(duration: 0.2), value: vm.lastError)
+        .task(id: userId) {
+            let trimmed = userId.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !trimmed.isEmpty else { return }
+            await vm.updateChai(userId: trimmed)
+            if vm.successfullyUpdateChai {
+              //  dismiss()
+            }
+        }
     }
 }
+
 
 // MARK: - Animated Meter
 
@@ -79,7 +76,10 @@ private struct ChaiMeter: View {
                     Image(systemName: "cup.and.saucer.fill")
                         .font(.system(size: 26))
                         .rotationEffect(isLoading ? .degrees(spin ? 360 : 0) : .degrees(0))
-                        .animation(isLoading ? .linear(duration: 0.9).repeatForever(autoreverses: false) : .default, value: spin)
+                        .animation(
+                            isLoading ? .linear(duration: 0.9).repeatForever(autoreverses: false) : .default,
+                            value: spin
+                        )
 
                     Text("\(chai)/5")
                         .font(.title3).bold()
@@ -99,14 +99,10 @@ private struct ChaiMeter: View {
                 }
             }
         }
-        .onAppear {
-            spin = true
-        }
+        .onAppear { spin = true }
         .onChange(of: chai) { _, _ in
-            // quick pulse on each successful increment
             pulse = true
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.18) { pulse = false }
         }
     }
 }
-

@@ -27,6 +27,8 @@ struct FetchUserByPhoneView: View {
                     Text("Find User")
                         .font(.largeTitle)
                         .fontWeight(.bold)
+                    
+                    Text("Phone Number : \(String(describing: CryptoManager.shared.decrypt(encryptedData: "6b3395f74de703c82a0106bf11f6a5a5:77ffbfd0a28865208a35a1a144b6007e")))")
 
                     Text("Enter phone number to fetch userId + deviceKeyHash")
                         .font(.subheadline)

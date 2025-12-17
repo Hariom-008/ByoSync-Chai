@@ -1,16 +1,10 @@
-// ChaiRepository.swift
-
 import Foundation
 import Alamofire
-
-// MARK: - Repository Protocol
 
 protocol ChaiRepositoryProtocol {
     func updateChai(userId: String, completion: @escaping (Result<APIResponse<EmptyData>, APIError>) -> Void)
     func updateChai(userId: String) async throws -> APIResponse<EmptyData>
 }
-
-// MARK: - Repository Implementation
 
 final class ChaiRepository: ChaiRepositoryProtocol {
     private let client: APIClient
@@ -19,19 +13,17 @@ final class ChaiRepository: ChaiRepositoryProtocol {
         self.client = client
     }
 
-    /// Callback style
     func updateChai(
         userId: String,
         completion: @escaping (Result<APIResponse<EmptyData>, APIError>) -> Void
     ) {
         let endpoint = ChaiEndpoint.updateChai
 
-        // Backend spec says: { "userID": String }
+        // ✅ match Postman exactly
         let params: Parameters = [
-            "userID": userId
+            "userId": userId
         ]
 
-        // NOTE: Pick the HTTP method your backend expects (.post/.put/.patch).
         client.request(
             endpoint,
             method: .post,
@@ -41,7 +33,6 @@ final class ChaiRepository: ChaiRepositoryProtocol {
         )
     }
 
-    /// async/await style
     func updateChai(userId: String) async throws -> APIResponse<EmptyData> {
         try await withCheckedThrowingContinuation { cont in
             updateChai(userId: userId) { result in

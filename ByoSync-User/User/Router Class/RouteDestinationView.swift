@@ -16,8 +16,8 @@ struct RouteDestinationView {
             case .claimChai(let userId, let deviceKeyHash):
                 ClaimChaiFlowView(userId: userId, deviceKeyHash: deviceKeyHash)
                 
-            case .chaiUpdate(let userId):
-                ChaiUpdateView(userId: userId)
+            case .chaiUpdate(let chai,let userId):
+                ChaiUpdateView(chai: chai,userId: userId)
                 
             // Legacy routes - add placeholders or actual views
             case .authentication:

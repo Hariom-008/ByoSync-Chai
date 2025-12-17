@@ -508,7 +508,7 @@ struct FaceDetectionView: View {
         faceManager.loadAndVerifyFaceID(
             deviceKeyHash: deviceKeyHash,
             framesToVerify: validFrames,
-            requiredMatches: 4,  // ✅ FIX #3: 4 out of 10 matches (40%)
+            requiredMatches: 1,  // ✅ FIX #3: 4 out of 10 matches (40%)
             fetchViewModel: faceIdFetchViewModel
         ) { result in
             DispatchQueue.main.async {

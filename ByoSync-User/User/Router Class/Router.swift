@@ -8,7 +8,7 @@ enum Route: Hashable, Identifiable {
     case fetchUserByPhone
     case mlScan(userId: String, deviceKeyHash: String)
     case claimChai(userId: String, deviceKeyHash: String)
-    case chaiUpdate(userId: String)
+    case chaiUpdate(chai: Int,userId: String)
 
     // (keep old ones if you still use them elsewhere)
     case authentication
@@ -32,8 +32,8 @@ enum Route: Hashable, Identifiable {
         case .claimChai(let userId, let deviceKeyHash):
             return "claimChai-\(userId)-\(deviceKeyHash)"
 
-        case .chaiUpdate(let userId):
-            return "chaiUpdate-\(userId)"
+        case .chaiUpdate(let chai,let userId):
+            return "chaiUpdate-\(chai)-\(userId)"
 
         // old routes
         case .authentication: return "authentication"
