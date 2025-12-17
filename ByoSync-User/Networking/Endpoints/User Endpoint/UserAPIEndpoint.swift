@@ -22,14 +22,20 @@ struct UserAPIEndpoint{
     
     // (GET) Fetch Logged In User Data
     struct UserData{
+        
         static let getUserData = "\(baseURL)/api/v1/users/get-user-data"
+        
+        static func userDataById(userId:String, deviceKeyHash:String) -> String{
+            return "\(baseURL)/api/v1/users/get-user-data?userId=\(userId)&deviceKeyHash=\(deviceKeyHash)"
+        }
+        static let userByPhoneNumber = "\(baseURL)/api/v1/users/find-user-by-phone-number"
     }
     
     
     // Device Management
     struct UserDeviceManagement{
         static let isDeviceRegistered = "\(baseURL)/api/v1/users/is-device-register"
-        static let getUserDataByDeviceID = "\(baseURL)/api/v1/users/get-user-data-by-id"
+
         //(POST) Unlinks all other devices using the primary device(Only primary device can logout others)
         static let unLinkOtherDevices = "\(baseURL)/api/v1/users/unlink-other-devices"
         // (GET) User's devices
@@ -86,8 +92,10 @@ struct UserAPIEndpoint{
     struct FaceId{
         static let addFaceId = "\(baseURL)/api/v1/users/addFaceId"
         static let getFaceId = "\(baseURL)/api/v1/users/getFaceId"
+        static let addFaceDistance = "\(baseURL)/api/v1/users/add-face-distance"
     }
 }
+
 
 
 struct CommonEndpoint{
@@ -102,4 +110,11 @@ struct LogEndpoint{
     static let baseURL = "https://backendapi.byosync.in"
     
     static let createLogs = "\(baseURL)/api/v1/logs/create"
+}
+
+struct ChaiEndpoint{
+    static let baseURL = "https://backendapi.byosync.in"
+    //POST
+    static let updateChai = "\(baseURL)/api/v1/users/update-chai"
+    
 }

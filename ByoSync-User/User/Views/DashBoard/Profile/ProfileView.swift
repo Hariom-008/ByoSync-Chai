@@ -5,7 +5,6 @@ struct ProfileView: View {
     @ObservedObject private var userSession = UserSession.shared
     
     @StateObject private var viewModel: ProfileViewModel
-    @State private var showEditProfile: Bool = false
     @State private var openTestinLinkedDeviceView = false
     @State private var openLocationTestingView: Bool = false
     @State private var openSettingView: Bool = false
@@ -76,56 +75,6 @@ struct ProfileView: View {
                     .transition(.opacity)
                     .zIndex(100)
             }
-        }
-        .navigationTitle("Profile")
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .navigationBarTrailing) {
-                HStack {
-                    Button {
-                        print("📱 [VIEW] Linked devices button tapped")
-                        openTestinLinkedDeviceView.toggle()
-                    } label: {
-                        HStack(spacing: 6) {
-                            Image(systemName: "iphone.gen3")
-                                .font(.system(size: 15, weight: .semibold))
-                        }
-                        .foregroundStyle(Color(hex: "4B548D"))
-                        .padding(.horizontal, 14)
-                        .padding(.vertical, 8)
-                        .background(
-                            Capsule()
-                                .fill(Color(hex: "4B548D").opacity(0.1))
-                        )
-                    }
-                    
-                    Button {
-                        print("⚙️ [VIEW] Settings button tapped")
-                        openSettingView.toggle()
-                    } label: {
-                        Image(systemName: "gearshape.fill")
-                            .font(.system(size: 15))
-                            .foregroundStyle(Color(hex: "4B548D"))
-                            .frame(width: 40, height: 40)
-                            .background(
-                                Circle()
-                                    .fill(Color(hex: "4B548D").opacity(0.1))
-                            )
-                    }
-                }
-            }
-        }
-        .sheet(isPresented: $showEditProfile) {
-            EditProfileView()
-        }
-        .sheet(isPresented: $openTestinLinkedDeviceView) {
-            LinkedDevicesView()
-        }
-        .sheet(isPresented: $openLocationTestingView) {
-            LocationTestView()
-        }
-        .fullScreenCover(isPresented: $openSettingView) {
-            SettingsView()
         }
         .alert(viewModel.alertTitle, isPresented: $viewModel.showAlert) {
             Button(L("ok"), role: .cancel) {}
@@ -246,32 +195,6 @@ struct ProfileView: View {
                     }
                 }
             }
-            
-            // Edit Profile Button
-            Button {
-                print("✏️ [VIEW] Edit profile button tapped")
-                showEditProfile = true
-            } label: {
-                HStack(spacing: 8) {
-                    Image(systemName: "pencil.circle.fill")
-                        .font(.system(size: 16))
-                    Text(L("edit_profile"))
-                        .font(.system(size: 16, weight: .semibold))
-                }
-                .foregroundColor(.white)
-                .padding(.horizontal, 28)
-                .padding(.vertical, 12)
-                .background(
-                    LinearGradient(
-                        colors: [Color(hex: "4B548D"), Color(hex: "5B64A0")],
-                        startPoint: .leading,
-                        endPoint: .trailing
-                    )
-                )
-                .cornerRadius(25)
-                .shadow(color: Color(hex: "4B548D").opacity(0.4), radius: 12, y: 6)
-            }
-            .buttonStyle(ScaleButtonStyle())
         }
         .padding(.vertical, 32)
         .frame(maxWidth: .infinity)
