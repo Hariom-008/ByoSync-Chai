@@ -95,9 +95,6 @@ extension FaceManager {
 
 extension FaceManager {
 
-    /// 1) Normalize by RMS scale (divide by `scale`)
-    /// 2) Fix roll using eye line (33 -> 263) by rotating all normalized points by -roll
-    /// 3) Print rollRaw / rollUsed / rollAfter (throttled)
     func calculateNormalizedPoints() {
         let eps: Float = 1e-6
         guard !Translated.isEmpty, scale > eps else {
@@ -105,68 +102,91 @@ extension FaceManager {
             return
         }
 
-        // If we don't have enough landmarks for 33 and 263, just normalize
-        guard Translated.count > 263 else {
-            var normalized = Array(repeating: (x: Float(0), y: Float(0)), count: Translated.count)
-            for i in 0..<Translated.count {
-                let p = Translated[i]
-                normalized[i] = (x: p.x / scale, y: p.y / scale)
-            }
-            NormalizedPoints = normalized
-            return
-        }
-
-        // 1) Normalize (single allocation + loop for perf)
+        // 1) Normalize
         var normalized = Array(repeating: (x: Float(0), y: Float(0)), count: Translated.count)
         for i in 0..<Translated.count {
             let p = Translated[i]
             normalized[i] = (x: p.x / scale, y: p.y / scale)
         }
 
-        // 2) Compute roll from eye-line vector in normalized space
+        // If we don't have enough landmarks for 33 and 263, stop here
+        guard normalized.count > 263 else {
+            NormalizedPoints = normalized
+            return
+        }
+
         let p33 = normalized[33]
         let p263 = normalized[263]
         let vx = p263.x - p33.x
         let vy = p263.y - p33.y
 
+        // Degenerate case: eye line too small (bad frame / face tiny)
+        let v2 = vx * vx + vy * vy
+        guard v2 > (eps * eps) else {
+            NormalizedPoints = normalized
+            return
+        }
+
+        // Roll of the eye-line
         let rollRaw = atan2f(vy, vx) // [-pi, pi]
 
-        // Wrap roll so we pick the *smallest* rotation that levels the eye line.
-        // This avoids the ~pi case when the eye vector points left (vx < 0).
-        var roll = rollRaw
+        // Treat the eye-line as an *undirected* line => period is pi, not 2pi.
+        // Map to [-pi/2, +pi/2] so we never do a near-180° flip.
         let halfPi: Float = .pi / 2
-        if roll > halfPi { roll -= .pi }
-        if roll < -halfPi { roll += .pi }
+        var rollLine = rollRaw
+        if rollLine > halfPi { rollLine -= .pi }
+        if rollLine < -halfPi { rollLine += .pi }
 
-        // Rotate by -roll to "unroll"
-        let angle = -roll
-        let c = cosf(angle)
-        let s = sinf(angle)
+        // Rotate around pivot = midpoint between eyes (recommended)
+        let pivot = (x: (p33.x + p263.x) * 0.5, y: (p33.y + p263.y) * 0.5)
 
-        for i in 0..<normalized.count {
-            let x = normalized[i].x
-            let y = normalized[i].y
-            normalized[i] = (x: x * c - y * s,
-                             y: x * s + y * c)
+        @inline(__always)
+        func rotate(points: inout [(x: Float, y: Float)], angle: Float) {
+            let c = cosf(angle)
+            let s = sinf(angle)
+            for i in 0..<points.count {
+                let px = points[i].x - pivot.x
+                let py = points[i].y - pivot.y
+                points[i] = (
+                    x: px * c - py * s + pivot.x,
+                    y: px * s + py * c + pivot.y
+                )
+            }
         }
+
+        @inline(__always)
+        func rollAfter(_ pts: [(x: Float, y: Float)]) -> Float {
+            let a = pts[33], b = pts[263]
+            return atan2f(b.y - a.y, b.x - a.x)
+        }
+
+        // 2) Robustly pick sign: try both and choose the one that levels best.
+        // This handles y-down vs y-up and mirrored pipelines.
+        var candA = normalized
+        var candB = normalized
+
+        rotate(points: &candA, angle: -rollLine)
+        rotate(points: &candB, angle: +rollLine)
+
+        let afterA = rollAfter(candA)
+        let afterB = rollAfter(candB)
+
+        let useA = abs(afterA) <= abs(afterB)
+        normalized = useA ? candA : candB
 
         NormalizedPoints = normalized
 
-        // 3) Debug: recompute roll AFTER rotation (should be near 0)
-        let p33r = normalized[33]
-        let p263r = normalized[263]
-        let vx2 = p263r.x - p33r.x
-        let vy2 = p263r.y - p33r.y
-        let rollAfter = atan2f(vy2, vx2)
-
-        // Throttle prints to reduce frame drops (pipeline runs on main thread)
+        // 3) Debug (throttled)
         rollPrintTick &+= 1
         if (rollPrintTick % 15) == 0 {
             let toDeg: Float = 57.2957795
-            print(String(format: "rollRaw=%.4f rad (%.1f°), rollUsed=%.4f rad (%.1f°), rollAfter=%.4f rad (%.1f°)",
+            let usedAngle = useA ? (-rollLine) : (+rollLine)
+            let after = useA ? afterA : afterB
+            print(String(format: "rollRaw=%.4f (%.1f°), rollLine=%.4f (%.1f°), angleUsed=%.4f (%.1f°), rollAfter=%.4f (%.1f°)",
                          rollRaw, rollRaw * toDeg,
-                         roll,    roll    * toDeg,
-                         rollAfter, rollAfter * toDeg))
+                         rollLine, rollLine * toDeg,
+                         usedAngle, usedAngle * toDeg,
+                         after, after * toDeg))
         }
     }
 }
