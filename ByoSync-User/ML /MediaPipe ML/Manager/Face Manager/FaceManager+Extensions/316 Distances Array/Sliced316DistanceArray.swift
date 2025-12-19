@@ -34,15 +34,15 @@ extension FaceManager {
     /// Returns up to 10 frames for verification, each with 316 NORMALIZED distances
     /// Skips element 0 (raw reference) and takes elements 1-316
     func VerifyFrameDistanceArray() -> [[Float]] {
-        guard AllFramesOptionalAndMandatoryDistance.count >= 10 else {
-            print("⚠️ Not enough frames. Have \(AllFramesOptionalAndMandatoryDistance.count), need at least 10.")
+        guard AllFramesOptionalAndMandatoryDistance.count >= 20 else {
+            print("⚠️ Not enough frames. Have \(AllFramesOptionalAndMandatoryDistance.count), need at least 20.")
             return []
         }
         
-        let first10Frames = Array(AllFramesOptionalAndMandatoryDistance.prefix(10))
+        let first20Frames = Array(AllFramesOptionalAndMandatoryDistance.prefix(20))
         
         // ✅ FIX: Skip element 0 (raw ref), take next 316 normalized elements
-        let trimmed = first10Frames.compactMap { frame -> [Float]? in
+        let trimmed = first20Frames.compactMap { frame -> [Float]? in
             guard frame.count >= 317 else {
                 print("⚠️ Frame too short: \(frame.count), need at least 317")
                 return nil

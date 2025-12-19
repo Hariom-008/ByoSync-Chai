@@ -160,18 +160,6 @@ struct FaceDetectionView: View {
                 FaceOvalOverlay(faceManager: faceManager)
                 DirectionalGuidanceOverlay(faceManager: faceManager)
 
-                // Nose center overlay
-                NoseCenterCircleOverlay(isCentered: faceManager.isNoseTipCentered)
-
-                // Gaze vector (shown after calibration)
-                if faceManager.isMovementTracking {
-                    GazeVectorCard(
-                        gazeVector: faceManager.GazeVector,
-                        screenSize: geometry.size
-                    )
-                    .transition(.opacity.combined(with: .scale))
-                    .animation(.easeInOut(duration: 0.3), value: faceManager.isMovementTracking)
-                }
 
                 // Busy overlay (processing + fetch + upload)
                 if isBusy {
@@ -223,6 +211,13 @@ struct FaceDetectionView: View {
 
                     Spacer()
 
+                    
+                    NormalizedPointsOverlay(
+                        points: faceManager.NormalizedPoints,
+                        pointSize: 3,
+                        insetRatio: 0.12,
+                        smoothingAlpha: 0.25
+                    )
                     // ✅ No buttons - automatic processing
                 }
             }
@@ -278,8 +273,8 @@ struct FaceDetectionView: View {
                         }
                     }
                 case .verification:
-                    if newValue >= 10 {
-                        print("🔐 [FaceDetectionView] 10 frames collected → Auto-triggering verification")
+                    if newValue >= 20 {
+                        print("🔐 [FaceDetectionView] 20 frames collected → Auto-triggering verification")
                         hasAutoTriggered = true
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                             handleLogin()
@@ -491,12 +486,12 @@ struct FaceDetectionView: View {
         print("   Valid frames (316 distances): \(validFrames.count)")
         print("   Invalid frames: \(invalidCount)")
 
-        guard validFrames.count >= 10 else {
+        guard validFrames.count >= 20 else {
             print("❌ INSUFFICIENT VALID FRAMES FOR LOGIN")
             isProcessing = false
 
             alertTitle = "❌ Login Failed"
-            alertMessage = "Need at least 10 valid frames.\n\nFound: \(validFrames.count) valid\nInvalid: \(invalidCount)"
+            alertMessage = "Need at least 20 valid frames.\n\nFound: \(validFrames.count) valid\nInvalid: \(invalidCount)"
             showAlert = true
             return
         }
@@ -508,7 +503,7 @@ struct FaceDetectionView: View {
         faceManager.loadAndVerifyFaceID(
             deviceKeyHash: deviceKeyHash,
             framesToVerify: validFrames,
-            requiredMatches: 1,  // ✅ FIX #3: 4 out of 10 matches (40%)
+            requiredMatches: 4,  // ✅ FIX #3: 4 out of 10 matches (40%)
             fetchViewModel: faceIdFetchViewModel
         ) { result in
             DispatchQueue.main.async {

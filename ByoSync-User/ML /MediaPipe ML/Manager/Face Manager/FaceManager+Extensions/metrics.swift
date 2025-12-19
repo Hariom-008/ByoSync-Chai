@@ -61,16 +61,27 @@ extension FaceManager {
     func computeAngles(from landmarks: [(x: Float, y: Float)]) -> (pitch: Float, yaw: Float, roll: Float)? {
         let needed = [4, 33, 263]
         guard needed.allSatisfy({ $0 < landmarks.count }) else { return nil }
-        
+
         let nose = landmarks[4]
         let p33 = landmarks[33]
         let p263 = landmarks[263]
-        
-        // Vector from 263 → 33 (vertical line)
-        let verticalLine = (x: p33.x - p263.x, y: p33.y - p263.y)
-        
-        return angleCalc(noseTip: nose, verticalLine: verticalLine)
+
+        let v = (x: p33.x - p263.x, y: p33.y - p263.y)
+
+        let oneMinusR2 = max(0 as Float, 1 - (nose.x * nose.x + nose.y * nose.y))
+        let den = sqrtf(oneMinusR2)
+
+        let pitch = atan2f(nose.y, den)
+        let yaw   = atan2f(nose.x, den)
+
+        var roll = atan2f(v.y, v.x) // directed
+        let halfPi: Float = .pi / 2
+        if roll > halfPi { roll -= .pi }
+        if roll < -halfPi { roll += .pi }
+
+        return (pitch, yaw, roll)
     }
+
     
     /// Checks if head pose is stable (within ±0.1 radians for all angles)
     func isHeadPoseStable() -> Bool {

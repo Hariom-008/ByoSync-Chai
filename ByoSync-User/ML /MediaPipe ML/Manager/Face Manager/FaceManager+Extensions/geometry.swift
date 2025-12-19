@@ -102,91 +102,68 @@ extension FaceManager {
             return
         }
 
-        // 1) Normalize
-        var normalized = Array(repeating: (x: Float(0), y: Float(0)), count: Translated.count)
-        for i in 0..<Translated.count {
-            let p = Translated[i]
-            normalized[i] = (x: p.x / scale, y: p.y / scale)
-        }
+        // 1) Normalize (centroid already moved to origin in calculateTranslated)
+        var normalized = Translated.map { p in (x: p.x / scale, y: p.y / scale) }
 
-        // If we don't have enough landmarks for 33 and 263, stop here
         guard normalized.count > 263 else {
             NormalizedPoints = normalized
             return
         }
 
-        let p33 = normalized[33]
+        let p33  = normalized[33]
         let p263 = normalized[263]
-        let vx = p263.x - p33.x
-        let vy = p263.y - p33.y
 
-        // Degenerate case: eye line too small (bad frame / face tiny)
+        // Match Android direction: v = p33 - p263
+        let vx = p33.x - p263.x
+        let vy = p33.y - p263.y
         let v2 = vx * vx + vy * vy
-        guard v2 > (eps * eps) else {
+        guard v2 > eps * eps else {
             NormalizedPoints = normalized
             return
         }
 
-        // Roll of the eye-line
-        let rollRaw = atan2f(vy, vx) // [-pi, pi]
-
-        // Treat the eye-line as an *undirected* line => period is pi, not 2pi.
-        // Map to [-pi/2, +pi/2] so we never do a near-180° flip.
-        let halfPi: Float = .pi / 2
-        var rollLine = rollRaw
-        if rollLine > halfPi { rollLine -= .pi }
-        if rollLine < -halfPi { rollLine += .pi }
-
-        // Rotate around pivot = midpoint between eyes (recommended)
-        let pivot = (x: (p33.x + p263.x) * 0.5, y: (p33.y + p263.y) * 0.5)
+        let roll = atan2f(vy, vx) // [-pi, pi]
+        let c = cosf(roll)
+        let s = sinf(roll)
 
         @inline(__always)
-        func rotate(points: inout [(x: Float, y: Float)], angle: Float) {
-            let c = cosf(angle)
-            let s = sinf(angle)
-            for i in 0..<points.count {
-                let px = points[i].x - pivot.x
-                let py = points[i].y - pivot.y
-                points[i] = (
-                    x: px * c - py * s + pivot.x,
-                    y: px * s + py * c + pivot.y
-                )
+        func rotateMinusRoll(_ pts: inout [(x: Float, y: Float)]) {
+            // Android matrix: rotate by -roll around origin
+            for i in pts.indices {
+                let x = pts[i].x
+                let y = pts[i].y
+                pts[i] = (x: x * c + y * s,
+                          y: -x * s + y * c)
             }
         }
 
         @inline(__always)
-        func rollAfter(_ pts: [(x: Float, y: Float)]) -> Float {
-            let a = pts[33], b = pts[263]
-            return atan2f(b.y - a.y, b.x - a.x)
+        func rotatePlusRoll(_ pts: inout [(x: Float, y: Float)]) {
+            // rotate by +roll around origin
+            for i in pts.indices {
+                let x = pts[i].x
+                let y = pts[i].y
+                pts[i] = (x: x * c - y * s,
+                          y: x * s + y * c)
+            }
         }
 
-        // 2) Robustly pick sign: try both and choose the one that levels best.
-        // This handles y-down vs y-up and mirrored pipelines.
+        // If your coordinate conventions are consistent, this is enough:
+        // rotateMinusRoll(&normalized)
+
+        // If you want robustness across flips/mirroring, choose the one that makes the eye-line most horizontal (mod pi)
         var candA = normalized
         var candB = normalized
+        rotateMinusRoll(&candA)
+        rotatePlusRoll(&candB)
 
-        rotate(points: &candA, angle: -rollLine)
-        rotate(points: &candB, angle: +rollLine)
-
-        let afterA = rollAfter(candA)
-        let afterB = rollAfter(candB)
-
-        let useA = abs(afterA) <= abs(afterB)
-        normalized = useA ? candA : candB
-
-        NormalizedPoints = normalized
-
-        // 3) Debug (throttled)
-        rollPrintTick &+= 1
-        if (rollPrintTick % 15) == 0 {
-            let toDeg: Float = 57.2957795
-            let usedAngle = useA ? (-rollLine) : (+rollLine)
-            let after = useA ? afterA : afterB
-            print(String(format: "rollRaw=%.4f (%.1f°), rollLine=%.4f (%.1f°), angleUsed=%.4f (%.1f°), rollAfter=%.4f (%.1f°)",
-                         rollRaw, rollRaw * toDeg,
-                         rollLine, rollLine * toDeg,
-                         usedAngle, usedAngle * toDeg,
-                         after, after * toDeg))
+        func horizResidual(_ pts: [(x: Float, y: Float)]) -> Float {
+            let a = pts[33], b = pts[263]
+            let ang = atan2f(b.y - a.y, b.x - a.x)
+            return abs(sinf(ang)) // 0 when angle is 0 or pi
         }
+
+        normalized = (horizResidual(candA) <= horizResidual(candB)) ? candA : candB
+        NormalizedPoints = normalized
     }
 }

@@ -210,7 +210,7 @@ struct FetchUserByPhoneView: View {
                 .animation(.spring(response: 0.6, dampingFraction: 0.6), value: viewModel.userId)
                 
                 VStack(spacing: 8) {
-                    Text("User Found!")
+                    Text("We Found You!")
                         .font(.title2)
                         .fontWeight(.bold)
                     
