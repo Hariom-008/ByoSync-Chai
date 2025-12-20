@@ -49,17 +49,7 @@ struct FetchUserByPhoneView: View {
                                 .font(.subheadline)
                                 .foregroundColor(.secondary)
                         }
-                        
-                        // Debug info - styled as a subtle badge
-                        if let decryptedPhone = CryptoManager.shared.decrypt(encryptedData: "6b3395f74de703c82a0106bf11f6a5a5:77ffbfd0a28865208a35a1a144b6007e") {
-                            Text("Debug: \(decryptedPhone)")
-                                .font(.caption2)
-                                .foregroundColor(.secondary)
-                                .padding(.horizontal, 12)
-                                .padding(.vertical, 6)
-                                .background(Color.secondary.opacity(0.1))
-                                .cornerRadius(8)
-                        }
+                     
                     }
                     .padding(.top, 40)
                     
@@ -153,7 +143,7 @@ struct FetchUserByPhoneView: View {
                         HStack(spacing: 6) {
                             Image(systemName: "info.circle.fill")
                                 .font(.caption)
-                            Text("This will fetch the user's ID and device key hash")
+                            Text("This will help us locate whether you exist or not!")
                         }
                         .font(.caption)
                         .foregroundColor(.secondary)

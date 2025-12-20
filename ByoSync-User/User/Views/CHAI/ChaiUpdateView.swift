@@ -42,7 +42,7 @@ struct ChaiUpdateView: View {
                         .padding(.top, 20)
                         
                         VStack(spacing: 6) {
-                            Text("Chai Chain")
+                            Text("Congrats You Claimed a Cup!")
                                 .font(.system(size: 28, weight: .bold))
                             
                             Text("Building your streak")

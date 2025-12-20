@@ -58,7 +58,7 @@ final class UserDataByIdViewModel: ObservableObject {
 
             // Derived values (safe defaults)
             wallet = res.data.user.wallet
-            chai = res.data.user.chai
+            chai = res.data.user.chai + 1
             isPrimaryDevice = res.data.device.isPrimary
         } catch {
             errorText = String(describing: error)

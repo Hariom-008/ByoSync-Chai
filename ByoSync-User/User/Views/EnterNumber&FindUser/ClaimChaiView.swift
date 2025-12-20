@@ -393,13 +393,13 @@ struct ClaimChaiFlowView: View {
                 throw ClaimError.message(err)
             }
 
-            // ✅ Check if chain < 5, then navigate to ChainUpdateView
-            // If chain >= 5, show error
-            if userByIdViewModel.chai >= 5 {
+            // ✅ Check if chai < 5, then navigate to ChainUpdateView
+            // If chai >= 5, show error
+            if userByIdViewModel.chai > 5 {
                 throw ClaimError.message("Chai limit reached. Come back later ☕️")
             }
 
-            // ✅ Navigate to ChainUpdateView (ChaiUpdateView) if chain < 5
+            // ✅ Navigate to ChainUpdateView (ChaiUpdateView) if chai < 5
             await MainActor.run {
                 router.navigate(to: .chaiUpdate(chai:userByIdViewModel.chai,userId: userId))
             }

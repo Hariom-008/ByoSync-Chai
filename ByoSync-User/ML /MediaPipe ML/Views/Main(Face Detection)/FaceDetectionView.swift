@@ -135,7 +135,7 @@ struct FaceDetectionView: View {
         case .registration:
             return 80
         case .verification:
-            return 10
+            return 20
         }
     }
     
@@ -211,13 +211,13 @@ struct FaceDetectionView: View {
 
                     Spacer()
 
-                    
-                    NormalizedPointsOverlay(
-                        points: faceManager.NormalizedPoints,
-                        pointSize: 3,
-                        insetRatio: 0.12,
-                        smoothingAlpha: 0.25
-                    )
+//                    
+//                    NormalizedPointsOverlay(
+//                        points: faceManager.NormalizedPoints,
+//                        pointSize: 3,
+//                        insetRatio: 0.12,
+//                        smoothingAlpha: 0.25
+//                    )
                     // ✅ No buttons - automatic processing
                 }
             }
