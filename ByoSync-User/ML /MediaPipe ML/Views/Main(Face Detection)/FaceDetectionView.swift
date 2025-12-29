@@ -228,10 +228,6 @@ struct FaceDetectionView: View {
                 if s.count > earMaxSamples { s.removeFirst(s.count - earMaxSamples) }
                 earSeries = s
             }
-            // Nose center status update
-            .onReceive(faceManager.$NormalizedPoints) { _ in
-                faceManager.updateNoseTipCenterStatusFromCalcCoords()
-            }
             // Pose buffers update (throttled)
             .onReceive(
                 faceManager.$NormalizedPoints
