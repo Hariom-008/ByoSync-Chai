@@ -88,3 +88,15 @@ extension FaceManager {
         return min((leftProgress + rightProgress) / 2.0, 1.0)
     }
 }
+
+//Reset After Verification Started or Registration Started
+
+extension FaceManager {
+    func resetFrameBuffer() {
+        DispatchQueue.main.async {
+            self.AllFramesOptionalAndMandatoryDistance.removeAll(keepingCapacity: true)
+            self.totalFramesCollected = 0
+            self.rejectedFrames = 0
+        }
+    }
+}

@@ -119,9 +119,10 @@ final class BCHBiometric {
 
         // R: K random bits (0/1 bytes)
         let secretKeyBits = generateRandomBits(length: K)
-
+        print("secretKeyBit:\(secretKeyBits)")
         // codeword = R || ECC
         let codeword = try encodeSecretKeyBCH(secretKeyBits)   // length n (K + eccBits)
+        print("codeWordBit:\(codeword)")
 
         // helper = codeword XOR biometricAligned
         let helperBits = xorBits(codeword, alignedBio)
@@ -193,6 +194,8 @@ final class BCHBiometric {
         )
     }
 
+    
+    
     // MARK: - BCH encode (1 byte per bit)
     private func encodeSecretKeyBCH(_ secretKeyBits: BitArray) throws -> BitArray {
         try ensureInit()

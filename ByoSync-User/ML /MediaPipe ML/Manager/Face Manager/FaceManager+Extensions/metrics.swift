@@ -61,146 +61,191 @@ extension FaceManager {
     func computeAngles(from landmarks: [(x: Float, y: Float)]) -> (pitch: Float, yaw: Float, roll: Float)? {
         let needed = [4, 33, 263]
         guard needed.allSatisfy({ $0 < landmarks.count }) else { return nil }
-
+        
         let nose = landmarks[4]
         let p33 = landmarks[33]
         let p263 = landmarks[263]
-
+        
         let v = (x: p33.x - p263.x, y: p33.y - p263.y)
-
+        
         let oneMinusR2 = max(0 as Float, 1 - (nose.x * nose.x + nose.y * nose.y))
         let den = sqrtf(oneMinusR2)
-
+        
         let pitch = atan2f(nose.y, den)
         let yaw   = atan2f(nose.x, den)
-
+        
+        
         var roll = atan2f(v.y, v.x) // directed
         let halfPi: Float = .pi / 2
         if roll > halfPi { roll -= .pi }
         if roll < -halfPi { roll += .pi }
-
+        
+        if abs(roll) <= 0.05{
+            
+            let c = cosf(roll)
+            let s = sinf(roll)
+            
+            @inline(__always)
+            func rotateMinusRoll(_ pts: inout [(x: Float, y: Float)]) {
+                // matrix: rotate by -roll around origin
+                for i in pts.indices {
+                    let x = pts[i].x
+                    let y = pts[i].y
+                    pts[i] = (x: x * c + y * s,
+                              y: -x * s + y * c)
+                }
+            }
+            
+            @inline(__always)
+            func rotatePlusRoll(_ pts: inout [(x: Float, y: Float)]) {
+                // rotate by +roll around origin
+                for i in pts.indices {
+                    let x = pts[i].x
+                    let y = pts[i].y
+                    pts[i] = (x: x * c - y * s,
+                              y: x * s + y * c)
+                }
+            }
+            
+            // If your coordinate conventions are consistent, this is enough:
+            // rotateMinusRoll(&normalized)
+            
+            // If you want robustness across flips/mirroring, choose the one that makes the eye-line most horizontal (mod pi)
+            var candA = landmarks
+            var candB = landmarks
+            rotateMinusRoll(&candA)
+            rotatePlusRoll(&candB)
+            
+            func horizResidual(_ pts: [(x: Float, y: Float)]) -> Float {
+                let a = pts[33], b = pts[263]
+                let ang = atan2f(b.y - a.y, b.x - a.x)
+                return abs(sinf(ang)) // 0 when angle is 0 or pi
+            }
+            
+            self.NormalizedPoints = (horizResidual(candA) <= horizResidual(candB)) ? candA : candB
+        }
         return (pitch, yaw, roll)
     }
-
+    
     
     /// Checks if head pose is stable (within ±0.1 radians for all angles)
     func isHeadPoseStable() -> Bool {
         let threshold: Float = 0.1
         return abs(Pitch) <= threshold &&
-               abs(Yaw) <= threshold &&
-               abs(Roll) <= threshold
+        abs(Yaw) <= threshold &&
+        abs(Roll) <= 0.05
     }
     
     // MARK: - Face Bounding Box & Iris Distance
     
     /// Calculates face bounding box and iris distance ratio for liveness detection
     /// Also calculates and publishes the target iris size for UI overlay
-    func calculateFaceBoundingBox() {
-        // Need intrinsics and enough landmarks
-        guard let fx = cameraSpecManager.currentSpecs?.intrinsicMatrix?.columns.0.x,
-              CalculationCoordinates.count > 477,
-              !CameraFeedCoordinates.isEmpty else {
-            irisDistanceRatio = nil
-            faceBoundingBox = nil
-            return
-        }
-        
-        // Constants for iris distance calculation
-        let dIrisMm: Float = 11.5      // Average iris diameter in mm
-        let LTargetMm: Float = 305.0   // Target distance in mm
-        
-        // ✅ Calculate and store iris_target_px for UI overlay
-        let irisTarget_px = fx * (dIrisMm / LTargetMm)
-        self.irisTargetPx = irisTarget_px
-        
-        // Iris landmark indices
-        let leftIdxA = 476
-        let leftIdxB = 474
-        let rightIdxA = 471
-        let rightIdxB = 469
-        
-        // Validate indices
-        guard leftIdxA < CalculationCoordinates.count,
-              leftIdxB < CalculationCoordinates.count,
-              rightIdxA < CalculationCoordinates.count,
-              rightIdxB < CalculationCoordinates.count else {
-            irisDistanceRatio = nil
-            faceBoundingBox = nil
-            return
-        }
-        
-        // Calculate iris diameters
-        let diameterLeft_px  = Helper.shared.calculateDistance(
-            CalculationCoordinates[leftIdxA],
-            CalculationCoordinates[leftIdxB]
-        )
-        let diameterRight_px = Helper.shared.calculateDistance(
-            CalculationCoordinates[rightIdxA],
-            CalculationCoordinates[rightIdxB]
-        )
-        
-        let d_mean_px: Float = (diameterLeft_px + diameterRight_px) / 2.0
-        self.dMeanPx = d_mean_px
-        guard irisTargetPx > 0 else {
-            irisDistanceRatio = nil
-            faceBoundingBox = nil
-            return
-        }
-        
-        // Calculate and publish ratio
-        let ratio = d_mean_px / irisTargetPx
-        irisDistanceRatio = ratio
-        
-        // ✅ Updated acceptance range to 0.95 - 1.05
-        if ratio >= 0.95 && ratio <= 1.05 {
-            self.ratioIsInRange = true
-            print("✅ ACCEPT (ratio = \(ratio))")
-        } else {
-            self.ratioIsInRange = false
-          //  print("❌ REJECT (ratio = \(ratio))")
-        }
-        
-        // Calculate face bounding box using face oval landmarks
-        var minX = Float.greatestFiniteMagnitude
-        var minY = Float.greatestFiniteMagnitude
-        var maxX = -Float.greatestFiniteMagnitude
-        var maxY = -Float.greatestFiniteMagnitude
-        
-        for idx in faceOvalIndices {
-            guard idx >= 0, idx < CameraFeedCoordinates.count else { continue }
-            let p = CameraFeedCoordinates[idx]
-            minX = min(minX, p.x)
-            minY = min(minY, p.y)
-            maxX = max(maxX, p.x)
-            maxY = max(maxY, p.y)
-        }
-        
-        if minX < maxX, minY < maxY {
-            faceBoundingBox = CGRect(
-                x: CGFloat(minX),
-                y: CGFloat(minY),
-                width: CGFloat(maxX - minX),
-                height: CGFloat(maxY - minY)
-            )
-        } else {
-            faceBoundingBox = nil
-        }
-    }
-    
-    func calculateTargetOvalDimensions() -> (width: Float, height: Float)? {
-        guard let fx = cameraSpecManager.currentSpecs?.intrinsicMatrix?.columns.0.x else {
-            return nil
-        }
-        
-        let dIrisMm: Float = 11.5
-        let LTargetMm: Float = 305.0
-        // Iris_Weight_Px = irisTarget_px && currentiris_width = d_mean_px
-        let irisTarget_px = fx * (dIrisMm / LTargetMm)
-        
-        // ML team's formula
-        let ovalWidth_px  = 9.0 * irisTarget_px
-        let ovalHeight_px = 11.0 * irisTarget_px
-        
-        return (width: ovalWidth_px, height: ovalHeight_px)
-    }
+//    func calculateFaceBoundingBox() {
+//        // Need intrinsics and enough landmarks
+//        guard let fx = cameraSpecManager.currentSpecs?.intrinsicMatrix?.columns.0.x,
+//              CalculationCoordinates.count > 477,
+//              !CameraFeedCoordinates.isEmpty else {
+//            irisDistanceRatio = nil
+//            faceBoundingBox = nil
+//            return
+//        }
+//
+//        // Constants for iris distance calculation
+//        let dIrisMm: Float = 11.5      // Average iris diameter in mm
+//        let LTargetMm: Float = 305.0   // Target distance in mm
+//
+//        // ✅ Calculate and store iris_target_px for UI overlay
+//        let irisTarget_px = fx * (dIrisMm / LTargetMm)
+//        self.irisTargetPx = irisTarget_px
+//
+//        // Iris landmark indices
+//        let leftIdxA = 476
+//        let leftIdxB = 474
+//        let rightIdxA = 471
+//        let rightIdxB = 469
+//
+//        // Validate indices
+//        guard leftIdxA < CalculationCoordinates.count,
+//              leftIdxB < CalculationCoordinates.count,
+//              rightIdxA < CalculationCoordinates.count,
+//              rightIdxB < CalculationCoordinates.count else {
+//            irisDistanceRatio = nil
+//            faceBoundingBox = nil
+//            return
+//        }
+//
+//        // Calculate iris diameters
+//        let diameterLeft_px  = Helper.shared.calculateDistance(
+//            CalculationCoordinates[leftIdxA],
+//            CalculationCoordinates[leftIdxB]
+//        )
+//        let diameterRight_px = Helper.shared.calculateDistance(
+//            CalculationCoordinates[rightIdxA],
+//            CalculationCoordinates[rightIdxB]
+//        )
+//
+//        let d_mean_px: Float = (diameterLeft_px + diameterRight_px) / 2.0
+//        self.dMeanPx = d_mean_px
+//        guard irisTargetPx > 0 else {
+//            irisDistanceRatio = nil
+//            faceBoundingBox = nil
+//            return
+//        }
+//
+//        // Calculate and publish ratio
+//        let ratio = d_mean_px / irisTargetPx
+//        irisDistanceRatio = ratio
+//
+//        // ✅ Updated acceptance range to 0.95 - 1.05
+//        if ratio >= 0.95 && ratio <= 1.05 {
+//            self.ratioIsInRange = true
+//            print("✅ ACCEPT (ratio = \(ratio))")
+//        } else {
+//            self.ratioIsInRange = false
+//            //  print("❌ REJECT (ratio = \(ratio))")
+//        }
+//
+//        // Calculate face bounding box using face oval landmarks
+//        var minX = Float.greatestFiniteMagnitude
+//        var minY = Float.greatestFiniteMagnitude
+//        var maxX = -Float.greatestFiniteMagnitude
+//        var maxY = -Float.greatestFiniteMagnitude
+//
+//        for idx in faceOvalIndices {
+//            guard idx >= 0, idx < CameraFeedCoordinates.count else { continue }
+//            let p = CameraFeedCoordinates[idx]
+//            minX = min(minX, p.x)
+//            minY = min(minY, p.y)
+//            maxX = max(maxX, p.x)
+//            maxY = max(maxY, p.y)
+//        }
+//
+//        if minX < maxX, minY < maxY {
+//            faceBoundingBox = CGRect(
+//                x: CGFloat(minX),
+//                y: CGFloat(minY),
+//                width: CGFloat(maxX - minX),
+//                height: CGFloat(maxY - minY)
+//            )
+//        } else {
+//            faceBoundingBox = nil
+//        }
+//    }
+//
+//    func calculateTargetOvalDimensions() -> (width: Float, height: Float)? {
+//        guard let fx = cameraSpecManager.currentSpecs?.intrinsicMatrix?.columns.0.x else {
+//            return nil
+//        }
+//
+//        let dIrisMm: Float = 11.5
+//        let LTargetMm: Float = 305.0
+//        // Iris_Weight_Px = irisTarget_px && currentiris_width = d_mean_px
+//        let irisTarget_px = fx * (dIrisMm / LTargetMm)
+//
+//        // ML team's formula
+//        let ovalWidth_px  = 9.0 * irisTarget_px
+//        let ovalHeight_px = 11.0 * irisTarget_px
+//
+//        return (width: ovalWidth_px, height: ovalHeight_px)
+//    }
 }

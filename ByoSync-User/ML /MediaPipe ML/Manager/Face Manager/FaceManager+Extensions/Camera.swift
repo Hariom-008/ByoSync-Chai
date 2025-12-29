@@ -14,7 +14,7 @@ import MediaPipeTasksVision
 extension FaceManager {
     
     /// Sets up the camera capture session with appropriate configuration
-    func setupCamera() {
+    func setupCamera(){
         captureSession.beginConfiguration()
         captureSession.sessionPreset = .medium   // or .vga640x480
         
@@ -75,7 +75,7 @@ extension FaceManager: AVCaptureVideoDataOutputSampleBufferDelegate {
     
     func captureOutput(_ output: AVCaptureOutput,
                        didOutput sampleBuffer: CMSampleBuffer,
-                       from connection: AVCaptureConnection) {
+                       from connection: AVCaptureConnection){
         
         // 1) Update camera specifications (intrinsics, etc.)
         if let device = cameraDevice {
@@ -100,6 +100,7 @@ extension FaceManager: AVCaptureVideoDataOutputSampleBufferDelegate {
         
         let width = CVPixelBufferGetWidth(pixelBuffer)
         let height = CVPixelBufferGetHeight(pixelBuffer)
+        
         
         DispatchQueue.main.async { [weak self] in
             self?.imageSize = CGSize(width: width, height: height)

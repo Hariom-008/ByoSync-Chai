@@ -1,22 +1,26 @@
-//
-//  Nose Tip.swift
-//  ML-Testing
-//
-//  Created by Hari's Mac on 29.11.2025.
-//
-
-import Foundation
 import SwiftUI
+import Foundation
+import CoreGraphics
 
-extension FaceManager{
-    func updateNoseTipCenterStatusFromCalcCoords(tolerance: Float = 0.2) {
-        guard NormalizedPoints.count > 4 else {
-            isNoseTipCentered = false
+extension FaceManager {
+
+    /// Android-equivalent: pixel coordinates + Euclidean distance + pixel tolerance
+    func updateNoseTipCenterStatusFromCalcCoords(
+        pixelPoints: [CGPoint],
+        screenCenterX: CGFloat,
+        screenCenterY: CGFloat,
+        tolerancePx: CGFloat = 10.0
+    ){
+        guard pixelPoints.count > 4 else {
+            self.isNoseTipCentered = false
             return
         }
-        let nose = NormalizedPoints[4]   // now assumed centered coords
-        let insideX = abs(nose.x) <= tolerance
-        let insideY = abs(nose.y) <= tolerance
-        isNoseTipCentered = insideX && insideY
+
+        let nose = pixelPoints[4]
+        let dx = nose.x - screenCenterX
+        let dy = nose.y - screenCenterY
+        let distance = sqrt(dx * dx + dy * dy)
+
+        self.isNoseTipCentered = distance <= tolerancePx
     }
 }

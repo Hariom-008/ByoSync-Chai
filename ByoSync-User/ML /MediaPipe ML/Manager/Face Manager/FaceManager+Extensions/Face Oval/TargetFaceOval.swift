@@ -1,101 +1,70 @@
 import Foundation
 import CoreGraphics
-import SwiftUI
 
 extension FaceManager {
-
-    /// Compute the **target** face oval for the current frame in screen space.
-    func updateTargetFaceOvalCoordinates(screenWidth: CGFloat, screenHeight: CGFloat) {
-        // Always reset for the new frame
+    
+    /// Builds the on-screen oval from **NormalizedPoints** (Android-style).
+    ///
+    /// Mapping:
+    ///   screen = center + normalized * scale
+    ///   where scale = iodPx_on_screen / normIOD
+    func updateTargetFaceOvalCoordinates(
+        screenWidth: CGFloat,
+        screenHeight: CGFloat,
+        leftEyeOuterIdx: Int = 33,
+        rightEyeOuterIdx: Int = 263,
+        fallbackScale: CGFloat = 235.0
+    ) {
+        // Reset for this frame
         TargetFaceOvalCoordinates.removeAll(keepingCapacity: true)
         TransalatedScaledFaceOvalCoordinates.removeAll(keepingCapacity: true)
 
-        // We need screen coordinates to be valid
-        guard !ScreenCoordinates.isEmpty else {
-            self.FaceOvalIsInTarget = false
-            return
+        guard !NormalizedPoints.isEmpty else { return }
+
+        // 1) Grab face-oval points in normalized space
+        let normOval: [(x: Float, y: Float)] = faceOvalIndices.compactMap { idx in
+            guard idx >= 0, idx < NormalizedPoints.count else { return nil }
+            return NormalizedPoints[idx]
+        }
+        guard !normOval.isEmpty else { return }
+
+        // 2) Compute IOD in normalized space
+        var normIOD: Float = 0
+        if NormalizedPoints.count > max(leftEyeOuterIdx, rightEyeOuterIdx) {
+            let l = NormalizedPoints[leftEyeOuterIdx]
+            let r = NormalizedPoints[rightEyeOuterIdx]
+            let dx = r.x - l.x
+            let dy = r.y - l.y
+            normIOD = sqrt(dx * dx + dy * dy)
         }
 
-        // 1️⃣ Extract only face-oval points from ScreenCoordinates
-        for idx in faceOvalIndices {
-            let p = ScreenCoordinates[idx]
-            TargetFaceOvalCoordinates.append((x: p.x, y: p.y))
+        // 3) Convert iodPixels (camera px) -> iodPx on preview (points) using aspect-fill scale
+        let camW = max(imageSize.width, 1e-6)
+        let camH = max(imageSize.height, 1e-6)
+        let scaleToPreview = max(screenWidth / camW, screenHeight / camH)
+        let iodPxOnScreen = CGFloat(iodPixels) * scaleToPreview
+
+        // 4) Final mapping scale: normalized units -> screen points
+        let scale: CGFloat
+        if normIOD > 1e-6, iodPxOnScreen > 0 {
+            scale = iodPxOnScreen / CGFloat(normIOD)
+        } else {
+            scale = fallbackScale
         }
 
-        guard !TargetFaceOvalCoordinates.isEmpty else {
-            self.FaceOvalIsInTarget = false
-            return
-        }
+        let cx = screenWidth / 2.0
+        let cy = screenHeight / 2.0
 
-        // 2️⃣ Center around mean
-        let mean = meanOfTargetFaceOvalCoordinates(TargetFaceOvalCoordinates: TargetFaceOvalCoordinates)
-
-        var centred: [(x: CGFloat, y: CGFloat)] = []
-        centred.reserveCapacity(TargetFaceOvalCoordinates.count)
-
-        for c in TargetFaceOvalCoordinates {
-            centred.append((x: c.x - mean.x, y: c.y - mean.y))
-        }
-
-        // 3️⃣ Scale using irisTargetPx and dMeanPx
-        let safeDMean = max(CGFloat(dMeanPx), 0.0001)
-        let scaleFactor = CGFloat(irisTargetPx) / safeDMean
-
-        var scaled: [(x: CGFloat, y: CGFloat)] = []
-        scaled.reserveCapacity(centred.count)
-
-        for c in centred {
-            scaled.append((x: c.x * scaleFactor, y: c.y * scaleFactor))
-        }
-
-        // 4️⃣ Translate to screen center
-        let center = CGPoint(x: screenWidth / 2.0, y: screenHeight / 2.0)
-        for c in scaled {
+        // 5) Build the oval points in screen space (centered)
+        TransalatedScaledFaceOvalCoordinates.reserveCapacity(normOval.count)
+        for p in normOval {
             TransalatedScaledFaceOvalCoordinates.append(
-                (x: c.x + center.x, y: c.y + center.y)
+                (x: cx + CGFloat(p.x) * scale,
+                 y: cy - CGFloat(p.y) * scale)   // ✅ invert Y for screen space
             )
         }
 
-        // 5️⃣ NEW: Evaluate if user face oval fits inside target oval
-        evaluateFaceOvalAlignment()
-    }
-
-    func meanOfTargetFaceOvalCoordinates(
-        TargetFaceOvalCoordinates: [(x: CGFloat, y: CGFloat)]
-    ) -> (x: CGFloat, y: CGFloat) {
-        guard !TargetFaceOvalCoordinates.isEmpty else { return (0, 0) }
-
-        let sumX = TargetFaceOvalCoordinates.reduce(0) { $0 + $1.x }
-        let sumY = TargetFaceOvalCoordinates.reduce(0) { $0 + $1.y }
-
-        let count = CGFloat(TargetFaceOvalCoordinates.count)
-        return (x: sumX / count, y: sumY / count)
-    }
-
-    // MARK: - 🔥 NEW: Check if face oval matches target oval
-
-    func evaluateFaceOvalAlignment() {
-        guard TargetFaceOvalCoordinates.count == TransalatedScaledFaceOvalCoordinates.count else {
-            self.FaceOvalIsInTarget = false
-            return
-        }
-
-        var allInside = true
-
-        for i in 0..<TargetFaceOvalCoordinates.count {
-            let p1 = TargetFaceOvalCoordinates[i]
-            let p2 = TransalatedScaledFaceOvalCoordinates[i]
-
-            let dx = p1.x - p2.x
-            let dy = p1.y - p2.y
-            let distance = sqrt(dx*dx + dy*dy)
-
-            if distance > errorWindowPx {
-                allInside = false
-                break
-            }
-        }
-
-        self.FaceOvalIsInTarget = allInside
+        // Keeping this for compatibility/debugging (same points, same meaning now)
+        TargetFaceOvalCoordinates = TransalatedScaledFaceOvalCoordinates
     }
 }

@@ -79,22 +79,6 @@ extension FaceManager {
     }
     
     /// Normalizes all points by dividing by the scale factor
-//    func calculateNormalizedPoints() {
-//        let eps: Float = 1e-6
-//        guard !Translated.isEmpty, scale > eps else {
-//            NormalizedPoints = []
-//            return
-//        }
-//        
-//        // Divide each translated point by scale
-//        NormalizedPoints = Translated.map { p in
-//            (x: p.x / scale, y: p.y / scale)
-//        }
-//    }
-}
-
-extension FaceManager {
-
     func calculateNormalizedPoints() {
         let eps: Float = 1e-6
         guard !Translated.isEmpty, scale > eps else {
@@ -109,61 +93,8 @@ extension FaceManager {
             NormalizedPoints = normalized
             return
         }
-
-        let p33  = normalized[33]
-        let p263 = normalized[263]
-
-        // Match Android direction: v = p33 - p263
-        let vx = p33.x - p263.x
-        let vy = p33.y - p263.y
-        let v2 = vx * vx + vy * vy
-        guard v2 > eps * eps else {
-            NormalizedPoints = normalized
-            return
-        }
-
-        let roll = atan2f(vy, vx) // [-pi, pi]
-        let c = cosf(roll)
-        let s = sinf(roll)
-
-        @inline(__always)
-        func rotateMinusRoll(_ pts: inout [(x: Float, y: Float)]) {
-            // Android matrix: rotate by -roll around origin
-            for i in pts.indices {
-                let x = pts[i].x
-                let y = pts[i].y
-                pts[i] = (x: x * c + y * s,
-                          y: -x * s + y * c)
-            }
-        }
-
-        @inline(__always)
-        func rotatePlusRoll(_ pts: inout [(x: Float, y: Float)]) {
-            // rotate by +roll around origin
-            for i in pts.indices {
-                let x = pts[i].x
-                let y = pts[i].y
-                pts[i] = (x: x * c - y * s,
-                          y: x * s + y * c)
-            }
-        }
-
-        // If your coordinate conventions are consistent, this is enough:
-        // rotateMinusRoll(&normalized)
-
-        // If you want robustness across flips/mirroring, choose the one that makes the eye-line most horizontal (mod pi)
-        var candA = normalized
-        var candB = normalized
-        rotateMinusRoll(&candA)
-        rotatePlusRoll(&candB)
-
-        func horizResidual(_ pts: [(x: Float, y: Float)]) -> Float {
-            let a = pts[33], b = pts[263]
-            let ang = atan2f(b.y - a.y, b.x - a.x)
-            return abs(sinf(ang)) // 0 when angle is 0 or pi
-        }
-
-        normalized = (horizResidual(candA) <= horizResidual(candB)) ? candA : candB
         NormalizedPoints = normalized
     }
 }
+
+
