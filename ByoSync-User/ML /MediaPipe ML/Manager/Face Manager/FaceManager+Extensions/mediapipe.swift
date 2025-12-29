@@ -28,11 +28,10 @@ extension FaceManager {
 
             faceLandmarker = try FaceLandmarker(options: options)
             print("✅ MediaPipe Face Landmarker initialized")
-        } catch {
+        } catch{
             print("❌ Error initializing Face Landmarker: \(error.localizedDescription)")
         }
     }
-
 }
 
 // MARK: - FaceLandmarkerLiveStreamDelegate

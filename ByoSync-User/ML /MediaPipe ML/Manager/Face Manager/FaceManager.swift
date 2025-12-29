@@ -7,8 +7,7 @@ import Foundation
 import SwiftUI
 
 /// Main FaceManager class - Coordinates all face detection and tracking functionality
-final class FaceManager: NSObject, ObservableObject {
-    
+final class FaceManager: NSObject, ObservableObject{
     // MARK: - Dependencies
     let cameraSpecManager: CameraSpecManager
     
