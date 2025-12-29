@@ -4,7 +4,7 @@ import Combine
 
 enum FaceAuthMode {
     case registration  // 80 frames
-    case verification  // 10 frames
+    case verification  // 20 frames
 }
 
 final class FaceAuthManager: ObservableObject {

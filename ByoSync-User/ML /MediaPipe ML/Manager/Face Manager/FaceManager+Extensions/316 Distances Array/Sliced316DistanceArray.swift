@@ -23,14 +23,14 @@ extension FaceManager {
 
     /// Returns last 10 frames, each with exactly 316 distances
     func VerifyFrameDistanceArray() -> [[Float]] {
-        guard AllFramesOptionalAndMandatoryDistance.count >= 10 else {
-            print("⚠️ Not enough frames. Have \(AllFramesOptionalAndMandatoryDistance.count), need at least 10.")
+        guard AllFramesOptionalAndMandatoryDistance.count >= 20 else {
+            print("⚠️ Not enough frames. Have \(AllFramesOptionalAndMandatoryDistance.count), need at least 20.")
             return []
         }
 
-        let last10Frames = AllFramesOptionalAndMandatoryDistance.suffix(10)
+        let last20Frames = AllFramesOptionalAndMandatoryDistance.suffix(20)
 
-        let trimmed = last10Frames.compactMap { frame -> [Float]? in
+        let trimmed = last20Frames.compactMap { frame -> [Float]? in
             guard frame.count >= 316 else {
                 print("⚠️ Frame too short: \(frame.count), need at least 316")
                 return nil
