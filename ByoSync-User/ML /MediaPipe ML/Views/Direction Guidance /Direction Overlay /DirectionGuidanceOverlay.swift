@@ -13,7 +13,6 @@ struct DirectionalGuidanceOverlay: View {
     var body: some View {
         GeometryReader { geometry in
             ZStack {
-
                 // 1) Distance guidance (ONLY when IOD invalid)
                 if !faceManager.iodIsValid {
                     ambientGuidanceLayer

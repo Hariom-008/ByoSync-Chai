@@ -118,5 +118,5 @@ struct LogEndpoint{
 struct ChaiEndpoint{
     static let baseURL = "https://backendapi.byosync.in"
     //POST
-    static let updateChai = "\(baseURL)/api/v1/users/update-chai"
+    static let createChaiOrder = "\(baseURL)/api/v1/order/create"
 }

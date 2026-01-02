@@ -15,6 +15,10 @@ final class APIClient {
     private init() {
         // 1. URLSession configuration
         let configuration = URLSessionConfiguration.af.default
+        configuration.httpCookieStorage = .shared
+        configuration.httpShouldSetCookies = true
+        configuration.httpCookieAcceptPolicy = .always
+        
         configuration.timeoutIntervalForRequest = 30
         configuration.timeoutIntervalForResource = 60
         

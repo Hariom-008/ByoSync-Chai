@@ -17,10 +17,11 @@ final class ChaiRepository: ChaiRepositoryProtocol {
         userId: String,
         completion: @escaping (Result<APIResponse<EmptyData>, APIError>) -> Void
     ) {
-        let endpoint = ChaiEndpoint.updateChai
+        let endpoint = ChaiEndpoint.createChaiOrder
 
         // ✅ match Postman exactly
         let params: Parameters = [
+            "chaiDeviceId": DeviceIdentity.resolve(),
             "userId": userId
         ]
 

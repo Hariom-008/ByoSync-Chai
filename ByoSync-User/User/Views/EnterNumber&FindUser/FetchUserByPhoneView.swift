@@ -10,6 +10,8 @@ struct FetchUserByPhoneView: View {
     @State private var alertTitle: String = ""
     @FocusState private var isPhoneFieldFocused: Bool
     
+    @State var openAdminPanel:Bool = false
+    
     var body: some View {
         ZStack {
             // Clean background
@@ -160,12 +162,23 @@ struct FetchUserByPhoneView: View {
                     .transition(.scale(scale: 0.8).combined(with: .opacity))
             }
         }
+        .navigationDestination(isPresented: $openAdminPanel, destination: {
+            AdminLoginView()
+        })
         .alert(alertTitle, isPresented: $showAlert) {
             Button("OK", role: .cancel) { }
         } message: {
             Text(alertMessage)
         }
         .animation(.spring(response: 0.5, dampingFraction: 0.75), value: viewModel.userId)
+        .toolbar{
+            Button{
+                openAdminPanel.toggle()
+            }label:{
+                Text("Admin")
+                    .font(.system(size: 16, weight: .bold,design:.rounded))
+            }
+        }
     }
     
     private var successOverlay: some View {
