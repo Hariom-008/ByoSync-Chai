@@ -15,10 +15,11 @@ final class FaceAuthManager: ObservableObject {
     private init() {}
     
     func setRegistrationMode() {
+        #if DEBUG
         print("📸 [FaceAuthManager] Mode set to: Registration")
+        #endif
         currentMode = .registration
     }
-    
     func setVerificationMode() {
         print("🔐 [FaceAuthManager] Mode set to: Verification")
         currentMode = .verification
