@@ -55,7 +55,7 @@ struct FaceDetectionView: View {
     @EnvironmentObject var faceAuthManager: FaceAuthManager
 
     // ✅ NEW: enrollment persistence gate
-    @EnvironmentObject var enrollmentGate: EnrollmentGate
+   // @EnvironmentObject var enrollmentGate: EnrollmentGate
 
     // ✅ Auto-trigger tracking (prevent multiple triggers)
     @State private var hasAutoTriggered: Bool = false
@@ -368,7 +368,7 @@ struct FaceDetectionView: View {
                 guard ok else { return }
 
                 print("✅ [Upload] Registration successful!")
-                enrollmentGate.markEnrolled()
+               // enrollmentGate.markEnrolled()
                 faceIdFetchViewModel.fetchFaceIds()
 
                 faceManager.capturedFrames = []
@@ -438,9 +438,9 @@ struct FaceDetectionView: View {
             print("🌐 [FaceDetectionView] Fetching FaceIds on appear for deviceKey=\(DeviceIdentity.resolve())")
             print("🎯 [FaceDetectionView] Current mode: \(faceAuthManager.currentMode)")
 
-            if faceAuthManager.currentMode == .registration {
-                enrollmentGate.markNotEnrolled()
-            }
+//            if faceAuthManager.currentMode == .registration {
+//                enrollmentGate.markNotEnrolled()
+//            }
 
             faceIdFetchViewModel.fetchFaceIds()
             hasAutoTriggered = false
@@ -459,23 +459,23 @@ struct FaceDetectionView: View {
 
     // MARK: - Helper Functions
 
-    private func checkEnrollmentStatus() {
-        isEnrolled = backendEnrollmentValid
-
-        if faceIdFetchViewModel.hasLoadedOnce {
-            if backendEnrollmentValid {
-                enrollmentGate.markEnrolled()
-            } else {
-                enrollmentGate.markNotEnrolled()
-            }
-        }
-
-        let count = faceIdFetchViewModel.faceIds.count
-        let saltLen = faceIdFetchViewModel.faceIdData?.salt.count ?? 0
-        print("📊 Enrollment status (backend): \(isEnrolled ? "✅ Enrolled" : "❌ Not Enrolled")")
-        print("   Remote FaceId count: \(count)")
-        print("   Remote salt len: \(saltLen)")
-    }
+//    private func checkEnrollmentStatus() {
+//        isEnrolled = backendEnrollmentValid
+//
+//        if faceIdFetchViewModel.hasLoadedOnce {
+//            if backendEnrollmentValid {
+//                enrollmentGate.markEnrolled()
+//            } else {
+//                enrollmentGate.markNotEnrolled()
+//            }
+//        }
+//
+//        let count = faceIdFetchViewModel.faceIds.count
+//        let saltLen = faceIdFetchViewModel.faceIdData?.salt.count ?? 0
+//        print("📊 Enrollment status (backend): \(isEnrolled ? "✅ Enrolled" : "❌ Not Enrolled")")
+//        print("   Remote FaceId count: \(count)")
+//        print("   Remote salt len: \(saltLen)")
+//    }
 
     // MARK: - Register Handler
 
@@ -526,7 +526,7 @@ struct FaceDetectionView: View {
         isProcessing = true
 
         guard backendEnrollmentValid else {
-            enrollmentGate.markNotEnrolled()
+           // enrollmentGate.markNotEnrolled()
 
             isProcessing = false
             alertTitle = "No usable face data"
@@ -597,87 +597,3 @@ struct FaceDetectionView: View {
         }
     }
 }
-
-
-
-
-
-
-// ✅ Normalized Points Card at Bottom - Now with dismiss button and better visibility
-//                    if showNormalizedPoints {
-//                        VStack(spacing: 0) {
-//                            // Header with dismiss button
-//                            HStack {
-//                                Image(systemName: "point.3.connected.trianglepath.dotted")
-//                                    .font(.system(size: 12))
-//                                    .foregroundColor(.white)
-//
-//                                Text("Face Landmarks")
-//                                    .font(.system(size: 12, weight: .semibold))
-//                                    .foregroundColor(.white)
-//
-//                                Spacer()
-//
-//                                Text("\(faceManager.NormalizedPoints.count) points")
-//                                    .font(.system(size: 10, weight: .medium))
-//                                    .foregroundColor(.white.opacity(0.7))
-//
-//                                // Dismiss button
-//                                Button(action: {
-//                                    print("🗑️ [NormalizedPoints] Dismissing overlay")
-//                                    withAnimation(.spring(duration: 0.3)) {
-//                                        showNormalizedPoints = false
-//                                    }
-//                                }) {
-//                                    Image(systemName: "xmark.circle.fill")
-//                                        .font(.system(size: 18))
-//                                        .foregroundColor(.white.opacity(0.8))
-//                                }
-//                                .padding(.leading, 8)
-//                            }
-//                            .padding(.horizontal, 16)
-//                            .padding(.vertical, 10)
-//                            .background(Color.blue.opacity(0.8))
-//
-//                            // Overlay visualization
-//                            NormalizedPointsOverlay(points: faceManager.NormalizedPoints)
-//                                .frame(width: 280, height: 280)
-//                                .background(Color.black)
-//                                .overlay(
-//                                    RoundedRectangle(cornerRadius: 0)
-//                                        .stroke(Color.blue.opacity(0.5), lineWidth: 2)
-//                                )
-//                        }
-//                        .background(Color.black)
-//                        .cornerRadius(16)
-//                        .shadow(color: .black.opacity(0.5), radius: 15, x: 0, y: -5)
-//                        .padding(.horizontal, 24)
-//                        .padding(.bottom, 40)
-//                        .transition(.move(edge: .bottom).combined(with: .opacity))
-//                    }
-//
-// Show button to reveal overlay if dismissed
-//                    if !showNormalizedPoints {
-//                        Button(action: {
-//                            print("👁️ [NormalizedPoints] Showing overlay")
-//                            withAnimation(.spring(duration: 0.3)) {
-//                                showNormalizedPoints = true
-//                            }
-//                        }) {
-//                            HStack(spacing: 8) {
-//                                Image(systemName: "point.3.connected.trianglepath.dotted")
-//                                    .font(.system(size: 12))
-//                                Text("Show Landmarks")
-//                                    .font(.system(size: 12, weight: .semibold))
-//                            }
-//                            .foregroundColor(.white)
-//                            .padding(.horizontal, 16)
-//                            .padding(.vertical, 10)
-//                            .background(
-//                                RoundedRectangle(cornerRadius: 8)
-//                                    .fill(Color.blue.opacity(0.8))
-//                            )
-//                        }
-//                        .padding(.bottom, 40)
-//                        .transition(.move(edge: .bottom).combined(with: .opacity))
-//                    }

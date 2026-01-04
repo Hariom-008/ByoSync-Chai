@@ -12,6 +12,7 @@ struct FaceId: Codable,Equatable {
     let helper: String
     let k2: String
     let token: String
+    let iod: String
 }
 
 struct GetFaceIdData: Codable,Equatable {
@@ -39,11 +40,11 @@ final class FaceIdFetchRepository {
     ///   - deviceKey: raw device key string
     ///   - completion: returns `GetFaceIdData` on success
     func getFaceIds(
-        deviceKeyHash: String,
+        deviceKey: String,
         completion: @escaping (Result<GetFaceIdData, APIError>) -> Void
     ) {
         // 1. Generate HMAC hash
-        let deviceKeyHash = deviceKeyHash
+        let deviceKeyHash = hmacGenerator.generateHMAC(jsonString: deviceKey)
         // 2. Headers (auth + Token etc.)
         let headers: HTTPHeaders = getHeader.shared.getAuthHeaders()
         

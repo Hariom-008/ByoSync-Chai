@@ -11,6 +11,7 @@ struct AddFaceIdRequestBody: Codable {
     let helper: String
     let k2: String
     let token: String
+    let iod : String
 }
 
 final class FaceIdRepository {
@@ -25,6 +26,7 @@ final class FaceIdRepository {
         completion: @escaping (Result<Void, APIError>) -> Void
     ) {
         let headers = getHeader.shared.getAuthHeaders()
+        let userID = UserSession.shared.currentUserID
 
         // Convert `[AddFaceIdRequestBody]` → `[[String: Any]]`
         let faceIdArray: [[String: Any]]
@@ -37,13 +39,31 @@ final class FaceIdRepository {
         }
 
         let body: [String: Any] = [
+            "userId": userID,
             "salt": salt,
             "faceId": faceIdArray
         ]
 
-        print("\n📤 [FaceIdRepository] addFaceIds → URL: \(UserAPIEndpoint.FaceId.addFaceId)")
-        print("📤 Headers: \(headers)")
-        print("📤 Body: \(body)\n")
+        #if DEBUG
+        do {
+            // Serialize body -> JSON data
+            let data = try JSONSerialization.data(withJSONObject: body, options: [.prettyPrinted, .sortedKeys])
+
+            // Print byte size (super useful for 413 debugging)
+            print("\n📤 [FaceIdRepository] addFaceIds → URL: \(UserAPIEndpoint.FaceId.addFaceId)")
+            print("📤 Headers: \(headers)")
+            print("📦 Body bytes: \(data.count) (~\(String(format: "%.2f", Double(data.count)/1024.0)) KB)")
+
+            // Print JSON as String
+            if let jsonString = String(data: data, encoding: .utf8) {
+                print("📤 Body JSON:\n\(jsonString)\n")
+            } else {
+                print("⚠️ Could not convert JSON data to UTF-8 string\n")
+            }
+        } catch {
+            print("❌ [FaceIdRepository] JSON print failed: \(error)\n")
+        }
+        #endif
 
         APIClient.shared.requestWithoutResponse(
             UserAPIEndpoint.FaceId.addFaceId,
@@ -53,14 +73,19 @@ final class FaceIdRepository {
         ) { result in
             switch result {
             case .success:
+                #if DEBUG
                 print("✅ Successfully uploaded faceId list")
+                #endif
                 completion(.success(()))
             case .failure(let error):
+                #if DEBUG
                 print("❌ Failed: \(error)")
+                #endif
                 completion(.failure(error))
             }
         }
     }
+
     
     /// Upload **one** record
     func addFaceId(
@@ -68,9 +93,10 @@ final class FaceIdRepository {
         helper: String,
         k2: String,
         token: String,
+        iod: String,
         completion: @escaping (Result<Void, APIError>) -> Void
     ) {
-        let item = AddFaceIdRequestBody(helper: helper, k2: k2, token: token)
+        let item = AddFaceIdRequestBody(helper: helper, k2: k2, token: token,iod: iod)
         addFaceIds(salt: salt, records: [item], completion: completion)
     }
 }
