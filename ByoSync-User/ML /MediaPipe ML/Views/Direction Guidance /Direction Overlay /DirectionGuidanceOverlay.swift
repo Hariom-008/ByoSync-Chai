@@ -3,341 +3,359 @@ import SwiftUI
 struct DirectionalGuidanceOverlay: View {
     @ObservedObject var faceManager: FaceManager
 
-    // Android distance band
-    private let IOD_MIN: Float = 0.30
-    private let IOD_MAX: Float = 0.31
+    // MARK: - Thresholds
+    private let IOD_NORM_MAX: Float = 0.31
 
-    // Nose centering tolerance in normalized space (should match updateNoseTipCenterStatusFromCalcCoords)
-    private let NOSE_TOL: Float = 0.20
+    // If you want different stability thresholds per phase, tune here.
+    private let REG_CENTER_PITCH_THR: Float = 0.27
+    private let REG_CENTER_YAW_THR:   Float = 0.30
+    private let REG_CENTER_ROLL_THR:  Float = 0.05
+
+    private let MOVE_PITCH_THR: Float = 0.27
+    private let MOVE_YAW_THR:   Float = 0.30
+    private let MOVE_ROLL_THR:  Float = 0.05
+
+    private let VER_PITCH_THR: Float = 0.27
+    private let VER_YAW_THR:   Float = 0.30
+    private let VER_ROLL_THR:  Float = 0.05
 
     var body: some View {
-        GeometryReader { geometry in
-            ZStack {
-                // 1) Distance guidance (ONLY when IOD invalid)
-                if !faceManager.iodIsValid {
-                    ambientGuidanceLayer
-                        .transition(.opacity.combined(with: .scale(scale: 0.98)))
-                }
-
-                // 2) Arrows (ONLY when IOD valid and we still need alignment)
-                if faceManager.iodIsValid && !allConditionsMet {
-                    arrowGuidanceInsideOval(in: geometry.size)
-                        .transition(.opacity)
-                }
-
-                // 2b) Optional small prompt if nose is centered but pose is not stable
-                if faceManager.iodIsValid && faceManager.isNoseTipCentered && !faceManager.isHeadPoseStable() {
-                    holdSteadyPrompt
-                        .transition(.opacity)
-                }
-
-                // 3) Success state
-                if allConditionsMet {
-                    VStack {
-                        Spacer()
-                        HStack {
-                            Spacer()
-                            successCelebration
-                                .transition(.asymmetric(
-                                    insertion: .scale(scale: 0.85).combined(with: .opacity),
-                                    removal: .opacity
-                                ))
-                            Spacer()
-                        }
-                        Spacer()
-                    }
-                }
+        ZStack {
+            switch faceManager.faceAuthManager.currentMode {
+            case .registration:
+                registrationOverlay
+            case .verification:
+                verificationOverlay
             }
-            .animation(.spring(response: 0.4, dampingFraction: 0.75), value: allConditionsMet)
-            .animation(.spring(response: 0.3, dampingFraction: 0.8), value: faceManager.iodIsValid)
         }
         .allowsHitTesting(false)
     }
 
-    // MARK: - Gates (IOD valid + nose centered + pose stable)
+    // MARK: - Registration
 
-    private var allConditionsMet: Bool {
-        faceManager.iodIsValid &&
-        faceManager.isNoseTipCentered &&
-        faceManager.isHeadPoseStable()
+    private var registrationOverlay: some View {
+        ZStack {
+            switch faceManager.registrationPhase {
+
+            case .centerCollecting:
+                registrationCenterTrackingOverlay
+
+            case .movementCollecting:
+                registrationMovementTrackingOverlay
+
+            case .done:
+                stablePill(text: "Processing…")
+            }
+        }
     }
 
-    // MARK: - Position + Distance Guidance (Android-style; now driven by nose tip)
+    /// Phase 1: centre tracking gates
+    /// iodIsValid && iodNormalized<=0.31 && headPoseStable && faceInsideOval
+    private var registrationCenterTrackingOverlay: some View {
+        let iodOk = faceManager.iodIsValid
+        let iodNormOk = faceManager.iodNormalized <= IOD_NORM_MAX
+        let stable = faceManager.isPoseStable(
+            pitchThr: REG_CENTER_PITCH_THR,
+            yawThr: REG_CENTER_YAW_THR,
+            rollThr: REG_CENTER_ROLL_THR
+        )
+        let inside = faceManager.faceisInsideFaceOval
 
-    private var positionGuidance: PositionGuidance {
-        var guidance = PositionGuidance()
+        let allOk = iodOk && iodNormOk && stable && inside
 
-        // Need the target center for arrow placement, but direction comes from nose tip
-        guard !faceManager.TransalatedScaledFaceOvalCoordinates.isEmpty else {
-            return guidance
-        }
+        return ZStack {
+            topPill(text: "Hold steady • \(faceManager.centerFramesCount)/60")
 
-        // 1) Horizontal/vertical: use nose tip in NormalizedPoints (index 4), centered at (0,0)
-        //    Important: your UI mapping is y = cy - normY*scale, so:
-        //      normY > 0 => nose is ABOVE center => user should move DOWN
-        //      normY < 0 => nose is BELOW center => user should move UP
-        if faceManager.NormalizedPoints.count > 4 {
-            let nose = faceManager.NormalizedPoints[4]
-            let nx = nose.x
-            let ny = nose.y
+            VStack(spacing: 10) {
+                Spacer().frame(height: 170)
 
-            // Horizontal (same convention as your old deltaX logic)
-            if nx > NOSE_TOL {
-                guidance.horizontal = .left
-                guidance.horizontalIntensity = intensity(abs(nx) - NOSE_TOL, denom: 0.6)
-            } else if nx < -NOSE_TOL {
-                guidance.horizontal = .right
-                guidance.horizontalIntensity = intensity(abs(nx) - NOSE_TOL, denom: 0.6)
+                VStack(spacing: 10) {
+                    gateRow(ok: iodOk && iodNormOk,
+                            okText: "✓ Distance OK",
+                            badText: iodBadText(iodOk: iodOk, iodNormOk: iodNormOk))
+
+                    gateRow(ok: stable,
+                            okText: "✓ Keep steady",
+                            badText: "Hold steady")
+
+                    gateRow(ok: inside,
+                            okText: "✓ Face inside oval",
+                            badText: "Fit your face inside the oval")
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 14)
+                .background(RoundedRectangle(cornerRadius: 18).fill(Color.black.opacity(0.65)))
+
+                if allOk {
+                    Text("Capturing… \(faceManager.centerFramesCount)/60")
+                        .font(.system(size: 16, weight: .bold, design: .rounded))
+                        .foregroundColor(.green)
+                        .padding(.top, 6)
+                }
+
+                Spacer()
             }
+        }
+    }
 
-            // Vertical (note the inverted mapping explained above)
-            if ny > NOSE_TOL {
-                guidance.vertical = .down
-                guidance.verticalIntensity = intensity(abs(ny) - NOSE_TOL, denom: 0.6)
-            } else if ny < -NOSE_TOL {
-                guidance.vertical = .up
-                guidance.verticalIntensity = intensity(abs(ny) - NOSE_TOL, denom: 0.6)
+    /// Phase 2: movement tracking gates
+    /// isHeadPoseStable && faceInsideOval
+    /// (NO direction UI, NO IOD guidance here)
+    private var registrationMovementTrackingOverlay: some View {
+        let stable = faceManager.isPoseStable(
+            pitchThr: MOVE_PITCH_THR,
+            yawThr: MOVE_YAW_THR,
+            rollThr: MOVE_ROLL_THR
+        )
+        let inside = faceManager.faceisInsideFaceOval
+        let allOk = stable && inside
+
+        return ZStack {
+            topPill(text: "Move naturally • \(faceManager.movementSecondsRemaining)s")
+
+            VStack(spacing: 10) {
+                Spacer().frame(height: 170)
+
+                VStack(spacing: 10) {
+                    gateRow(ok: stable,
+                            okText: "✓ Keep steady",
+                            badText: "Hold steady")
+
+                    gateRow(ok: inside,
+                            okText: "✓ Face inside oval",
+                            badText: "Fit your face inside the oval")
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 14)
+                .background(RoundedRectangle(cornerRadius: 18).fill(Color.black.opacity(0.65)))
+
+                if allOk {
+                    Text("Capturing… \(faceManager.movementFramesCount)")
+                        .font(.system(size: 16, weight: .bold, design: .rounded))
+                        .foregroundColor(.green)
+                        .padding(.top, 6)
+                }
+
+                Spacer()
             }
         }
+    }
 
-        // 2) Distance: from IOD gate
+    // MARK: - Verification
+
+    /// Verification gates:
+    /// iodIsValid && iodNormalized<=0.31 && headPoseStable && faceInsideOval
+    private var verificationOverlay: some View {
+        let iodOk = faceManager.iodIsValid
+        let iodNormOk = faceManager.iodNormalized <= IOD_NORM_MAX
+        let stable = faceManager.isPoseStable(
+            pitchThr: VER_PITCH_THR,
+            yawThr: VER_YAW_THR,
+            rollThr: VER_ROLL_THR
+        )
+        let inside = faceManager.faceisInsideFaceOval
+
+        let allOk = iodOk && iodNormOk && stable && inside
+
+        return ZStack {
+            topPill(text: "Align your face")
+
+            VStack(spacing: 10) {
+                Spacer().frame(height: 170)
+
+                VStack(spacing: 10) {
+                    gateRow(ok: iodOk && iodNormOk,
+                            okText: "✓ Distance OK",
+                            badText: iodBadText(iodOk: iodOk, iodNormOk: iodNormOk))
+
+                    gateRow(ok: stable,
+                            okText: "✓ Keep steady",
+                            badText: "Hold steady")
+
+                    gateRow(ok: inside,
+                            okText: "✓ Face inside oval",
+                            badText: "Fit your face inside the oval")
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 14)
+                .background(RoundedRectangle(cornerRadius: 18).fill(Color.black.opacity(0.65)))
+
+                if allOk {
+                    stablePill(text: "Capturing…")
+                        .padding(.top, 6)
+                }
+
+                Spacer()
+            }
+        }
+    }
+
+    // MARK: - Gate Row UI
+
+    @ViewBuilder
+    private func gateRow(ok: Bool, okText: String, badText: String) -> some View {
+        HStack(spacing: 10) {
+            Circle()
+                .fill(ok ? Color.green : Color.red)
+                .frame(width: 10, height: 10)
+
+            Text(ok ? okText : badText)
+                .font(.system(size: 16, weight: .semibold, design: .rounded))
+                .foregroundColor(.white)
+
+            Spacer()
+        }
+    }
+
+    // MARK: - IOD Text Logic
+
+    /// Combines your old iodGuidance + new iodNormalized<=0.31 rule.
+    private func iodBadText(iodOk: Bool, iodNormOk: Bool) -> String {
+        if !iodOk {
+            // use your existing guidance wording
+            return distanceText
+        }
+        // iodOk == true but iodNormalized too large -> face too small / too far
+        if !iodNormOk {
+            return "Move closer"
+        }
+        return distanceText
+    }
+
+    private var distanceText: String {
         switch faceManager.iodGuidance {
-        case .moveCloser:
-            guidance.distance = .closer
-            guidance.distanceIntensity = CGFloat(min((IOD_MIN - faceManager.iodNormalized) / 0.02, 1.0))
-        case .moveFarther:
-            guidance.distance = .farther
-            guidance.distanceIntensity = CGFloat(min((faceManager.iodNormalized - IOD_MAX) / 0.02, 1.0))
-        case .ok:
-            guidance.distance = .perfect
-            guidance.distanceIntensity = 0
-        case .noFace:
-            guidance.distance = .perfect
-            guidance.distanceIntensity = 0
-        }
-
-        return guidance
-    }
-
-    private func intensity(_ value: Float, denom: Float) -> CGFloat {
-        guard denom > 1e-6 else { return 0 }
-        return CGFloat(min(max(value / denom, 0), 1.0))
-    }
-
-    private func calculateCenter(from points: [(x: CGFloat, y: CGFloat)]) -> CGPoint {
-        guard !points.isEmpty else { return .zero }
-        let sumX = points.reduce(0.0) { $0 + $1.x }
-        let sumY = points.reduce(0.0) { $0 + $1.y }
-        return CGPoint(x: sumX / CGFloat(points.count), y: sumY / CGFloat(points.count))
-    }
-
-    // MARK: - Arrow Guidance Inside Oval
-
-    private func arrowGuidanceInsideOval(in size: CGSize) -> some View {
-        let guidance = positionGuidance
-        let targetCenter = calculateCenter(from: faceManager.TransalatedScaledFaceOvalCoordinates)
-
-        return ZStack {
-            // Left arrow
-            if guidance.horizontal == .left {
-                AsyncImage(url: URL(string: "https://res.cloudinary.com/da2cxcqup/image/upload/v1764256539/rollleft_jm0ady.png")) { image in
-                    image.resizable().aspectRatio(contentMode: .fit)
-                } placeholder: { ProgressView() }
-                    .frame(width: 80, height: 80)
-                    .position(x: targetCenter.x - 80, y: targetCenter.y)
-                    .modifier(DirectionalPulseModifier(intensity: guidance.horizontalIntensity))
-            }
-
-            // Right arrow
-            if guidance.horizontal == .right {
-                AsyncImage(url: URL(string: "https://res.cloudinary.com/da2cxcqup/image/upload/v1764256007/rollright_arpuqd.png")) { image in
-                    image.resizable().aspectRatio(contentMode: .fit)
-                } placeholder: { ProgressView() }
-                    .frame(width: 80, height: 80)
-                    .position(x: targetCenter.x + 80, y: targetCenter.y)
-                    .modifier(DirectionalPulseModifier(intensity: guidance.horizontalIntensity))
-            }
-
-            // Up arrow
-            if guidance.vertical == .up {
-                AsyncImage(url: URL(string: "https://res.cloudinary.com/da2cxcqup/image/upload/v1764253847/up_xeoewe.png")) { image in
-                    image.resizable().aspectRatio(contentMode: .fit)
-                } placeholder: { ProgressView() }
-                    .frame(width: 80, height: 80)
-                    .position(x: targetCenter.x, y: targetCenter.y - 100)
-                    .modifier(DirectionalPulseModifier(intensity: guidance.verticalIntensity))
-            }
-
-            // Down arrow
-            if guidance.vertical == .down {
-                AsyncImage(url: URL(string: "https://res.cloudinary.com/da2cxcqup/image/upload/v1764253847/down_ijhlr4.png")) { image in
-                    image.resizable().aspectRatio(contentMode: .fit)
-                } placeholder: { ProgressView() }
-                    .frame(width: 80, height: 80)
-                    .position(x: targetCenter.x, y: targetCenter.y + 100)
-                    .modifier(DirectionalPulseModifier(intensity: guidance.verticalIntensity))
-            }
+        case .moveCloser: return "Move closer"
+        case .moveFarther: return "Move back"
+        case .ok: return "Perfect distance"
+        case .noFace: return "Position your face"
         }
     }
 
-    // MARK: - Distance Guidance Layer (only when IOD invalid)
+    // MARK: - Pills
 
-    private var ambientGuidanceLayer: some View {
-        VStack(spacing: 0) {
-            Spacer().frame(height: 80)
-            directionalGuidanceZone
-                .frame(maxHeight: .infinity)
-        }
-    }
-
-    private var directionalGuidanceZone: some View {
-        let guidance = positionGuidance
-        return ZStack {
-            if guidance.distance != .perfect {
-                distanceIndicator(guidance: guidance)
-            }
-        }
-    }
-
-    private func distanceIndicator(guidance: PositionGuidance) -> some View {
-        HStack {
-            Spacer()
-            VStack(spacing: 12) {
-                Text(guidance.distance == .closer ? "Move Closer" : "Move Back")
-                    .font(.system(size: 14, weight: .semibold, design: .rounded))
-                    .foregroundColor(.white)
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 7)
-                    .background(
-                        Capsule()
-                            .fill(.ultraThinMaterial)
-                            .overlay(
-                                Capsule()
-                                    .fill(
-                                        LinearGradient(
-                                            colors: [
-                                                Color.orange.opacity(0.3),
-                                                Color.orange.opacity(0.15)
-                                            ],
-                                            startPoint: .leading,
-                                            endPoint: .trailing
-                                        )
-                                    )
-                            )
-                            .overlay(
-                                Capsule()
-                                    .strokeBorder(Color.orange.opacity(0.4), lineWidth: 1)
-                            )
-                    )
-                    .shadow(color: .black.opacity(0.2), radius: 6, y: 2)
-            }
-            Spacer()
-        }
-    }
-
-    // MARK: - Pose prompt (optional)
-
-    private var holdSteadyPrompt: some View {
+    private func topPill(text: String) -> some View {
         VStack {
-            Spacer().frame(height: 110)
-            Text("Hold your head steady")
-                .font(.system(size: 14, weight: .semibold, design: .rounded))
+            Spacer().frame(height: 120)
+            Text(text)
+                .font(.system(size: 16, weight: .semibold, design: .rounded))
                 .foregroundColor(.white)
                 .padding(.horizontal, 16)
-                .padding(.vertical, 7)
-                .background(
-                    Capsule()
-                        .fill(.ultraThinMaterial)
-                        .overlay(Capsule().strokeBorder(Color.white.opacity(0.18), lineWidth: 1))
-                )
+                .padding(.vertical, 10)
+                .background(RoundedRectangle(cornerRadius: 16).fill(Color.black.opacity(0.65)))
             Spacer()
         }
     }
 
-    // MARK: - Success Celebration
-
-    private var successCelebration: some View {
+    private func stablePill(text: String) -> some View {
         VStack {
+            Spacer().frame(height: 120)
+            Text("✓ \(text)")
+                .font(.system(size: 18, weight: .bold, design: .rounded))
+                .foregroundColor(.white)
+                .padding(.horizontal, 18)
+                .padding(.vertical, 12)
+                .background(RoundedRectangle(cornerRadius: 20).fill(Color.green.opacity(0.85)))
             Spacer()
-
-            VStack(spacing: 8) {
-                Text("Perfect Position!")
-                    .font(.system(size: 18, weight: .bold, design: .rounded))
-                    .foregroundColor(.white)
-
-                Text("Hold steady while capturing")
-                    .font(.system(size: 10, weight: .medium, design: .rounded))
-                    .foregroundColor(.white.opacity(0.8))
-            }
-            .padding(.horizontal, 22)
-            .padding(.vertical, 16)
-            .background(
-                RoundedRectangle(cornerRadius: 24, style: .continuous)
-                    .fill(.ultraThinMaterial)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 24, style: .continuous)
-                            .fill(
-                                LinearGradient(
-                                    colors: [
-                                        Color.green.opacity(0.2),
-                                        Color.green.opacity(0.05)
-                                    ],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                )
-                            )
-                    )
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 24, style: .continuous)
-                            .strokeBorder(
-                                LinearGradient(
-                                    colors: [
-                                        Color.green.opacity(0.5),
-                                        Color.green.opacity(0.2)
-                                    ],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                ),
-                                lineWidth: 1.5
-                            )
-                    )
-            )
-            .shadow(color: .green.opacity(0.25), radius: 20, y: 8)
-
-            Spacer().frame(height: 200)
         }
     }
 }
 
-// MARK: - Supporting Types
 
-struct PositionGuidance {
-    var horizontal: Direction = .center
-    var vertical: Direction = .center
-    var distance: Distance = .perfect
-    var horizontalIntensity: CGFloat = 0
-    var verticalIntensity: CGFloat = 0
-    var distanceIntensity: CGFloat = 0
+// MARK: - Animated Arrow Component
+
+struct AnimatedArrow: View {
+    let imageName: String
+    let alignment: Alignment
+    let offset: CGPoint
+    
+    var body: some View {
+        VStack {
+            if alignment == .top || alignment == .topLeading || alignment == .topTrailing {
+                Spacer().frame(height: offset.y)
+            } else if alignment == .leading || alignment == .trailing {
+                Spacer()
+            }
+            
+            HStack {
+                if alignment == .leading || alignment == .topLeading {
+                    Spacer().frame(width: offset.x)
+                } else if alignment == .trailing || alignment == .topTrailing || alignment == .bottom || alignment == .top {
+                    Spacer()
+                }
+                
+                Image(imageName)
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 80, height: 80)
+                    .modifier(ArrowPulseModifier())
+                
+                if alignment == .trailing || alignment == .topTrailing {
+                    Spacer().frame(width: -offset.x)
+                } else if alignment == .leading || alignment == .topLeading || alignment == .bottom || alignment == .top {
+                    Spacer()
+                }
+            }
+            
+            if alignment == .bottom {
+                Spacer().frame(height: -offset.y)
+            } else if alignment == .leading || alignment == .trailing {
+                Spacer()
+            }
+        }
+    }
 }
-
-enum Direction { case left, right, up, down, center }
-enum Distance { case closer, farther, perfect }
 
 // MARK: - Animation Modifiers
 
-struct DirectionalPulseModifier: ViewModifier {
-    let intensity: CGFloat
-    @State private var animationPhase: CGFloat = 0
-
+struct PulseOpacityModifier: ViewModifier {
+    @State private var opacity: Double = 0.7
+    
     func body(content: Content) -> some View {
         content
-            .scaleEffect(1.0 + (intensity * 0.08 * sin(animationPhase)))
+            .opacity(opacity)
             .onAppear {
                 withAnimation(
-                    .easeInOut(duration: 0.8 + Double(1.0 - intensity) * 0.4)
-                        .repeatForever(autoreverses: false)
+                    .easeInOut(duration: 0.6)
+                    .repeatForever(autoreverses: true)
                 ) {
-                    animationPhase = .pi * 2
+                    opacity = 1.0
+                }
+            }
+    }
+}
+
+struct ArrowPulseModifier: ViewModifier {
+    @State private var scale: CGFloat = 1.0
+    @State private var opacity: Double = 0.7
+    
+    func body(content: Content) -> some View {
+        content
+            .scaleEffect(scale)
+            .opacity(opacity)
+            .onAppear {
+                withAnimation(
+                    .easeInOut(duration: 0.7)
+                    .repeatForever(autoreverses: true)
+                ) {
+                    scale = 1.1
+                    opacity = 1.0
+                }
+            }
+    }
+}
+
+struct GlowPulseModifier: ViewModifier {
+    @State private var opacity: Double = 0.5
+    
+    func body(content: Content) -> some View {
+        content
+            .opacity(opacity)
+            .onAppear {
+                withAnimation(
+                    .easeInOut(duration: 0.8)
+                    .repeatForever(autoreverses: true)
+                ) {
+                    opacity = 1.0
                 }
             }
     }

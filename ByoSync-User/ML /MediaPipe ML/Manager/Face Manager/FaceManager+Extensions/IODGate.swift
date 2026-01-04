@@ -8,45 +8,44 @@ enum DistanceGuidance: String {
 }
 
 extension FaceManager{
-    
     func updateIODGate(
-        frameWidth: Float,
-        frameHeight: Float,
+        imageWidth: Float,
+        imageHeight: Float,
         leftIdx: Int = 33,
         rightIdx: Int = 263,
-        iodMin: Float = 0.30,
-        iodMax: Float = 0.31
+        iodMin: Float,
+        iodMax: Float
     ){
 
-        guard frameWidth > 0, frameHeight > 0 else {
-            resetIODGate()
+        guard imageWidth > 0, imageHeight > 0 else {
+            //resetIODGate()
             return
         }
 
         let pts = rawMediaPipePoints
         guard pts.count > max(leftIdx, rightIdx) else{
-            resetIODGate()
+           // resetIODGate()
             return
         }
 
         let l = pts[leftIdx]
         let r = pts[rightIdx]
 
-        let lx = l.x * frameWidth
-        let ly = l.y * frameHeight
-        let rx = r.x * frameWidth
-        let ry = r.y * frameHeight
+        let lx = l.x * imageWidth
+        let ly = l.y * imageHeight
+        let rx = r.x * imageWidth
+        let ry = r.y * imageHeight
 
         let dx = rx - lx
         let dy = ry - ly
         let iodPx = sqrt(dx * dx + dy * dy)
-        let iodNorm = iodPx / frameWidth
+        let iodNorm = iodPx / imageWidth
 
         iodPixels = iodPx
-        iodNormalized = iodNorm
+        self.iodNormalized = iodNorm
 
         let valid = (iodNorm >= iodMin && iodNorm <= iodMax)
-        iodIsValid = valid
+        self.iodIsValid = valid
 
         if iodNorm < iodMin {
             iodGuidance = .moveCloser
@@ -57,10 +56,10 @@ extension FaceManager{
         }
     }
 
-    func resetIODGate() {
-        iodPixels = 0
-        iodNormalized = 0
-        iodIsValid = false
-        iodGuidance = .noFace
-    }
+//    func resetIODGate() {
+//        iodPixels = 0
+//        iodNormalized = 0
+//        iodIsValid = false
+//        iodGuidance = .noFace
+//    }
 }

@@ -18,19 +18,20 @@ extension FaceManager {
     ///   - fetchViewModel: ViewModel to fetch FaceIds
     ///   - completion: Result with verification outcome
     func loadAndVerifyFaceID(
-        deviceKeyHash:String,
-        framesToVerify: [[Float]],
+        framesToVerify: [FrameDistance],
         requiredMatches: Int = 4,
         fetchViewModel: FaceIdFetchViewModel,
         completion: @escaping (Result<BCHBiometric.VerificationResult, Error>) -> Void
     ) {
+        #if DEBUG
         print("🔐 [FaceManager+Testing] Starting loadAndVerify flow...")
-        print("   • Frames to verify: \(framesToVerify.count)")
+       // print("   • Frames to verify: \(framesToVerify.distances.count)")
         print("   • Required matches: \(requiredMatches)")
+        #endif
         
         // IMPORTANT: This must call the wrapper method you add to Enrollment.swift
         // The method will populate RemoteFaceIdCache which is needed for verification
-        loadRemoteFaceIdsForVerification(deviceKeyHash: deviceKeyHash, fetchViewModel: fetchViewModel) { [weak self] result in
+        loadRemoteFaceIdsForVerification(fetchViewModel: fetchViewModel) { [weak self] result in
             guard let self = self else { return }
             
             switch result {
@@ -57,7 +58,7 @@ extension FaceManager {
     ///   - requiredMatches: Number of matches required (e.g., 4 out of 10)
     ///   - completion: Result with verification outcome
     func verifyFaceIDWithCustomMatches(
-        framesToUse: [[Float]],
+        framesToUse: [FrameDistance],
         requiredMatches: Int,
         completion: @escaping (Result<BCHBiometric.VerificationResult, Error>) -> Void
     ) {
@@ -79,7 +80,6 @@ extension FaceManager {
                     if let slashRange = remainder.firstIndex(of: "/") {
                         let matchedStr = String(remainder[..<slashRange])
                         if let matchedCount = Int(matchedStr) {
-                            print("📊 [FaceManager+Testing] Matched frames: \(matchedCount)/\(framesToUse.count)")
 
                             // Override success based on custom requirement
                             let customSuccess = matchedCount >= requiredMatches
@@ -97,7 +97,7 @@ extension FaceManager {
                                     recoveredHashPreview: verificationResult.recoveredHashPreview,
                                     numErrorsDetected: verificationResult.numErrorsDetected,
                                     totalBitsCompared: verificationResult.totalBitsCompared,
-                                    notes: "Testing verification: matchedFrames=\(matchedCount)/\(framesToUse.count), required=\(requiredMatches) (custom)"
+                                    notes: "Testing verification: matchedFrames=\(matchedCount), required=\(requiredMatches) (custom)"
                                 )
 
                                 completion(.success(adjustedResult))
@@ -116,4 +116,3 @@ extension FaceManager {
         }
     }
 }
-

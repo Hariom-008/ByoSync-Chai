@@ -4,9 +4,8 @@ internal import AVFoundation
 import Foundation
 import CoreGraphics
 
-// MARK: - MediaPipe Setup & Delegate
-extension FaceManager {
-    
+// MARK: - FaceLandmarkerLiveStreamDelegate + Mediapipe
+extension FaceManager: FaceLandmarkerLiveStreamDelegate {
     /// Sets up MediaPipe Face Landmarker with live stream mode
     func setupMediaPipe() {
         do {
@@ -14,28 +13,24 @@ extension FaceManager {
                 print("❌ face_landmarker.task file not found")
                 return
             }
-
+            
             let options = FaceLandmarkerOptions()
             options.baseOptions.modelAssetPath = modelPath
             options.runningMode = .liveStream
             options.numFaces = 1
             options.faceLandmarkerLiveStreamDelegate = self
-
+            
             // 🔒 Increase thresholds to be stricter about “face detected”
             options.minFaceDetectionConfidence = 0.80
             options.minFacePresenceConfidence = 0.80
-            options.minTrackingConfidence = 0.80
-
+            options.minTrackingConfidence = 0.90
+            
             faceLandmarker = try FaceLandmarker(options: options)
             print("✅ MediaPipe Face Landmarker initialized")
-        } catch{
+        } catch {
             print("❌ Error initializing Face Landmarker: \(error.localizedDescription)")
         }
     }
-}
-
-// MARK: - FaceLandmarkerLiveStreamDelegate
-extension FaceManager: FaceLandmarkerLiveStreamDelegate {
     
     func faceLandmarker(_ faceLandmarker: FaceLandmarker,
                         didFinishDetection result: FaceLandmarkerResult?,
@@ -54,16 +49,20 @@ extension FaceManager: FaceLandmarkerLiveStreamDelegate {
                 guard let self = self else { return }
                 self.CameraFeedCoordinates = []
                 self.CalculationCoordinates = []
-                self.ScreenCoordinates = []
+                
+               // self.ScreenCoordinates = []
                 self.rawMediaPipePoints = []
                 self.irisDistanceRatio = nil
                 self.ratioIsInRange = false
-
-                self.TargetFaceOvalCoordinates.removeAll()
-                self.TransalatedScaledFaceOvalCoordinates.removeAll()
+                self.verificationFrameCollectedDistances = []
+                
+//                self.TargetFaceOvalCoordinates.removeAll()
+//                self.TransalatedScaledFaceOvalCoordinates.removeAll()
                 self.FaceOvalIsInTarget = false
-
-                self.resetIODGate()
+                
+               // self.resetIODGate()
+               // self.resetRegistrationState()
+                
             }
             return
         }
@@ -74,9 +73,9 @@ extension FaceManager: FaceLandmarkerLiveStreamDelegate {
             return
         }
         
-        let frameWidth = Float(imageSize.width)
-        let frameHeight = Float(imageSize.height)
-
+        let imageWidth = Float(imageSize.width)
+        let imageHeight = Float(imageSize.height)
+        
         // RAW MediaPipe normalized points (0–1)
         let rawPoints: [(x: Float, y: Float)] = firstFace.map { lm in
             (x: lm.x, y: lm.y)
@@ -84,34 +83,46 @@ extension FaceManager: FaceLandmarkerLiveStreamDelegate {
         
         // Transform landmarks to camera feed coordinates
         let coords: [(x: Float, y: Float)] = firstFace.map { lm in
-            (x: lm.x * frameWidth, y: lm.y * frameHeight)
+            (x: lm.x * imageWidth, y: lm.y * imageHeight)
         }
         
-//        // Transform landmarks for calculations (flipped)
-//        let calcCoords: [(x: Float, y: Float)] = firstFace.map { lm in
-//            let flippedY = 1 - lm.y
-//            let flippedX = 1 - lm.x
-//            return (x: flippedX * frameWidth, y: flippedY * frameHeight)
-//        }
+        //        // Transform landmarks for calculations (flipped)
+        //        let calcCoords: [(x: Float, y: Float)] = firstFace.map { lm in
+        //            let flippedY = 1 - lm.y
+        //            let flippedX = 1 - lm.x
+        //            return (x: flippedX * frameWidth, y: flippedY * frameHeight)
+        //        }
         
         // Process on main queue
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
             self.lastDetectionTimestampMs = timestampInMilliseconds
-
+            
             
             // Store coordinates
             self.CameraFeedCoordinates = coords
-//            self.CalculationCoordinates = calcCoords
+            //            self.CalculationCoordinates = calcCoords
             self.rawMediaPipePoints = rawPoints
-
+            
             // IOD gate (per-frame)
-            self.updateIODGate(frameWidth: frameWidth, frameHeight: frameHeight)
-
+            if faceAuthManager.currentMode == .verification{
+                self.iodMin = 0.28
+                self.iodMax = 0.29
+            }else{
+                if registrationPhase == .centerCollecting{
+                    self.iodMin = 0.28
+                    self.iodMax = 0.29
+                }else{
+                    self.iodMin = 0.26
+                    self.iodMax = 0.30
+                }
+            }
+            self.updateIODGate(imageWidth: imageWidth, imageHeight: imageHeight,iodMin: iodMin,iodMax: iodMax)
+            
             // Convert to screen coordinates (kept; other UI may still use this)
             if let previewLayer = self.previewLayer {
-                let cameraResolution = CGSize(width: CGFloat(frameWidth), height: CGFloat(frameHeight))
-
+                let cameraResolution = CGSize(width: CGFloat(imageWidth), height: CGFloat(imageHeight))
+                
                 let screenCoords: [(x: Float, y: Float)] = firstFace.map { lm in
                     let screenPoint = self.convertToScreenCoordinates(
                         normalizedX: CGFloat(lm.x),
@@ -121,10 +132,10 @@ extension FaceManager: FaceLandmarkerLiveStreamDelegate {
                     )
                     return (x: screenPoint.x, y: screenPoint.y)
                 }
-
+                
                 self.CalculationCoordinates = screenCoords
             } else {
-                self.ScreenCoordinates = []
+                //self.ScreenCoordinates = []
                 self.TransalatedScaledFaceOvalCoordinates.removeAll()
             }
             
@@ -134,27 +145,26 @@ extension FaceManager: FaceLandmarkerLiveStreamDelegate {
             self.calculateTranslatedSquareDistance()
             self.calculateRMSOfTransalted()
             self.calculateNormalizedPoints()
-
-            // Nose center from normalized space
-            if let previewLayer = self.previewLayer {
-                let b = previewLayer.bounds
-
-                // CalculationCoordinates are already in previewLayer.bounds space
-                let ptsCG: [CGPoint] = self.CalculationCoordinates.map {
-                    CGPoint(x: CGFloat($0.x), y: CGFloat($0.y))
-                }
-
-                self.updateNoseTipCenterStatusFromCalcCoords(
-                    pixelPoints: ptsCG,
-                    screenCenterX: b.midX,
-                    screenCenterY: b.midY,
-                    tolerancePx: 10.0
-                )
-            } else {
-                self.isNoseTipCentered = false
-            }
-
-
+            
+//            if let previewLayer = self.previewLayer {
+//                let b = previewLayer.bounds
+//
+//                // CalculationCoordinates are already in previewLayer.bounds space
+//                let ptsCG: [CGPoint] = self.CalculationCoordinates.map {
+//                    CGPoint(x: CGFloat($0.x), y: CGFloat($0.y))
+//                }
+//
+//                self.updateNoseTipCenterStatusFromCalcCoords(
+//                    pixelPoints: ptsCG,
+//                    screenCenterX: b.midX,
+//                    screenCenterY: b.midY,
+//                    tolerancePx: 10.0
+//                )
+//            } else {
+//                self.isNoseTipCentered = false
+//            }
+            
+            
             // Build face-oval overlay from NormalizedPoints
             if let previewLayer = self.previewLayer {
                 let bounds = previewLayer.bounds
@@ -164,18 +174,18 @@ extension FaceManager: FaceLandmarkerLiveStreamDelegate {
                 )
             }
             // Face metrics -- NOT IN USE
-           // self.calculateFaceBoundingBox()
+            // self.calculateFaceBoundingBox()
             
             // Eye Aspect Ratio -- NOT IN USE
             let simdPoints = self.CalculationCoordinates.asSIMD2
             self.EAR = self.earCalc(from: simdPoints)
             
             // Gaze tracking logic -- NOT IN USE
-//            if self.isCentreTracking && !self.isMovementTracking {
-//                self.AppendActualLeftRight()
-//            } else if !self.isCentreTracking && self.isMovementTracking {
-//                self.calculateGazeVector()
-//            }
+            //            if self.isCentreTracking && !self.isMovementTracking {
+            //                self.AppendActualLeftRight()
+            //            } else if !self.isCentreTracking && self.isMovementTracking {
+            //                self.calculateGazeVector()
+            //            }
             
             // Head pose estimation
             if let (pitch, yaw, roll) = self.computeAngles(from: self.NormalizedPoints) {
@@ -193,10 +203,8 @@ extension FaceManager: FaceLandmarkerLiveStreamDelegate {
         }
     }
 }
-
-// MARK: - Coordinate Transformation Helper
+// MARK: - Coordinate to Pixel Value of type:FLOAT
 extension FaceManager {
-    
     struct Pixel{
         let x: Float
         let y: Float
@@ -250,45 +258,3 @@ extension FaceManager {
         return Pixel(x: Float(screenX), y: Float(screenY))
     }
 }
-
-//func convertToScreenCoordinates(
-//    normalizedX: CGFloat,
-//    normalizedY: CGFloat,
-//    previewLayer: AVCaptureVideoPreviewLayer,
-//    cameraResolution: CGSize
-//) -> CGPoint {
-//
-//    let previewBounds = previewLayer.bounds
-//    let canvasWidth = previewBounds.width
-//    let canvasHeight = previewBounds.height
-//
-//
-//    // Cache aspectFill mapping terms so repeated landmark calls don't recompute them.
-//    // (Assumes calls happen on the same thread; typical for UI overlay code.)
-//    struct Cache {
-//        static var key: (CGFloat, CGFloat, CGFloat, CGFloat)? = nil
-//        static var scaledWidth: CGFloat = 0
-//        static var scaledHeight: CGFloat = 0
-//        static var offsetX: CGFloat = 0
-//        static var offsetY: CGFloat = 0
-//    }
-//
-//    let key = (canvasWidth, canvasHeight, imageWidth, imageHeight)
-//
-//    // Android-style: compute scale = max(scaleX, scaleY) for aspectFill, then centered crop offsets.
-//    let scaleX = canvasWidth  / imageWidth
-//    let scaleY = canvasHeight / imageHeight
-//    let scale  = max(scaleX, scaleY)
-//
-//    scaledWidth  = imageWidth  * scale
-//    scaledHeight = imageHeight * scale
-//    offsetX = (canvasWidth  - scaledWidth)  / 2.0
-//    offsetY = (canvasHeight - scaledHeight) / 2.0
-//
-//
-//    // Keep the original Swift behavior: flip both axes and map into the scaled (aspectFill) space.
-//    let x = (1.0 - normalizedX) * scaledWidth  + offsetX
-//    let y = (1.0 - normalizedY) * scaledHeight + offsetY
-//
-//    return CGPoint(x: x, y: y)
-//}

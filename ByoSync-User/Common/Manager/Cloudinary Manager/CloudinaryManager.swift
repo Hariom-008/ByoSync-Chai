@@ -2,49 +2,58 @@ import Foundation
 import Cloudinary
 import UIKit
 
-final class CloudinaryManager{
+enum CloudinaryUploadError: Error {
+    case jpegEncodingFailed
+    case missingSecureURL
+    case sdkError(String)
+}
+
+final class CloudinaryManager {
     static let shared = CloudinaryManager()
-    
-    // MARK: - Properties
+
     private let cloudinary: CLDCloudinary
-    
-    // 👇 Your unsigned upload preset name from Cloudinary dashboard
     private let uploadPreset: String = "unsigned_profile_upload"
-    
-    // MARK: - Initializer
+
     private init() {
-        // 👇 Your Cloudinary cloud name
         let config = CLDConfiguration(cloudName: "dtf5st5gk", secure: true)
         self.cloudinary = CLDCloudinary(configuration: config)
     }
-    
-    // MARK: - Upload Function
-    /// Uploads a UIImage to Cloudinary and returns the secure URL string
-    func uploadImage(_ image: UIImage) async throws -> String {
-        // Convert the UIImage to JPEG data
-        guard let imageData = image.jpegData(compressionQuality: 0.8) else {
-            throw APIError.dataDecodingError
+
+    /// Upload image as a temp JPG file so Cloudinary can use the filename (use_filename preset behavior).
+    /// - Returns: secure_url
+    func uploadImageAsFile(
+        _ image: UIImage,
+        fileName: String,
+        folder: String = "accepted_frames"
+    ) async throws -> String {
+        guard let data = image.jpegData(compressionQuality: 0.9) else {
+            throw CloudinaryUploadError.jpegEncodingFailed
         }
-        
-        // Perform async upload
+
+        let fileURL = FileManager.default.temporaryDirectory.appendingPathComponent(fileName)
+        try data.write(to: fileURL, options: .atomic)
+        defer { try? FileManager.default.removeItem(at: fileURL) }
+
+        let params = CLDUploadRequestParams()
+            .setFolder(folder)
+            .setResourceType(.image)
+
         return try await withCheckedThrowingContinuation { continuation in
             cloudinary.createUploader().upload(
-                data: imageData,
+                url: fileURL,
                 uploadPreset: uploadPreset,
-                params: CLDUploadRequestParams().setFolder("profile_pictures"), completionHandler:  { response, error in
-                    if let error = error {
-                        continuation.resume(throwing: APIError.networkError(error.localizedDescription))
-                        return
-                    }
-                    
-                    guard let url = response?.secureUrl else {
-                        continuation.resume(throwing: APIError.unknown)
-                        return
-                    }
-                    
-                    print("✅ Uploaded to Cloudinary: \(url)") // Useful debug log
-                    continuation.resume(returning: url)
-                })
+                params: params
+            ) { response, error in
+                if let error = error {
+                    continuation.resume(throwing: CloudinaryUploadError.sdkError(error.localizedDescription))
+                    return
+                }
+                guard let secureUrl = response?.secureUrl, !secureUrl.isEmpty else {
+                    continuation.resume(throwing: CloudinaryUploadError.missingSecureURL)
+                    return
+                }
+                continuation.resume(returning: secureUrl)
+            }
         }
     }
 }

@@ -7,7 +7,8 @@ import Foundation
 import SwiftUI
 
 /// Main FaceManager class - Coordinates all face detection and tracking functionality
-final class FaceManager: NSObject, ObservableObject{
+final class FaceManager: NSObject, ObservableObject {
+    
     // MARK: - Dependencies
     let cameraSpecManager: CameraSpecManager
     
@@ -63,7 +64,6 @@ final class FaceManager: NSObject, ObservableObject{
     @Published var FaceOvalIsInTarget:Bool = false
     
     @Published var currentDistanceRatio: CGFloat = 0.0
-    @Published var isNoseTipCentered:Bool = false
     
     // FaceManager.swift
     @Published var iodNormalized: Float = 0
@@ -75,6 +75,9 @@ final class FaceManager: NSObject, ObservableObject{
     @Published var iodGuidance: DistanceGuidance = .noFace
     
     @Published var acceptedFrameUploads: [AcceptedFrameUpload] = []
+    
+    @Published var iodMin : Float = 0.28
+    @Published var iodMax:Float = 0.29
 
     // Limit concurrent uploads (avoid 80 parallel uploads)
      let frameUploadSemaphore = DispatchSemaphore(value: 2)
@@ -95,7 +98,7 @@ final class FaceManager: NSObject, ObservableObject{
     var rawMediaPipePoints: [(x: Float, y: Float)] = []
     var CameraFeedCoordinates: [(x: Float, y: Float)] = []
     var CalculationCoordinates: [(x: Float, y: Float)] = []
-    var ScreenCoordinates:[(x: CGFloat, y: CGFloat)] = []
+   // var ScreenCoordinates:[(x: CGFloat, y: CGFloat)] = []
     
     var centroid: (x: Float, y: Float)?
     
@@ -107,8 +110,32 @@ final class FaceManager: NSObject, ObservableObject{
     var actualRightList: [(x: Float, y: Float)] = []
     
     var landmarkDistanceLists: [[Float]] = []
-    @Published var AllFramesOptionalAndMandatoryDistance: [[Float]] = []
+   // @Published var AllFramesOptionalAndMandatoryDistance: [[Float]] = []
     
+    // Array used to store the frame details when all Gates Cleared
+    @Published var capturedFrames: [FrameDistance] = []
+    
+    @Published var registrationPhase: RegistrationPhase = .centerCollecting
+    @Published var registrationComplete: Bool = false
+
+    // optional: for UI guidance + balanced sampling
+    @Published var currentTarget: HeadDirection = .left
+
+    var centerFrames: [FrameDistance] = []
+    var movementFrames: [FrameDistance] = []
+    var capturedPerDir: [HeadDirection:Int] = [.left:0,.right:0,.up:0,.down:0,.center:0]
+    var movementTimer: DispatchSourceTimer?
+    
+    
+    let faceAuthManager: FaceAuthManager
+
+    // UI-friendly counters (because centerFrames/movementFrames are not @Published)
+    @Published var centerFramesCount: Int = 0
+    @Published var movementFramesCount: Int = 0
+    @Published var movementSecondsRemaining: Int = 0
+
+    var totalRegistrationFrames: Int { centerFramesCount + movementFramesCount }
+    @Published var verificationFrameCollectedDistances:[FrameDistance] = []
     
     // MARK: - Camera Components
     var previewLayer: AVCaptureVideoPreviewLayer?
@@ -128,6 +155,12 @@ final class FaceManager: NSObject, ObservableObject{
         176, 149, 150, 136, 172, 58, 132, 93, 234, 127,
         162, 21, 54, 103, 67, 109
     ]
+    let facePoints = [
+        104, 69, 108, 151, 337, 299, 333, 301, 71, 345,
+        376, 367, 394, 369, 175, 140, 169, 138, 215, 116, 139
+    ]
+    
+    @Published var faceisInsideFaceOval:Bool = false
     
     let midLineMandatoryLandmarks = [2, 4, 9]
     let leftMandatoryLandmarks = [70, 107, 46, 55, 33, 133, 98]
@@ -139,14 +172,14 @@ final class FaceManager: NSObject, ObservableObject{
     let optionalLandmarks = [423, 357, 349, 347, 340, 266, 330, 427, 280, 203, 128, 120, 118, 111, 36, 101, 207, 50, 187, 147, 411, 376, 336, 107, 351, 399, 429, 363, 134, 209, 174, 122, 151, 69, 299, 63, 156, 293, 383]
     
     // MARK: - Initialization
-    init(cameraSpecManager: CameraSpecManager) {
-        self.cameraSpecManager = cameraSpecManager
-        super.init()
-        setupMediaPipe()
-        sessionQueue.async { [weak self] in
-            self?.setupCamera()
-        }
-    }
+    init(cameraSpecManager: CameraSpecManager,
+            faceAuthManager: FaceAuthManager = .shared) {
+           self.cameraSpecManager = cameraSpecManager
+           self.faceAuthManager = faceAuthManager
+           super.init()
+           setupMediaPipe()
+           sessionQueue.async { [weak self] in self?.setupCamera() }
+       }
     
     // MARK: - Liveness Update Method
     func updateFaceLivenessScore(_ score: Float) {

@@ -10,29 +10,10 @@ import CryptoKit
 import Security
 
 
-struct EnrollmentRecord: Codable {
-    let index: Int
-    let helper: String          // codeword ⊕ biometricBits (as "0/1" string)
-    let secretHash: String      // R = SHA256(secretKeyBitsString) hex
-
-    let salt: String            // 256-bit hex, per enrollment (same across 80 frames)
-    let k2: String              // 256-bit hex, per frame
-    let token: String           // SHA256(K || R) hex, per frame
-
-    let timestamp: Date
-}
-
-struct EnrollmentStore: Codable {
-    let savedAt: String
-    let enrollments: [EnrollmentRecord]
-}
-
 // MARK: - Remote FaceId cache (for backend verification)
-
 fileprivate struct RemoteEnrollmentRecord {
     let helper: String
-    //let secretHash: String  // R = SHA256(secretKeyBitsString)
-    let salt: String        // same for all 80 records for this user
+    let salt: String        // same for all Collected records for this user
     let k2: String          // per-frame
     let token: String       // SHA256(K || R)
     let timestamp: Date
@@ -52,7 +33,6 @@ fileprivate enum RemoteEnrollmentCache {
     }
 }
 // MARK: - Remote FaceId cache (for backend verification)
-
 fileprivate struct RemoteFaceIdCache {
     static var salt: String?
     static var faceIds: [FaceId] = []
@@ -68,7 +48,6 @@ fileprivate struct RemoteFaceIdCache {
 }
 
 fileprivate func loadRemoteFaceIdsIfNeeded(
-    deviceKeyHash:String,
     fetchViewModel: FaceIdFetchViewModel,
     completion: @escaping (Result<Void, Error>) -> Void
 ) {
@@ -82,7 +61,7 @@ fileprivate func loadRemoteFaceIdsIfNeeded(
     
     print("🌐 [RemoteFaceIdCache] Cache empty → fetching FaceIds from backend...")
     
-    fetchViewModel.fetchFaceIds(deviceKeyHash: deviceKeyHash) { (result: Result<GetFaceIdData, Error>) in
+    fetchViewModel.fetchFaceIds() { (result: Result<GetFaceIdData, Error>) in
         switch result {
         case .failure(let error):
             print("❌ [RemoteFaceIdCache] Failed to fetch FaceIds: \(error)")
@@ -173,33 +152,46 @@ private func sha256(_ data: Data) -> Data {
     Data(SHA256.hash(data: data))
 }
 
+private let IOD_EPSILON: Float = 0.5// ~0.5% tolerance, tune if needed
+@inline(__always)
+private func iodMatches(_ a: Float, _ b: Float) -> Bool {
+        #if DEBUG
+        print("IOD : \(a) - \(b)")
+        #endif
+    return abs(a - b) <= IOD_EPSILON
+}
+
+
+
 // MARK: - Enrollment
 extension FaceManager {
 
-    /// Generate all 80 enrollment records and upload them in ONE API call.
+    /// Upload enrollment records for ALL collected registration frames.
     func generateAndUploadFaceID(
         authToken: String,
         viewModel: FaceIdViewModel,
+        frames: [FrameDistance],                          // ✅ NEW
+        minRequired: Int = 60,                            // ✅ at least center frames
         completion: ((Result<Void, Error>) -> Void)? = nil
     ) {
-        let trimmedFrames = save316LengthDistanceArray()
-
-        guard trimmedFrames.count == 80 else {
+        // 1) Validate frames
+        let valid = frames.filter { $0.distances.count == 316 }
+        guard valid.count >= minRequired else {
             DispatchQueue.main.async { completion?(.failure(BCHBiometricError.noDistanceArrays)) }
             return
         }
 
-        // ONE SALT for all frames (32 bytes)
+        // 2) ONE SALT for all frames (32 bytes)
         let saltBytes = randomBytes(32)
         let saltHex = hexFromData(saltBytes)
 
         var addFaceIdPayload: [AddFaceIdRequestBody] = []
-        addFaceIdPayload.reserveCapacity(80)
+       addFaceIdPayload.reserveCapacity(valid.count)
 
         var failureCount = 0
 
-        for (index, distances) in trimmedFrames.enumerated() {
-            let distancesDouble = distances.map { Double($0) }
+        for (index, sample) in valid.enumerated() {
+            let distancesDouble = sample.distances.map(Double.init)
 
             do {
                 let frameRec: BCHBiometric.FrameRecord = try bchQueue.sync {
@@ -207,50 +199,54 @@ extension FaceManager {
                     return try BCHShared.registerFrame(distances: distancesDouble)
                 }
 
-                // Android:
-                // K1 = R32 XOR SALT
                 let k1Bytes = xorData(frameRec.rBytes32, saltBytes)
-
-                // random 32-byte K
-                let kBytes = randomBytes(32)
-
-                // K2 = K XOR K1
+                let kBytes  = randomBytes(32)
                 let k2Bytes = xorData(kBytes, k1Bytes)
-
-                // token = SHA256(K || R-32Byte)
                 let tokenBytes = sha256(kBytes + frameRec.rBytes32)
 
                 addFaceIdPayload.append(
                     AddFaceIdRequestBody(
                         helper: frameRec.helper,
                         k2: hexFromData(k2Bytes),
-                        token: hexFromData(tokenBytes)
+                        token: hexFromData(tokenBytes),
+                        iod: String(sample.iod * 100)            // ✅ per-frame iod
                     )
                 )
-
             } catch {
                 failureCount += 1
                 print("❌ Enrollment frame \(index + 1) failed: \(error)")
             }
         }
 
-        guard addFaceIdPayload.count == 80 else {
-            print("❌ Enrollment failed — only \(addFaceIdPayload.count)/80 generated (failures=\(failureCount))")
+        // 3) Don’t require “all frames succeed” anymore — require enough records
+        guard addFaceIdPayload.count >= minRequired else {
+            print("❌ Enrollment failed — only \(addFaceIdPayload.count) generated (failures=\(failureCount))")
             DispatchQueue.main.async { completion?(.failure(LocalEnrollmentError.noLocalEnrollment)) }
             return
         }
 
         viewModel.uploadFaceIdList(salt: saltHex, list: addFaceIdPayload)
-
         DispatchQueue.main.async { completion?(.success(())) }
     }
 }
+
+#if DEBUG
+@inline(__always)
+private func logFrameTime(
+    frameIndex: Int,
+    elapsedNs: UInt64
+) {
+    let ms = Double(elapsedNs) / 1_000_000.0
+    print("🕒 [FaceVerify] Frame \(frameIndex) took \(String(format: "%.2f", ms)) ms")
+}
+#endif
+
 
 // MARK: - Verification
 
 extension FaceManager {
     func verifyFaceIDAgainstBackend(
-        framesToUse: [[Float]],
+        framesToUse:[FrameDistance],
         completion: @escaping (Result<BCHBiometric.VerificationResult, Error>) -> Void
     ) {
         guard
@@ -268,29 +264,49 @@ extension FaceManager {
         let requiredRecordMatches = 1
         let expectedN = (1 << Int(BCHBiometric.BCH_M)) - 1
         
-        DispatchQueue.global(qos: .userInitiated).async {
+        DispatchQueue.global(qos: .userInitiated).async(execute: {
 
             var bestRecordMatchCount = 0
             var bestFrameIndex: Int? = nil
 
-            // Try each captured frame; accept if ANY frame matches >=5 stored records
             for (frameIndex, frame) in framesToUse.enumerated() {
-                let distances = frame.map(Double.init)
 
+                #if DEBUG
+                let frameStartNs = DispatchTime.now().uptimeNanoseconds
+                #endif
+
+                let distances = frame.distances.map(Double.init)
                 var recordMatchCount = 0
 
                 for record in faceIds {
+
+                    // IOD gate (frame vs record)
+                    guard iodMatches(frame.iod * 100, Float(record.iod) ?? 0) else {
+                        continue
+                    }
+
                     guard record.helper.count == expectedN else { continue }
                     guard isHex(record.k2), record.k2.count == 64,
                           let k2Bytes = dataFromHex(record.k2), k2Bytes.count == 32 else { continue }
                     guard isHex(record.token), record.token.count == 64 else { continue }
+
+                    // ✅ Record-aligned distance scaling
+                    guard let recordIOD = Float(record.iod) else { continue }
                     
+
+                    let scaledDistances: [Double] = frame.distances.map {
+                        let iodInDecimal = recordIOD/100
+                        return Double($0 * iodInDecimal)
+                    }
 
                     let v: BCHBiometric.FrameVerification
                     do {
                         v = try bchQueue.sync {
                             try BCHShared.initBCH()
-                            return try BCHShared.verifyFrame(distances: distances, helper: record.helper)
+                            return try BCHShared.verifyFrame(
+                                distances: scaledDistances,
+                                helper: record.helper
+                            )
                         }
                     } catch {
                         continue
@@ -298,13 +314,11 @@ extension FaceManager {
 
                     guard v.success else { continue }
 
-                    // Android:
-                    // k1' = r32 XOR salt
-                    // k'  = k2 XOR k1'
-                    // token' = SHA256(k' || rByte32)
                     let k1Prime = xorData(v.rBytes32, saltBytes)
                     let kRecovered = xorData(k2Bytes, k1Prime)
-                    let tokenCandidate = hexFromData(sha256(kRecovered + v.rBytes32))
+                    let tokenCandidate = hexFromData(
+                        sha256(kRecovered + v.rBytes32)
+                    )
 
                     if tokenCandidate.caseInsensitiveCompare(record.token) == .orderedSame {
                         recordMatchCount += 1
@@ -314,12 +328,22 @@ extension FaceManager {
                     }
                 }
 
+
+                #if DEBUG
+                let frameEndNs = DispatchTime.now().uptimeNanoseconds
+                logFrameTime(
+                    frameIndex: frameIndex,
+                    elapsedNs: frameEndNs - frameStartNs
+                )
+                #endif
+
                 bestRecordMatchCount = max(bestRecordMatchCount, recordMatchCount)
                 if recordMatchCount >= requiredRecordMatches {
                     bestFrameIndex = frameIndex
                     break
                 }
             }
+
 
             let passed = (bestFrameIndex != nil)
             let matchPct = (Double(bestRecordMatchCount) / Double(max(1, faceIds.count))) * 100.0
@@ -336,33 +360,21 @@ extension FaceManager {
                 notes: "BestRecordMatches=\(bestRecordMatchCount)/\(faceIds.count), required=\(requiredRecordMatches), bestFrame=\(bestFrameIndex.map(String.init) ?? "nil")"
             )
             DispatchQueue.main.async { completion(.success(aggregated)) }
-        }
+        })
     }
 }
 
-
-// ========================================
-// ADD THIS TO YOUR Enrollment.swift FILE
-// ========================================
-//
-// Location: Add this AFTER the loadRemoteFaceIdsIfNeeded() function
-//           and BEFORE the "// MARK: - Shared BCH instance" line
-//
-// This is around line 140-180 in your Enrollment.swift
-// ========================================
-
-// MARK: - Public Helper for Testing (Load Remote Cache)
+// MARK: - Public Helper for (Load Remote Cache)
 extension FaceManager {
     
     /// Public wrapper to load FaceIds into RemoteFaceIdCache for testing
     /// This must be called before verifyFaceIDAgainstBackend() for testing flows
     func loadRemoteFaceIdsForVerification(
-        deviceKeyHash:String,
         fetchViewModel: FaceIdFetchViewModel,
         completion: @escaping (Result<Void, Error>) -> Void
     ) {
         loadRemoteFaceIdsIfNeeded(
-            deviceKeyHash: deviceKeyHash, fetchViewModel: fetchViewModel,
+            fetchViewModel: fetchViewModel,
             completion: completion
         )
     }
