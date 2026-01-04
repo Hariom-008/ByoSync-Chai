@@ -11,7 +11,6 @@ struct MLScanView: View {
         ZStack(alignment: .topLeading) {
             FaceDetectionView(
                 authToken: UserDefaults.standard.string(forKey: "token") ?? "",
-                deviceKeyHash: deviceKeyHash,
                 onComplete: {
                     print("🎯 [MLScanView] verification success → ClaimChaiView")
                     DispatchQueue.main.async {
