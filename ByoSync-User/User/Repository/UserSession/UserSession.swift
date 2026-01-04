@@ -7,33 +7,40 @@ final class UserSession: ObservableObject {
     @Published var currentUser: User?
     @Published var isEmailVerified: Bool = false
     @Published var userProfilePicture: String = ""
-    @Published var currentUserDeviceKeyHash: String = ""
+    @Published var currentUserDeviceID: String = ""
     @Published var thisDeviceIsPrimary: Bool = false
+    @Published var currentUserID:String = ""
     @Published var wallet: Double = 0
     
     private let userDefaultsKey = "currentUser"
     private let emailVerifiedKey = "isEmailVerified"
     private let profilePictureKey = "userProfilePicture"
-    private let UserDeviceKeyHashKey = "currentUserDeviceKeyHash"
+    private let currentUserDeviceIDKey = "currentUserDeviceID"
     private let thisDevicePrimaryKey = "thisDevicePrimaryKey"
     private let walletKey = "walletKey"
+    private let currentUserUserIDKey = "userIDKey"
     
     
     private init(){
         loadUser()
         loadEmailVerificationStatus()
         loadProfilePicture()
-        loadCurrentDeviceKeyHash()
+        loadCurrentDeviceID()
         loadThisDevicePrimary()
         loadWalletBalance()
+        loadCurrentUserID()
     }
-
+    
     // MARK: - Profile Picture
     func setProfilePicture(_ urlString: String) {
         self.userProfilePicture = urlString
         UserDefaults.standard.set(urlString, forKey: profilePictureKey)
     }
-
+    
+    func setCurrentUserId(_ id: String){
+        self.currentUserID = id
+        UserDefaults.standard.set(id, forKey: currentUserUserIDKey)
+    }
     func setUserWallet(_ balance: Double){
         self.wallet = balance
         UserDefaults.standard.set(balance, forKey: walletKey)
@@ -45,7 +52,10 @@ final class UserSession: ObservableObject {
     private func loadProfilePicture() {
         self.userProfilePicture = UserDefaults.standard.string(forKey: profilePictureKey) ?? ""
     }
-
+    
+    private func loadCurrentUserID(){
+    self.currentUserID = UserDefaults.standard.string(forKey: currentUserUserIDKey) ?? ""
+}
     // MARK: - Save and Load User
     func saveUser(_ user: User) {
         self.currentUser = user
@@ -63,6 +73,7 @@ final class UserSession: ObservableObject {
             if let loadedUser = try? decoder.decode(User.self, from: savedUser) {
                 self.currentUser = loadedUser
                 loadWalletBalance()
+                loadCurrentUserID()
                 print("✅ User loaded from session: \(loadedUser.firstName) \(loadedUser.lastName)")
             }
         }
@@ -81,16 +92,16 @@ final class UserSession: ObservableObject {
     }
     
     // MARK: - Current Device ID
-    func setCurrentDeviceKeyHash(_ deviceID: String) {
-        self.currentUserDeviceKeyHash = deviceID
-        UserDefaults.standard.set(deviceID, forKey: UserDeviceKeyHashKey)
+    func setCurrentDeviceID(_ deviceID: String) {
+        self.currentUserDeviceID = deviceID
+        UserDefaults.standard.set(deviceID, forKey: currentUserDeviceIDKey)
         print("✅ Current device ID saved: \(deviceID)")
     }
     
-    private func loadCurrentDeviceKeyHash() {
-        self.currentUserDeviceKeyHash = UserDefaults.standard.string(forKey: UserDeviceKeyHashKey) ?? ""
-        if !currentUserDeviceKeyHash.isEmpty {
-            print("✅ Loaded current device ID: \(currentUserDeviceKeyHash)")
+    private func loadCurrentDeviceID() {
+        self.currentUserDeviceID = UserDefaults.standard.string(forKey: currentUserDeviceIDKey) ?? ""
+        if !currentUserDeviceID.isEmpty {
+            print("✅ Loaded current device ID: \(currentUserDeviceID)")
         } else {
             print("⚠️ No device ID found in UserDefaults yet.")
         }
@@ -113,16 +124,18 @@ final class UserSession: ObservableObject {
         self.currentUser = nil
         self.isEmailVerified = false
         self.userProfilePicture = ""
-        self.currentUserDeviceKeyHash = ""
+        self.currentUserDeviceID = ""
         self.thisDeviceIsPrimary = false
+        self.currentUserID = ""
         
         UserDefaults.standard.removeObject(forKey: userDefaultsKey)
         UserDefaults.standard.removeObject(forKey: emailVerifiedKey)
         UserDefaults.standard.removeObject(forKey: profilePictureKey)
-        UserDefaults.standard.removeObject(forKey: currentUserDeviceKeyHash)
+        UserDefaults.standard.removeObject(forKey: currentUserDeviceIDKey)
         UserDefaults.standard.removeObject(forKey: thisDevicePrimaryKey)
         UserDefaults.standard.removeObject(forKey: "token")
         UserDefaults.standard.removeObject(forKey: "accountType")
+        UserDefaults.standard.removeObject(forKey: currentUserUserIDKey)
         
         print("🚪 User session cleared")
     }

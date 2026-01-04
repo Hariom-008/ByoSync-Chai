@@ -38,9 +38,10 @@ extension FaceIdViewModel {
         helper: String,
         k2: String,
         token: String,
+        iod:String,
         salt: String
     ) {
-        let item = AddFaceIdRequestBody(helper: helper, k2: k2, token: token)
+        let item = AddFaceIdRequestBody(helper: helper, k2: k2, token: token,iod: iod)
         uploadFaceIdList(salt: salt, list: [item])
         
         // Debug
@@ -49,7 +50,7 @@ extension FaceIdViewModel {
     }
     
     
-    /// Upload **multiple** FaceId records (e.g., 80 enrollment frames)
+    /// Upload **multiple** FaceId records
     func uploadFaceIdList(
         salt: String,
         list: [AddFaceIdRequestBody]
@@ -64,10 +65,11 @@ extension FaceIdViewModel {
         
         lastSalt = salt
         lastUploadedCount = list.count
-        
+        #if DEBUG
         print("\n📤 [FaceIdViewModel] Uploading FaceId list…")
         print("📤 Count: \(list.count)")
         print("📤 Salt: \(salt)")
+        #endif
         
         repository.addFaceIds(
             salt: salt,
@@ -80,11 +82,15 @@ extension FaceIdViewModel {
                 
                 switch result {
                 case .success:
+                    #if DEBUG
                     print("✅ [FaceIdViewModel] FaceId list upload success")
+                    #endif
                     self.uploadSuccess = true
                     
                 case .failure(let error):
+                    #if DEBUG
                     print("❌ [FaceIdViewModel] Upload failed: \(error)")
+                    #endif
                     self.uploadSuccess = false
                     self.errorMessage = Self.mapError(error)
                     self.showError = true
