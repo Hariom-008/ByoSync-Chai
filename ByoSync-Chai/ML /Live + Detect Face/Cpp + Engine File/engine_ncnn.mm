@@ -5,7 +5,7 @@
 #import <CoreGraphics/CoreGraphics.h>
 #import <UIKit/UIKit.h>
 
-#include "ByoSync-User-Bridging-Header.h"
+#include "ByoSync-Chai-Bridging-Header.h"
 
 
 // NCNN

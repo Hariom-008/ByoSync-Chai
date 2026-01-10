@@ -355,14 +355,6 @@ struct FaceDetectionView: View {
                 }
             }
 
-            // Keep isEnrolled in sync with backend payload (salt + list)
-            .onChange(of: faceIdFetchViewModel.faceIdData) { _ in
-                checkEnrollmentStatus()
-            }
-            .onChange(of: faceIdFetchViewModel.faceIds) { _ in
-                checkEnrollmentStatus()
-            }
-
             // ✅ Upload success
             .onChange(of: faceIdUploadViewModel.uploadSuccess) { ok in
                 guard ok else { return }
@@ -456,26 +448,6 @@ struct FaceDetectionView: View {
             ncnnViewModel.processFrame(buffer)
         }
     }
-
-    // MARK: - Helper Functions
-
-//    private func checkEnrollmentStatus() {
-//        isEnrolled = backendEnrollmentValid
-//
-//        if faceIdFetchViewModel.hasLoadedOnce {
-//            if backendEnrollmentValid {
-//                enrollmentGate.markEnrolled()
-//            } else {
-//                enrollmentGate.markNotEnrolled()
-//            }
-//        }
-//
-//        let count = faceIdFetchViewModel.faceIds.count
-//        let saltLen = faceIdFetchViewModel.faceIdData?.salt.count ?? 0
-//        print("📊 Enrollment status (backend): \(isEnrolled ? "✅ Enrolled" : "❌ Not Enrolled")")
-//        print("   Remote FaceId count: \(count)")
-//        print("   Remote salt len: \(saltLen)")
-//    }
 
     // MARK: - Register Handler
 

@@ -1,6 +1,6 @@
 //
 //  AdminLoginView.swift
-//  ByoSync-User
+//  ByoSync-Chai
 //
 //  Created by Hari's Mac on 02.01.2026.
 //

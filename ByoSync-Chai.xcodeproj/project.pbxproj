@@ -7,8 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		33B2D23E4CE752524A6378F9 /* Pods_ByoSync_User.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 54762F6C47B5FD4BF8520480 /* Pods_ByoSync_User.framework */; };
-		73BA51CF70F8786EE75CF0C8 /* Pods_NotificationServiceExtension.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FA5D4BCE32F5E43A98EB6173 /* Pods_NotificationServiceExtension.framework */; };
+		0FC1C824567F137E496B1BC9 /* Pods_NotificationServiceExtension.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1B8350307AEC976AD8471A18 /* Pods_NotificationServiceExtension.framework */; };
+		71EFC69CF0EDD1D81782EB5D /* Pods_ByoSync_Chai.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DDA96DDD844056BFB3A394C7 /* Pods_ByoSync_Chai.framework */; };
 		BF1EA1472EBB61DD0077D606 /* SocketIO in Frameworks */ = {isa = PBXBuildFile; productRef = BF1EA1462EBB61DD0077D606 /* SocketIO */; };
 		BF54D06E2EBDD14600A0F3ED /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = BF54D06D2EBDD14600A0F3ED /* FirebaseAuth */; };
 		BF54D0702EBDD14600A0F3ED /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = BF54D06F2EBDD14600A0F3ED /* FirebaseFirestore */; settings = {ATTRIBUTES = (Weak, ); }; };
@@ -49,10 +49,11 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		4BB98856B8AAB10C1CF1E768 /* Pods-NotificationServiceExtension.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NotificationServiceExtension.release.xcconfig"; path = "Target Support Files/Pods-NotificationServiceExtension/Pods-NotificationServiceExtension.release.xcconfig"; sourceTree = "<group>"; };
-		54762F6C47B5FD4BF8520480 /* Pods_ByoSync_User.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_ByoSync_User.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		8AB51C2E2821F84BD14C07ED /* Pods-NotificationServiceExtension.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NotificationServiceExtension.debug.xcconfig"; path = "Target Support Files/Pods-NotificationServiceExtension/Pods-NotificationServiceExtension.debug.xcconfig"; sourceTree = "<group>"; };
-		A68D9C5DB79D79982F5DC581 /* Pods-ByoSync-User.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ByoSync-User.debug.xcconfig"; path = "Target Support Files/Pods-ByoSync-User/Pods-ByoSync-User.debug.xcconfig"; sourceTree = "<group>"; };
+		057E64FFEBB7157C17CA1A0C /* Pods-NotificationServiceExtension.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NotificationServiceExtension.release.xcconfig"; path = "Target Support Files/Pods-NotificationServiceExtension/Pods-NotificationServiceExtension.release.xcconfig"; sourceTree = "<group>"; };
+		1B8350307AEC976AD8471A18 /* Pods_NotificationServiceExtension.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_NotificationServiceExtension.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		20D623A500A1022E30E3BEAD /* Pods-ByoSync-Chai.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ByoSync-Chai.debug.xcconfig"; path = "Target Support Files/Pods-ByoSync-Chai/Pods-ByoSync-Chai.debug.xcconfig"; sourceTree = "<group>"; };
+		34BBF7201C64665364C45B79 /* Pods-ByoSync-Chai.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ByoSync-Chai.release.xcconfig"; path = "Target Support Files/Pods-ByoSync-Chai/Pods-ByoSync-Chai.release.xcconfig"; sourceTree = "<group>"; };
+		B643FA153C748161C31E6C8D /* Pods-NotificationServiceExtension.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NotificationServiceExtension.debug.xcconfig"; path = "Target Support Files/Pods-NotificationServiceExtension/Pods-NotificationServiceExtension.debug.xcconfig"; sourceTree = "<group>"; };
 		BF1EEE082ECA434D0068E276 /* PrefixHeader.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PrefixHeader.pch; sourceTree = "<group>"; };
 		BF54D0892EBE19D500A0F3ED /* NotificationServiceExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = NotificationServiceExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		BF5645012EC9BA4E002EF012 /* MediaPipeTasksCommon.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = MediaPipeTasksCommon.xcframework; path = Pods/MediaPipeTasksCommon/frameworks/MediaPipeTasksCommon.xcframework; sourceTree = "<group>"; };
@@ -64,9 +65,8 @@
 		BF6B26172EC9B3C800FB4958 /* CoreFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreFoundation.framework; path = System/Library/Frameworks/CoreFoundation.framework; sourceTree = SDKROOT; };
 		BF6B26192EC9B3E800FB4958 /* AssetsLibrary.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AssetsLibrary.framework; path = System/Library/Frameworks/AssetsLibrary.framework; sourceTree = SDKROOT; };
 		BF6B261B2EC9B3EF00FB4958 /* Accelerate.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Accelerate.framework; path = System/Library/Frameworks/Accelerate.framework; sourceTree = SDKROOT; };
-		BFC700972EBB5C03001B13C7 /* ByoSync-User.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "ByoSync-User.app"; sourceTree = BUILT_PRODUCTS_DIR; };
-		C85BF2BFA45173D81BE0B77B /* Pods-ByoSync-User.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ByoSync-User.release.xcconfig"; path = "Target Support Files/Pods-ByoSync-User/Pods-ByoSync-User.release.xcconfig"; sourceTree = "<group>"; };
-		FA5D4BCE32F5E43A98EB6173 /* Pods_NotificationServiceExtension.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_NotificationServiceExtension.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		BFC700972EBB5C03001B13C7 /* ByoSync-Chai.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "ByoSync-Chai.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		DDA96DDD844056BFB3A394C7 /* Pods_ByoSync_Chai.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_ByoSync_Chai.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -77,12 +77,12 @@
 			);
 			target = BF54D0882EBE19D500A0F3ED /* NotificationServiceExtension */;
 		};
-		BFE7EB272ECD956800233D5C /* Exceptions for "ByoSync-User" folder in "ByoSync-User" target */ = {
+		BFE7EB272ECD956800233D5C /* Exceptions for "ByoSync-Chai" folder in "ByoSync-Chai" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
 			);
-			target = BFC700962EBB5C03001B13C7 /* ByoSync-User */;
+			target = BFC700962EBB5C03001B13C7 /* ByoSync-Chai */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
@@ -95,12 +95,12 @@
 			path = NotificationServiceExtension;
 			sourceTree = "<group>";
 		};
-		BFC700992EBB5C03001B13C7 /* ByoSync-User */ = {
+		BFC700992EBB5C03001B13C7 /* ByoSync-Chai */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				BFE7EB272ECD956800233D5C /* Exceptions for "ByoSync-User" folder in "ByoSync-User" target */,
+				BFE7EB272ECD956800233D5C /* Exceptions for "ByoSync-Chai" folder in "ByoSync-Chai" target */,
 			);
-			path = "ByoSync-User";
+			path = "ByoSync-Chai";
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -110,7 +110,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				73BA51CF70F8786EE75CF0C8 /* Pods_NotificationServiceExtension.framework in Frameworks */,
+				0FC1C824567F137E496B1BC9 /* Pods_NotificationServiceExtension.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -130,7 +130,7 @@
 				BF1EA1472EBB61DD0077D606 /* SocketIO in Frameworks */,
 				BF54D0702EBDD14600A0F3ED /* FirebaseFirestore in Frameworks */,
 				BF54D06E2EBDD14600A0F3ED /* FirebaseAuth in Frameworks */,
-				33B2D23E4CE752524A6378F9 /* Pods_ByoSync_User.framework in Frameworks */,
+				71EFC69CF0EDD1D81782EB5D /* Pods_ByoSync_Chai.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -140,10 +140,10 @@
 		356CE0C1391FE31CD6E54A56 /* Pods */ = {
 			isa = PBXGroup;
 			children = (
-				A68D9C5DB79D79982F5DC581 /* Pods-ByoSync-User.debug.xcconfig */,
-				C85BF2BFA45173D81BE0B77B /* Pods-ByoSync-User.release.xcconfig */,
-				8AB51C2E2821F84BD14C07ED /* Pods-NotificationServiceExtension.debug.xcconfig */,
-				4BB98856B8AAB10C1CF1E768 /* Pods-NotificationServiceExtension.release.xcconfig */,
+				20D623A500A1022E30E3BEAD /* Pods-ByoSync-Chai.debug.xcconfig */,
+				34BBF7201C64665364C45B79 /* Pods-ByoSync-Chai.release.xcconfig */,
+				B643FA153C748161C31E6C8D /* Pods-NotificationServiceExtension.debug.xcconfig */,
+				057E64FFEBB7157C17CA1A0C /* Pods-NotificationServiceExtension.release.xcconfig */,
 			);
 			path = Pods;
 			sourceTree = "<group>";
@@ -151,7 +151,7 @@
 		BFC7008E2EBB5C03001B13C7 = {
 			isa = PBXGroup;
 			children = (
-				BFC700992EBB5C03001B13C7 /* ByoSync-User */,
+				BFC700992EBB5C03001B13C7 /* ByoSync-Chai */,
 				BF54D08A2EBE19D500A0F3ED /* NotificationServiceExtension */,
 				BFC700982EBB5C03001B13C7 /* Products */,
 				356CE0C1391FE31CD6E54A56 /* Pods */,
@@ -163,7 +163,7 @@
 		BFC700982EBB5C03001B13C7 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				BFC700972EBB5C03001B13C7 /* ByoSync-User.app */,
+				BFC700972EBB5C03001B13C7 /* ByoSync-Chai.app */,
 				BF54D0892EBE19D500A0F3ED /* NotificationServiceExtension.appex */,
 			);
 			name = Products;
@@ -181,8 +181,8 @@
 				BF6B26192EC9B3E800FB4958 /* AssetsLibrary.framework */,
 				BF6B26172EC9B3C800FB4958 /* CoreFoundation.framework */,
 				BF6B26152EC9B3BC00FB4958 /* CoreMedia.framework */,
-				54762F6C47B5FD4BF8520480 /* Pods_ByoSync_User.framework */,
-				FA5D4BCE32F5E43A98EB6173 /* Pods_NotificationServiceExtension.framework */,
+				DDA96DDD844056BFB3A394C7 /* Pods_ByoSync_Chai.framework */,
+				1B8350307AEC976AD8471A18 /* Pods_NotificationServiceExtension.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -194,7 +194,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = BF54D0912EBE19D500A0F3ED /* Build configuration list for PBXNativeTarget "NotificationServiceExtension" */;
 			buildPhases = (
-				C8E2D139834505984425D260 /* [CP] Check Pods Manifest.lock */,
+				BE703A0FAEE1751A43ABC9BA /* [CP] Check Pods Manifest.lock */,
 				BF54D0852EBE19D500A0F3ED /* Sources */,
 				BF54D0862EBE19D500A0F3ED /* Frameworks */,
 				BF54D0872EBE19D500A0F3ED /* Resources */,
@@ -211,11 +211,11 @@
 			productReference = BF54D0892EBE19D500A0F3ED /* NotificationServiceExtension.appex */;
 			productType = "com.apple.product-type.app-extension";
 		};
-		BFC700962EBB5C03001B13C7 /* ByoSync-User */ = {
+		BFC700962EBB5C03001B13C7 /* ByoSync-Chai */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = BFC700A22EBB5C04001B13C7 /* Build configuration list for PBXNativeTarget "ByoSync-User" */;
+			buildConfigurationList = BFC700A22EBB5C04001B13C7 /* Build configuration list for PBXNativeTarget "ByoSync-Chai" */;
 			buildPhases = (
-				2F3F3F6A3FA2DE3201A727C5 /* [CP] Check Pods Manifest.lock */,
+				1623D0C97A5F9B2F3B8EE2FF /* [CP] Check Pods Manifest.lock */,
 				BFC700932EBB5C03001B13C7 /* Sources */,
 				BFC700942EBB5C03001B13C7 /* Frameworks */,
 				BFC700952EBB5C03001B13C7 /* Resources */,
@@ -227,9 +227,9 @@
 				BF54D08F2EBE19D500A0F3ED /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
-				BFC700992EBB5C03001B13C7 /* ByoSync-User */,
+				BFC700992EBB5C03001B13C7 /* ByoSync-Chai */,
 			);
-			name = "ByoSync-User";
+			name = "ByoSync-Chai";
 			packageProductDependencies = (
 				BFC7032F2EBB5CBE001B13C7 /* Alamofire */,
 				BFC703342EBB5CED001B13C7 /* Cloudinary */,
@@ -239,7 +239,7 @@
 				BF54D07A2EBDE58E00A0F3ED /* FirebaseMessaging */,
 			);
 			productName = "ByoSync-User";
-			productReference = BFC700972EBB5C03001B13C7 /* ByoSync-User.app */;
+			productReference = BFC700972EBB5C03001B13C7 /* ByoSync-Chai.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -261,7 +261,7 @@
 					};
 				};
 			};
-			buildConfigurationList = BFC700922EBB5C03001B13C7 /* Build configuration list for PBXProject "ByoSync-User" */;
+			buildConfigurationList = BFC700922EBB5C03001B13C7 /* Build configuration list for PBXProject "ByoSync-Chai" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -286,7 +286,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				BFC700962EBB5C03001B13C7 /* ByoSync-User */,
+				BFC700962EBB5C03001B13C7 /* ByoSync-Chai */,
 				BF54D0882EBE19D500A0F3ED /* NotificationServiceExtension */,
 			);
 		};
@@ -310,7 +310,7 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		2F3F3F6A3FA2DE3201A727C5 /* [CP] Check Pods Manifest.lock */ = {
+		1623D0C97A5F9B2F3B8EE2FF /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -325,14 +325,14 @@
 			outputFileListPaths = (
 			);
 			outputPaths = (
-				"$(DERIVED_FILE_DIR)/Pods-ByoSync-User-checkManifestLockResult.txt",
+				"$(DERIVED_FILE_DIR)/Pods-ByoSync-Chai-checkManifestLockResult.txt",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
 		};
-		C8E2D139834505984425D260 /* [CP] Check Pods Manifest.lock */ = {
+		BE703A0FAEE1751A43ABC9BA /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -384,12 +384,12 @@
 /* Begin XCBuildConfiguration section */
 		BF54D0922EBE19D500A0F3ED /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 8AB51C2E2821F84BD14C07ED /* Pods-NotificationServiceExtension.debug.xcconfig */;
+			baseConfigurationReference = B643FA153C748161C31E6C8D /* Pods-NotificationServiceExtension.debug.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 10;
 				DEVELOPMENT_TEAM = 26HBC2PDLM;
-				FRAMEWORK_SEARCH_PATHS = "$(PROJECT_DIR)/ByoSync-User/Frameworks";
+				FRAMEWORK_SEARCH_PATHS = "$(PROJECT_DIR)/ByoSync-Chai/Frameworks";
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = NotificationServiceExtension/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = NotificationServiceExtension;
@@ -400,7 +400,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.KavionIntelligence.byosync.user.NotificationServiceExtension;
+				PRODUCT_BUNDLE_IDENTIFIER = com.KavionIntelligence.byosync.chai.NotificationServiceExtension;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -414,12 +414,12 @@
 		};
 		BF54D0932EBE19D500A0F3ED /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 4BB98856B8AAB10C1CF1E768 /* Pods-NotificationServiceExtension.release.xcconfig */;
+			baseConfigurationReference = 057E64FFEBB7157C17CA1A0C /* Pods-NotificationServiceExtension.release.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 10;
 				DEVELOPMENT_TEAM = 26HBC2PDLM;
-				FRAMEWORK_SEARCH_PATHS = "$(PROJECT_DIR)/ByoSync-User/Frameworks";
+				FRAMEWORK_SEARCH_PATHS = "$(PROJECT_DIR)/ByoSync-Chai/Frameworks";
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = NotificationServiceExtension/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = NotificationServiceExtension;
@@ -430,7 +430,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.KavionIntelligence.byosync.user.NotificationServiceExtension;
+				PRODUCT_BUNDLE_IDENTIFIER = com.KavionIntelligence.byosync.chai.NotificationServiceExtension;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -565,28 +565,29 @@
 		};
 		BFC700A32EBB5C04001B13C7 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = A68D9C5DB79D79982F5DC581 /* Pods-ByoSync-User.debug.xcconfig */;
+			baseConfigurationReference = 20D623A500A1022E30E3BEAD /* Pods-ByoSync-Chai.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CLANG_ENABLE_MODULES = YES;
-				CODE_SIGN_ENTITLEMENTS = "ByoSync-User/ByoSync-User.entitlements";
+				CODE_SIGN_ENTITLEMENTS = "ByoSync-Chai/ByoSync-Chai.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 22;
 				DEVELOPMENT_TEAM = 26HBC2PDLM;
 				ENABLE_PREVIEWS = YES;
 				FRAMEWORK_SEARCH_PATHS = (
-					"$(PROJECT_DIR)/ByoSync-User/Frameworks",
+					"$(PROJECT_DIR)/ByoSync-Chai/Frameworks",
 					"$(inherited)",
+					"$(PROJECT_DIR)/ByoSync-Chai/Frameworks",
 				);
 				GCC_PREFIX_HEADER = "$(SRCROOT)/PrefixHeader.pch";
 				GENERATE_INFOPLIST_FILE = YES;
 				HEADER_SEARCH_PATHS = (
-					"$(PROJECT_DIR)/ByoSync-User/Frameworks/ncnn.framework/Versions/A/Headers",
-					"$(PROJECT_DIR)/ByoSync-User/Frameworks/ncnn.framework/Versions/A/Headers",
+					"$(PROJECT_DIR)/ByoSync-Chai/Frameworks/ncnn.framework/Versions/A/Headers",
+					"$(PROJECT_DIR)/ByoSync-Chai/Frameworks/ncnn.framework/Versions/A/Headers",
 					"$(PROJECT_DIR)",
 				);
-				INFOPLIST_FILE = "ByoSync-User/Info.plist";
+				INFOPLIST_FILE = "ByoSync-Chai/Info.plist";
 				INFOPLIST_KEY_NSCameraUsageDescription = "Allow to camera access to proceed for payment and scan.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "We need your location to fetch nearby users in the area";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -601,7 +602,7 @@
 				);
 				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.KavionIntelligence.byosync.user;
+				PRODUCT_BUNDLE_IDENTIFIER = com.KavionIntelligence.byosync.chai;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -611,7 +612,7 @@
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_OBJC_BRIDGING_HEADER = "ByoSync-User/ByoSync-User-Bridging-Header.h";
+				SWIFT_OBJC_BRIDGING_HEADER = "ByoSync-Chai/ByoSync-Chai-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
@@ -621,28 +622,29 @@
 		};
 		BFC700A42EBB5C04001B13C7 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = C85BF2BFA45173D81BE0B77B /* Pods-ByoSync-User.release.xcconfig */;
+			baseConfigurationReference = 34BBF7201C64665364C45B79 /* Pods-ByoSync-Chai.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CLANG_ENABLE_MODULES = YES;
-				CODE_SIGN_ENTITLEMENTS = "ByoSync-User/ByoSync-User.entitlements";
+				CODE_SIGN_ENTITLEMENTS = "ByoSync-Chai/ByoSync-Chai.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 22;
 				DEVELOPMENT_TEAM = 26HBC2PDLM;
 				ENABLE_PREVIEWS = YES;
 				FRAMEWORK_SEARCH_PATHS = (
-					"$(PROJECT_DIR)/ByoSync-User/Frameworks",
+					"$(PROJECT_DIR)/ByoSync-Chai/Frameworks",
 					"$(inherited)",
+					"$(PROJECT_DIR)/ByoSync-Chai/Frameworks",
 				);
 				GCC_PREFIX_HEADER = "$(SRCROOT)/PrefixHeader.pch";
 				GENERATE_INFOPLIST_FILE = YES;
 				HEADER_SEARCH_PATHS = (
-					"$(PROJECT_DIR)/ByoSync-User/Frameworks/ncnn.framework/Versions/A/Headers",
-					"$(PROJECT_DIR)/ByoSync-User/Frameworks/ncnn.framework/Versions/A/Headers",
+					"$(PROJECT_DIR)/ByoSync-Chai/Frameworks/ncnn.framework/Versions/A/Headers",
+					"$(PROJECT_DIR)/ByoSync-Chai/Frameworks/ncnn.framework/Versions/A/Headers",
 					"$(PROJECT_DIR)",
 				);
-				INFOPLIST_FILE = "ByoSync-User/Info.plist";
+				INFOPLIST_FILE = "ByoSync-Chai/Info.plist";
 				INFOPLIST_KEY_NSCameraUsageDescription = "Allow to camera access to proceed for payment and scan.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "We need your location to fetch nearby users in the area";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -656,7 +658,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.KavionIntelligence.byosync.user;
+				PRODUCT_BUNDLE_IDENTIFIER = com.KavionIntelligence.byosync.chai;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -666,7 +668,7 @@
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_OBJC_BRIDGING_HEADER = "ByoSync-User/ByoSync-User-Bridging-Header.h";
+				SWIFT_OBJC_BRIDGING_HEADER = "ByoSync-Chai/ByoSync-Chai-Bridging-Header.h";
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -685,7 +687,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		BFC700922EBB5C03001B13C7 /* Build configuration list for PBXProject "ByoSync-User" */ = {
+		BFC700922EBB5C03001B13C7 /* Build configuration list for PBXProject "ByoSync-Chai" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				BFC700A02EBB5C04001B13C7 /* Debug */,
@@ -694,7 +696,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		BFC700A22EBB5C04001B13C7 /* Build configuration list for PBXNativeTarget "ByoSync-User" */ = {
+		BFC700A22EBB5C04001B13C7 /* Build configuration list for PBXNativeTarget "ByoSync-Chai" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				BFC700A32EBB5C04001B13C7 /* Debug */,

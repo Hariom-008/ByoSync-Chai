@@ -4,8 +4,8 @@
 
 #import "OpenCVWrapper.h"
 
-#ifndef ByoSync_User_Bridging_Header_h
-#define ByoSync_User_Bridging_Header_h
+#ifndef ByoSync_Chai_Bridging_Header_h
+#define ByoSync_Chai_Bridging_Header_h
 
 #include <CoreGraphics/CoreGraphics.h>
 #include <stdbool.h>
