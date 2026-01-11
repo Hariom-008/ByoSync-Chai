@@ -184,7 +184,7 @@ struct FetchUserByPhoneView: View {
                         .font(.system(size: 18))
                     
                     TextField("Enter phone number", text: $phoneNumber)
-                        .keyboardType(.phonePad)
+                        .keyboardType(.decimalPad)
                         .focused($isPhoneFieldFocused)
                         .disabled(viewModel.isLoading)
                         .font(.system(size: 16, weight: .medium))

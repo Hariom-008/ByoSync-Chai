@@ -387,7 +387,7 @@
 			baseConfigurationReference = B643FA153C748161C31E6C8D /* Pods-NotificationServiceExtension.debug.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 10;
+				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 26HBC2PDLM;
 				FRAMEWORK_SEARCH_PATHS = "$(PROJECT_DIR)/ByoSync-Chai/Frameworks";
 				GENERATE_INFOPLIST_FILE = YES;
@@ -417,7 +417,7 @@
 			baseConfigurationReference = 057E64FFEBB7157C17CA1A0C /* Pods-NotificationServiceExtension.release.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 10;
+				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 26HBC2PDLM;
 				FRAMEWORK_SEARCH_PATHS = "$(PROJECT_DIR)/ByoSync-Chai/Frameworks";
 				GENERATE_INFOPLIST_FILE = YES;
