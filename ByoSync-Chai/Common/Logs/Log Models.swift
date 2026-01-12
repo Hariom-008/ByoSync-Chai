@@ -1,159 +1,76 @@
-//
-//  LogModels.swift
-//  ByoSync
-//
-
 import Foundation
-import os.log
 
-// MARK: - Log Type
+// MARK: - Android-aligned types (strings match AppLogger.kt)
 enum LogType: String, Codable, Sendable {
-    case middlewareCall = "MIDDLEWARE_CALL"
-    case middlewareSuccess = "MIDDLEWARE_SUCCESS"
+    case performance = "PERFORMANCE"
+    case error = "ERROR"
     case apiCall = "API_CALL"
-    case badRequest = "BAD_REQUEST"
-    case serverError = "SERVER_ERROR"
-    case success = "SUCCESS"
+    case screenTransition = "SCREEN_TRANSITION"
+    case cameraEvent = "CAMERA_EVENT"
+    case screen = "SCREEN"
+    case crash = "CRASH"
 }
 
-// MARK: - Log Source
-enum LogSource: String, Codable, Sendable {
+// Android uses "form" with values like "APP"
+enum LogForm: String, Codable, Sendable {
     case app = "APP"
     case ml = "ML"
 }
 
-// MARK: - Backend Log Entry
+// Payload entry: matches Kotlin LogEntry :contentReference[oaicite:4]{index=4}
 struct BackendLogEntry: Codable, Sendable {
     let type: String
-    let form: String  // "form" as per your API (though "from" would be grammatically correct)
+    let form: String
     let message: String
-    let timeTaken: String // Timestamp in milliseconds
+    let timeTaken: String   // duration in ms (string)
     let user: String
-    
-    enum CodingKeys: String, CodingKey {
-        case type
-        case form
-        case message
-        case timeTaken
-        case user
-    }
 }
 
-// MARK: - Log Create Response
-struct LogCreateResponse: Decodable,Sendable {
+// Request wrapper: matches Kotlin LogRequest :contentReference[oaicite:5]{index=5}
+struct LogRequest: Codable, Sendable {
+    let logsArray: [BackendLogEntry]
+}
+
+// Response (keep your existing shape)
+struct LogCreateResponse: Decodable, Sendable {
     let success: Bool
     let message: String
     let statusCode: Int?
 }
 
-// MARK: - Internal Log Entry (for local storage)
-struct InternalLogEntry: Codable, Identifiable, Sendable {
-    let id: UUID
+// Internal buffer entry (keeps it simple; no file/func/emoji formatting)
+struct InternalLogEntry: Codable, Sendable {
     let type: LogType
-    let source: LogSource
-    let level: LogLevel
+    let form: LogForm
     let message: String
-    let timestamp: Date
-    let file: String
-    let function: String
-    let line: Int
-    let userId: String?
-    let performanceTime: TimeInterval? // For tracking operation duration
-    
-    init(
-        type: LogType,
-        source: LogSource,
-        level: LogLevel,
-        message: String,
-        timestamp: Date = Date(),
-        file: String,
-        function: String,
-        line: Int,
-        userId: String?,
-        performanceTime: TimeInterval? = nil
-    ) {
-        self.id = UUID()
-        self.type = type
-        self.source = source
-        self.level = level
-        self.message = message
-        self.timestamp = timestamp
-        self.file = file
-        self.function = function
-        self.line = line
-        self.userId = userId
-        self.performanceTime = performanceTime
-    }
-    
-    // Convert to backend format
-    func toBackendFormat() -> BackendLogEntry {
-        let fileName = (file as NSString).lastPathComponent
-        let timestampMs = String(Int(timestamp.timeIntervalSince1970 * 1000))
-        
-        let fullMessage: String
-        if let perfTime = performanceTime {
-            fullMessage = """
-            [\(level.icon) \(level.name)] \(message)
-            📍 \(fileName):\(line) - \(function)
-            ⏱️ Performance: \(String(format: "%.3f", perfTime))s
-            """
-        } else {
-            fullMessage = """
-            [\(level.icon) \(level.name)] \(message)
-            📍 \(fileName):\(line) - \(function)
-            """
-        }
-        
+    let timeTakenMs: Int64
+    let user: String
+
+    func toBackendEntry(fallbackUserId: String) -> BackendLogEntry {
+        let finalUser = user.isEmpty ? fallbackUserId : user
         return BackendLogEntry(
             type: type.rawValue,
-            form: source.rawValue,
-            message: fullMessage,
-            timeTaken: timestampMs,
-            user: userId ?? "unknown"
+            form: form.rawValue,
+            message: message,
+            timeTaken: String(max(0, timeTakenMs)),
+            user: finalUser
         )
+    }
+
+    func estimatedSizeBytes() -> Int64 {
+        // cheap but stable estimate: JSON-encode and count bytes
+        // if encoding fails, fallback to utf8 length of message
+        if let data = try? JSONEncoder().encode(self) {
+            return Int64(data.count)
+        }
+        return Int64(message.utf8.count)
     }
 }
 
-enum LogLevel: Int, Codable, Comparable, Sendable {
-    case verbose = 0
-    case debug = 1
-    case info = 2
-    case warning = 3
-    case error = 4
-    case critical = 5
-    
-    var icon: String {
-        switch self {
-        case .verbose: return "💬"
-        case .debug: return "🐛"
-        case .info: return "ℹ️"
-        case .warning: return "⚠️"
-        case .error: return "❌"
-        case .critical: return "🔥"
-        }
-    }
-    
-    var name: String {
-        switch self {
-        case .verbose: return "VERBOSE"
-        case .debug: return "DEBUG"
-        case .info: return "INFO"
-        case .warning: return "WARNING"
-        case .error: return "ERROR"
-        case .critical: return "CRITICAL"
-        }
-    }
-    
-    var osLogType: OSLogType {
-        switch self {
-        case .verbose, .debug: return .debug
-        case .info: return .info
-        case .warning, .error: return .error
-        case .critical: return .fault
-        }
-    }
-    
-    static func < (lhs: LogLevel, rhs: LogLevel) -> Bool {
-        lhs.rawValue < rhs.rawValue
-    }
+// Backup wrapper (Android buffer_backup.json-style) :contentReference[oaicite:6]{index=6}
+struct BufferBackup: Codable, Sendable {
+    let logsArray: [InternalLogEntry]
+    let backupTimestamp: Int64
+    let bufferSizeKB: Int64
+    let consecutiveFailures: Int
 }

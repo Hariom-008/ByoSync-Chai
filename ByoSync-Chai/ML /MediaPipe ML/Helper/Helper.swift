@@ -11,8 +11,6 @@ final class Helper{
     static let shared = Helper()
     private init() {}
     
-    
-    
     // Helpers
     @inline(__always)
     func add(_ a: (x: Float, y: Float), _ b: (x: Float, y: Float)) -> (x: Float, y: Float) {

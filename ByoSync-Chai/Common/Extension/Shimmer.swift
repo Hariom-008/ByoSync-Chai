@@ -7,8 +7,8 @@
 
 import SwiftUI
 // MARK: - Shimmer Effect for Loading
-//extension View {
-//    func shimmer() -> some View {
-//        self.modifier(ShimmerModifier())
-//    }
-//}
+extension View {
+    func shimmer() -> some View {
+        self.modifier(ShimmerModifier())
+    }
+}

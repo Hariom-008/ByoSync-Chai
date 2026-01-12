@@ -1,10 +1,9 @@
 // FaceAuthManager.swift
 import SwiftUI
 import Combine
-
 enum FaceAuthMode {
-    case registration  // 80 frames
-    case verification  // 20 frames
+    case registration
+    case verification
 }
 
 final class FaceAuthManager: ObservableObject {
@@ -20,8 +19,11 @@ final class FaceAuthManager: ObservableObject {
         #endif
         currentMode = .registration
     }
+    
     func setVerificationMode() {
+        #if DEBUG
         print("🔐 [FaceAuthManager] Mode set to: Verification")
+        #endif
         currentMode = .verification
     }
     

@@ -148,12 +148,12 @@ extension FaceManager: FaceLandmarkerLiveStreamDelegate {
             
 //            if let previewLayer = self.previewLayer {
 //                let b = previewLayer.bounds
-//
+//                
 //                // CalculationCoordinates are already in previewLayer.bounds space
 //                let ptsCG: [CGPoint] = self.CalculationCoordinates.map {
 //                    CGPoint(x: CGFloat($0.x), y: CGFloat($0.y))
 //                }
-//
+//                
 //                self.updateNoseTipCenterStatusFromCalcCoords(
 //                    pixelPoints: ptsCG,
 //                    screenCenterX: b.midX,
@@ -258,3 +258,6 @@ extension FaceManager {
         return Pixel(x: Float(screenX), y: Float(screenY))
     }
 }
+
+
+
