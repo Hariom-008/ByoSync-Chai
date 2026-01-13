@@ -8,4 +8,6 @@ struct ChaiEndpoints{
    static let createChaiOrder = "\(baseURL)/api/v1/orders/create"
     
     static let registerFromChaiApp = "\(baseURL)/api/v1/chai/user-register-from-phone"
+    
+    static let isChaiDeviceRegister = "\(baseURL)/api/v1/chai/is-device-register"
 }

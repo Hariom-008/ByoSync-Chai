@@ -13,6 +13,7 @@ struct ByoSync_UserApp: App {
     @StateObject private var scanGate = AppScanGate.shared
     @StateObject private var faceAuthManager = FaceAuthManager.shared
     @StateObject private var enrollmentGate = EnrollmentGate.shared
+    @StateObject private var chaiDeviceCheckVM = CheckChaiDeviceRegistrationViewModel()
     
 
 
@@ -27,8 +28,7 @@ struct ByoSync_UserApp: App {
     // CHAI App
     
     var isDeviceAdded: Bool{
-       // UserDefaults.standard.string(forKey: "chaiDeviceId") != nil
-        KeychainHelper.shared.read(forKey: "chaiDeviceId") != nil
+        chaiDeviceCheckVM.isDeviceRegistered
     }
 
     init() {
@@ -60,6 +60,7 @@ struct ByoSync_UserApp: App {
                 socketManager.connect()
                 print("DeviceKeyHash:\(DeviceIdentity.resolve())")
                 
+                chaiDeviceCheckVM.checkDeviceRegistration()
             }
             .onChange(of: scenePhase) { oldPhase, newPhase in
                 print("🔄 [APP] Scene phase changed: \(oldPhase) -> \(newPhase)")

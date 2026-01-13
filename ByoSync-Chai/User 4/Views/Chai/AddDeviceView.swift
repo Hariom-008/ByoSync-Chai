@@ -17,6 +17,8 @@ struct AddDeviceView: View {
     // Animation states
     @State private var showContent = false
     
+    @State var openEnterNumberToFetchUser:Bool = false
+    
     // Colors from the logo gradient
     private let logoBlue = Color(red: 0.0, green: 0.0, blue: 1.0)
     private let logoPurple = Color(red: 0.478, green: 0.0, blue: 1.0)
@@ -95,6 +97,9 @@ struct AddDeviceView: View {
         .ignoresSafeArea(.keyboard, edges: .bottom)
         .navigationBarTitleDisplayMode(.inline)
         .navigationBarBackButtonHidden(true)
+        .fullScreenCover(isPresented: $openEnterNumberToFetchUser){
+            EnterNumberToSearchUserView()
+        }
         .onAppear {
             print("📱 [AddDeviceView] appeared")
             
@@ -382,8 +387,10 @@ struct AddDeviceView: View {
             print("⏸️ [AddDeviceView] Device ID stored temporarily, will save to keychain after alert dismissal")
             
             successDeviceId = deviceId
-            alertMessage = message
-            showSuccessAlert = true
+//            alertMessage = message
+           // showSuccessAlert = true
+            
+            openEnterNumberToFetchUser.toggle()
             
         case .failure(let message):
             print("❌ [AddDeviceView] State: failure - \(message)")
