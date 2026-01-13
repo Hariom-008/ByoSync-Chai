@@ -123,7 +123,13 @@ struct ClaimChaiView: View {
             Text(errorMessage)
         }
         .fullScreenCover(isPresented: $showChaiDashboard) {
-            ChaiDashBoardView(userId: $userId,deviceKeyHash:$deviceKeyHash)
+            ChaiDashBoardView(userId: $userId,deviceKeyHash:$deviceKeyHash, onDone: {
+                showChaiDashboard = false
+                // Dismiss ClaimChaiView and return to EnterNumberToSearchUserView
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                    onDone()  // This will dismiss ClaimChaiView
+                }
+            })
         }
     }
     

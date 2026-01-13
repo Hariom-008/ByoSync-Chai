@@ -11,6 +11,8 @@ struct ChaiDashBoardView: View {
     @Binding var userId: String
     @Binding var deviceKeyHash:String
     
+    let onDone: () -> Void
+    
     // Colors
     private let logoBlue = Color(red: 0.0, green: 0.0, blue: 1.0)
     private let logoPurple = Color(red: 0.478, green: 0.0, blue: 1.0)
