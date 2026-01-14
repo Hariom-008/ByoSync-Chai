@@ -335,9 +335,7 @@ struct ChaiDashBoardView: View {
     
     private var closeButton: some View {
         Button {
-            print("✅ [ChaiDashBoardView] Close tapped")
-            dismiss()
-            dismiss()
+           onDone()
         } label: {
             HStack(spacing: 12) {
                 Image(systemName: "checkmark.circle.fill")

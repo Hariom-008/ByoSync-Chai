@@ -219,17 +219,17 @@ struct FaceDetectionView: View {
                             ProgressView()
                                 .scaleEffect(1.5)
                                 .progressViewStyle(CircularProgressViewStyle(tint: .white))
-
+                            
                             Text(faceIdUploadViewModel.isUploading ? "Uploading enrollment..."
                                  : (faceIdFetchViewModel.isLoading ? "Fetching enrollment..." : "Processing..."))
-                                .font(.headline)
-                                .foregroundColor(.white)
+                            .font(.headline)
+                            .foregroundColor(.white)
                         }
                         .padding(32)
                         .background(RoundedRectangle(cornerRadius: 16).fill(Color.black.opacity(0.8)))
                     }
                 }
-
+                
                 VStack {
                     // Top status bar
                     HStack(spacing: 16) {
@@ -244,12 +244,12 @@ struct FaceDetectionView: View {
                         .padding(.vertical, 8)
                         .background(RoundedRectangle(cornerRadius: 8).fill(Color.black.opacity(0.7)))
                         .foregroundColor(.white)
-
+                        
                         Spacer()
                     }
                     .padding(.horizontal, 24)
                     .padding(.top, 60)
-
+                    
                     if faceManager.totalFramesCollected >= targetFrameCount && !hasAutoTriggered {
                         HStack(spacing: 8) {
                             ProgressView().scaleEffect(0.8)
@@ -262,20 +262,10 @@ struct FaceDetectionView: View {
                         .foregroundColor(.white)
                         .padding(.top, 8)
                     }
-
+                    
                     Spacer()
                 }
             }
-            .onChange(of: faceManager.EAR) { newEAR in
-                var s = earSeries
-                s.append(CGFloat(newEAR))
-                if s.count > earMaxSamples { s.removeFirst(s.count - earMaxSamples) }
-                earSeries = s
-                #if DEBUG
-                print("👁️ [EAR] Updated: \(String(format: "%.3f", newEAR)) | Series count: \(earSeries.count)")
-                #endif
-            }
-
             .onReceive(
                 faceManager.$NormalizedPoints
                     .throttle(for: .milliseconds(100), scheduler: RunLoop.main, latest: true)
@@ -427,11 +417,11 @@ struct FaceDetectionView: View {
             }
         }
         .onAppear {
-            ncnnViewModel.loadModels()
-            ncnnViewModel.onLivenessUpdated = { [weak faceManager] score in
-                faceManager?.updateFaceLivenessScore(score)
-            }
-
+            
+            faceManager.startSessionIfNeeded()
+            hasAutoTriggered = false
+            syncBusy()
+            
             #if DEBUG
             print("🌐 [FaceDetectionView] Fetching FaceIds on appear for deviceKey=\(DeviceIdentity.resolve())")
             print("🎯 [FaceDetectionView] Current mode: \(faceAuthManager.currentMode)")
@@ -439,13 +429,12 @@ struct FaceDetectionView: View {
 
             if faceAuthManager.currentMode == .registration {
                 enrollmentGate.markNotEnrolled()
+            }else{
+                faceIdFetchViewModel.fetchFaceIds(deviceKeyHash:deviceKeyHash)
             }
-
-            faceIdFetchViewModel.fetchFaceIds(deviceKeyHash:deviceKeyHash)
-            hasAutoTriggered = false
-
-            // keep busy correct after starting fetch
-            syncBusy()
+        }
+        .onDisappear {
+            faceManager.stopSessionIfNeeded()
         }
         .onReceive(
             faceManager.$latestPixelBuffer
@@ -572,9 +561,12 @@ struct FaceDetectionView: View {
                     print("📊 [Login] Verification result - Success: \(verification.success) | Match: \(String(format: "%.1f", matchPercent))%")
                     #endif
                     if verification.success {
-                        self.alertTitle = "👋 Login Successful"
-                        self.alertMessage = "Press this button to close the alert"
-                        self.showAlert = true
+//                        self.alertTitle = "👋 Login Successful"
+//                        self.alertMessage = "Press this button to close the alert"
+//                        self.showAlert = true
+                        DispatchQueue.main.async{
+                            onComplete()
+                        }
                     } else {
                         self.alertTitle = "Failed to Login"
                         self.alertMessage = "Face verification failed. Try again"

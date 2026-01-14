@@ -45,7 +45,11 @@ extension FaceManager {
             if let conn = videoOutput.connection(with: .video) {
                 // Decide orientation based on device type
                 let isPad = UIDevice.current.userInterfaceIdiom == .pad
-                conn.videoOrientation = .portrait
+                if isPad{
+                    conn.videoOrientation = .portrait
+                }else{
+                    conn.videoOrientation = .portrait
+                }
                 
                 // Mirror front camera preview
                 if conn.isVideoMirroringSupported {
@@ -116,3 +120,29 @@ extension FaceManager: AVCaptureVideoDataOutputSampleBufferDelegate {
         }
     }
 }
+
+
+// MARK: - Session lifecycle helpers
+extension FaceManager {
+
+    func startSessionIfNeeded() {
+        sessionQueue.async { [weak self] in
+            guard let self else { return }
+            if !self.captureSession.isRunning {
+                self.captureSession.startRunning()
+                debugLog("📸 startRunning() (explicit)")
+            }
+        }
+    }
+
+    func stopSessionIfNeeded() {
+        sessionQueue.async { [weak self] in
+            guard let self else { return }
+            if self.captureSession.isRunning {
+                self.captureSession.stopRunning()
+                debugLog("🛑 stopRunning() (explicit)")
+            }
+        }
+    }
+}
+

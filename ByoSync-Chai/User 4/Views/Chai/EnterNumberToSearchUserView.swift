@@ -275,7 +275,9 @@ struct EnterNumberToSearchUserView: View {
                         .font(.system(size: 16, weight: .medium))
                         .foregroundColor(Color(red: 0.118, green: 0.161, blue: 0.231))
                         .onChange(of: phoneNumber) { _, newValue in
-                            print("📝 [EnterPhoneNumberScreen] Phone: \(newValue.count) chars")
+                            if newValue.count > 10 {
+                                phoneNumber = String(newValue.prefix(10))
+                            }
                         }
                 }
                 .padding(.horizontal, 16)
@@ -346,7 +348,7 @@ struct EnterNumberToSearchUserView: View {
     // MARK: - Computed Properties
     
     private var isButtonEnabled: Bool {
-        !phoneNumber.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        phoneNumber.count >= 10
     }
     
     // MARK: - Actions

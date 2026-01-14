@@ -156,7 +156,7 @@ private func sha256(_ data: Data) -> Data {
     Data(SHA256.hash(data: data))
 }
 
-private let IOD_EPSILON: Float = 0.3// ~0.3% tolerance, tune if needed
+private let IOD_EPSILON: Float = 0.1// ~0.3% tolerance, tune if needed
 @inline(__always)
 private func iodMatches(_ a: Float, _ b: Float) -> Bool {
         #if DEBUG
@@ -250,126 +250,154 @@ private func logFrameTime(
 }
 #endif
 
-
 // MARK: - Verification
-
 extension FaceManager {
     func verifyFaceIDAgainstBackend(
-        framesToUse:[FrameDistance],
+        framesToUse: [FrameDistance],
         completion: @escaping (Result<BCHBiometric.VerificationResult, Error>) -> Void
     ) {
+       
+        
         guard
             let saltHex = RemoteFaceIdCache.salt,
-            isHex(saltHex),
-            saltHex.count == 64,
+            isHex(saltHex), saltHex.count == 64,
             let saltBytes = dataFromHex(saltHex),
             !RemoteFaceIdCache.faceIds.isEmpty
         else {
-            DispatchQueue.main.async { completion(.failure(LocalEnrollmentError.noLocalEnrollment)) }
+            print("❌ [Verification] No enrollment data in cache")
+            completion(.failure(LocalEnrollmentError.noLocalEnrollment))
             return
         }
 
-        let faceIds = RemoteFaceIdCache.faceIds
-        let requiredRecordMatches = 1
-        let expectedN = (1 << Int(BCHBiometric.BCH_M)) - 1
+        print("🔑 [Verification] Using salt: \(saltHex.prefix(16))...")
+        print("📦 [Verification] Enrollment records: \(RemoteFaceIdCache.faceIds.count)")
+
+        // ✅ 1. Pre-process records (parse hex once)
+        let cachedRecords = preprocessRecords(RemoteFaceIdCache.faceIds)
+        print("✅ [Verification] Preprocessed \(cachedRecords.count) records")
         
-        DispatchQueue.global(qos: .userInitiated).async(execute: {
+        // ✅ 2. Select best 5 frames based on IOD closeness
+        let framesToVerify = selectBestFrames(from: framesToUse, count: 5)
 
-            var bestRecordMatchCount = 0
-            var bestFrameIndex: Int? = nil
-
-            for (frameIndex, frame) in framesToUse.enumerated() {
-
-                #if DEBUG
-                let frameStartNs = DispatchTime.now().uptimeNanoseconds
-                #endif
-
-                let distances = frame.distances.map(Double.init)
-                var recordMatchCount = 0
-
-                for record in faceIds {
-
-                    // IOD gate (frame vs record)
-                    guard iodMatches(frame.iod * 100, Float(record.iod) ?? 0) else {
-                        continue
+        #if DEBUG
+        let iodList = framesToVerify.map { String(format: "%.4f", Double($0.iod * 100)) }.joined(separator: ", ")
+        print("✅ [Verification] Selected 3 frames by IOD target: [\(iodList)]")
+        #endif
+        
+        DispatchQueue.global(qos: .userInitiated).async {
+            
+            var bestResult: (matches: Int, frameIdx: Int)? = nil
+            let resultLock = NSLock()
+            
+            // ✅ 3. Parallel frame processing
+            DispatchQueue.concurrentPerform(iterations: framesToVerify.count) { idx in
+                let frame = framesToVerify[idx]
+                
+                // ✅ 4. IOD pre-filter
+                let relevantRecords = cachedRecords.filter {
+                    iodMatches(frame.iod * 100, $0.iod)
+                }
+                
+                print("🎯 [Verification] Frame \(idx): \(relevantRecords.count)/\(cachedRecords.count) records pass IOD")
+                
+                var matchCount = 0
+                
+                for record in relevantRecords {
+                    // Scale distances
+                    let scaledDistances = frame.distances.map {
+                        Double($0 * (record.iod / 100))
                     }
-
-                    guard record.helper.count == expectedN else { continue }
-                    guard isHex(record.k2), record.k2.count == 64,
-                          let k2Bytes = dataFromHex(record.k2), k2Bytes.count == 32 else { continue }
-                    guard isHex(record.token), record.token.count == 64 else { continue }
-
-                    // ✅ Record-aligned distance scaling
-                    guard let recordIOD = Float(record.iod) else { continue }
                     
-
-                    let scaledDistances: [Double] = frame.distances.map {
-                        let iodInDecimal = recordIOD/100
-                        return Double($0 * iodInDecimal)
-                    }
-
+                    // BCH verify
                     let v: BCHBiometric.FrameVerification
                     do {
                         v = try bchQueue.sync {
-                            try BCHShared.initBCH()
-                            return try BCHShared.verifyFrame(
+                            try BCHShared.verifyFrame(
                                 distances: scaledDistances,
                                 helper: record.helper
                             )
                         }
-                    } catch {
-                        continue
-                    }
-
+                    } catch { continue }
+                    
                     guard v.success else { continue }
-
+                    
+                    // Token check
                     let k1Prime = xorData(v.rBytes32, saltBytes)
-                    let kRecovered = xorData(k2Bytes, k1Prime)
-                    let tokenCandidate = hexFromData(
-                        sha256(kRecovered + v.rBytes32)
-                    )
-
-                    if tokenCandidate.caseInsensitiveCompare(record.token) == .orderedSame {
-                        recordMatchCount += 1
-                        if recordMatchCount >= requiredRecordMatches {
-                            break
-                        }
+                    let kRecovered = xorData(record.k2Bytes, k1Prime)
+                    let tokenCandidate = sha256(kRecovered + v.rBytes32)
+                    
+                    if tokenCandidate == record.tokenBytes {
+                        matchCount += 1
+                        print("✅ [Verification] Frame \(idx) matched!")
+                        break // ✅ Early exit after first match
                     }
                 }
-
-
-                #if DEBUG
-                let frameEndNs = DispatchTime.now().uptimeNanoseconds
-                logFrameTime(
-                    frameIndex: frameIndex,
-                    elapsedNs: frameEndNs - frameStartNs
-                )
-                #endif
-
-                bestRecordMatchCount = max(bestRecordMatchCount, recordMatchCount)
-                if recordMatchCount >= requiredRecordMatches {
-                    bestFrameIndex = frameIndex
-                    break
+                
+                // ✅ Thread-safe result update
+                if matchCount > 0 {
+                    resultLock.lock()
+                    if bestResult == nil || matchCount > bestResult!.matches {
+                        bestResult = (matchCount, idx)
+                    }
+                    resultLock.unlock()
                 }
             }
-
-
-            let passed = (bestFrameIndex != nil)
-            let matchPct = (Double(bestRecordMatchCount) / Double(max(1, faceIds.count))) * 100.0
-
-            let aggregated = BCHBiometric.VerificationResult(
+            
+            let passed = bestResult != nil
+            
+            if passed {
+                print("✅ [Verification] SUCCESS - Best frame: \(bestResult!.frameIdx)")
+            } else {
+                print("❌ [Verification] FAILED - No matching frames")
+            }
+            
+            let result = BCHBiometric.VerificationResult(
                 success: passed,
-                matchPercentage: matchPct,
+                matchPercentage: passed ? 100.0 : 0.0,
                 registrationIndex: 0,
                 hashMatch: passed,
                 storedHashPreview: "",
                 recoveredHashPreview: "",
                 numErrorsDetected: 0,
                 totalBitsCompared: 0,
-                notes: "BestRecordMatches=\(bestRecordMatchCount)/\(faceIds.count), required=\(requiredRecordMatches), bestFrame=\(bestFrameIndex.map(String.init) ?? "nil")"
+                notes: "Verified \(framesToVerify.count) frames, best=\(bestResult?.frameIdx ?? -1)"
             )
-            DispatchQueue.main.async { completion(.success(aggregated)) }
-        })
+            
+            DispatchQueue.main.async { completion(.success(result)) }
+        }
+    }
+
+    // Helper functions
+    private func preprocessRecords(_ faceIds: [FaceId]) -> [CachedRecord] {
+        return faceIds.compactMap { record in
+            guard let iod = Float(record.iod),
+                  isHex(record.k2), let k2Bytes = dataFromHex(record.k2),
+                  isHex(record.token), let tokenBytes = dataFromHex(record.token)
+            else { return nil }
+            
+            return CachedRecord(
+                k2Bytes: k2Bytes,
+                tokenBytes: tokenBytes,
+                iod: iod,
+                helper: record.helper
+            )
+        }
+    }
+
+    private func selectBestFrames(from frames: [FrameDistance], count: Int) -> [FrameDistance] {
+        // Strategy: Pick center frames (most stable poses)
+        let center = frames.count / 2
+        let halfRange = count / 2
+        let start = max(0, center - halfRange)
+        let end = min(frames.count, start + count)
+        return Array(frames[start..<end])
+    }
+    
+    struct CachedRecord {
+        let k2Bytes: Data
+        let tokenBytes: Data
+        let iod: Float
+        let helper: String
     }
 }
 
