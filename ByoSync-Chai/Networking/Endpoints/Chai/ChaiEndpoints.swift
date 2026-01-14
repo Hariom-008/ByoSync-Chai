@@ -10,4 +10,9 @@ struct ChaiEndpoints{
     static let registerFromChaiApp = "\(baseURL)/api/v1/chai/user-register-from-phone"
     
     static let isChaiDeviceRegister = "\(baseURL)/api/v1/chai/is-device-register"
+    
+    static let findUserTokenByPhoneNumber = "\(baseURL)/api/v1/users/find-user-token-by-phone-number"
+    static let fetchUserByToken = "\(baseURL)/api/v1/users/find-user-by-token"
+    
+    
 }

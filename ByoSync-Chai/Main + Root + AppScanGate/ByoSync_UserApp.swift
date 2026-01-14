@@ -59,6 +59,7 @@ struct ByoSync_UserApp: App {
             .onAppear {
                 socketManager.connect()
                 print("DeviceKeyHash:\(DeviceIdentity.resolve())")
+                print("ChaiDeviceId:\(KeychainHelper.shared.read(forKey: "chaiDeviceId") ?? "")")
                 
                 chaiDeviceCheckVM.checkDeviceRegistration()
             }

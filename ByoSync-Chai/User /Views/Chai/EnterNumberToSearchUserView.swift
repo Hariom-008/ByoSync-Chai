@@ -2,30 +2,32 @@ import SwiftUI
 
 struct EnterNumberToSearchUserView: View {
     @EnvironmentObject var faceAuthManager: FaceAuthManager
-    @StateObject private var viewModel = FetchUserByPhoneNumberViewModel()
+    @StateObject private var viewModel = FetchUserByTokenViewModel()
     @Environment(\.dismiss) private var dismiss
-    
-    @State private var phoneNumber: String = ""
-    @FocusState private var isPhoneFieldFocused: Bool
-    
+
+    @State private var tokenText: String = ""
+    @FocusState private var isTokenFieldFocused: Bool
+
     // Animation states
     @State private var showContent = false
     @State private var currentFeature = 0
-    
-    @State var openMLScan:Bool = false
-    @State var openChaiClaimView:Bool = false
-    @State var openAdminLoginView:Bool = false
-    
+
+    @State var openMLScan: Bool = false
+    @State var openChaiClaimView: Bool = false
+    @State var openAdminLoginView: Bool = false
+    @State var openFindTokenView: Bool = false  // ✅ New state
+    @State var openRegisterChaiView:Bool = false
+
     // Colors from the logo gradient
     private let logoBlue = Color(red: 0.0, green: 0.0, blue: 1.0)
     private let logoPurple = Color(red: 0.478, green: 0.0, blue: 1.0)
-    
+
     private let features: [(icon: String, title: String, subtitle: String)] = [
-        ("phone.fill", "Secure", "Encrypted communication"),
+        ("lock.fill", "Secure", "Encrypted communication"),
         ("bolt.fill", "Fast", "Quick verification"),
         ("checkmark.seal.fill", "Verified", "Real-time validation")
     ]
-    
+
     var body: some View {
         ZStack {
             // Background gradient matching AuthenticationView
@@ -39,35 +41,31 @@ struct EnterNumberToSearchUserView: View {
                 endPoint: .bottom
             )
             .ignoresSafeArea()
-            
+
             // Animated background blobs
             AnimatedBackgroundBlobs(
                 visible: showContent,
                 logoBlue: logoBlue,
                 logoPurple: logoPurple
             )
-            
+
             VStack(spacing: 0) {
-                Spacer()
-                    .frame(height: 60)
-                
-                // Logo and title section
+                Spacer().frame(height: 60)
+
                 if showContent {
                     logoSection
                         .transition(.scale.combined(with: .opacity))
                 }
-                
+
                 Spacer()
-                
-                // Phone input section
+
                 if showContent {
-                    phoneInputSection
+                    tokenInputSection
                         .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
-                
+
                 Spacer()
-                
-                // Bottom button section
+
                 if showContent {
                     bottomSection
                         .transition(.move(edge: .bottom).combined(with: .opacity))
@@ -75,16 +73,16 @@ struct EnterNumberToSearchUserView: View {
             }
             .padding(.horizontal, 24)
             .padding(.bottom, 32)
-            
+
             // Loading overlay
             if viewModel.isLoading {
                 Color.black.opacity(0.15)
                     .ignoresSafeArea()
-                
+
                 VStack(spacing: 12) {
                     ProgressView()
                         .scaleEffect(1.2)
-                    Text("Verifying number…")
+                    Text("Verifying token…")
                         .font(.system(size: 14, weight: .medium))
                         .foregroundColor(Color(red: 0.118, green: 0.161, blue: 0.231))
                 }
@@ -99,21 +97,18 @@ struct EnterNumberToSearchUserView: View {
         }
         .ignoresSafeArea(.keyboard, edges: .bottom)
         .onAppear {
-            print("📱 [EnterPhoneNumberScreen] appeared")
-            
-            // Show content with delay for smooth animation
+            print("🔢 [EnterTokenScreen] appeared")
+
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                 withAnimation(.easeInOut(duration: 1.0)) {
                     showContent = true
                 }
             }
-            
-            // Auto-focus keyboard after animation
+
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                isPhoneFieldFocused = true
+                isTokenFieldFocused = true
             }
-            
-            // Start feature rotation
+
             Timer.scheduledTimer(withTimeInterval: 3.5, repeats: true) { _ in
                 withAnimation(.spring(response: 0.8, dampingFraction: 0.85)) {
                     currentFeature = (currentFeature + 1) % features.count
@@ -121,29 +116,20 @@ struct EnterNumberToSearchUserView: View {
             }
         }
         .alert("Error", isPresented: .constant(viewModel.errorText != nil)) {
-            Button("OK") {
-                viewModel.reset()
-            }
+            Button("OK") { viewModel.reset() }
         } message: {
-            if let error = viewModel.errorText {
-                Text(error)
-            }
+            if let error = viewModel.errorText { Text(error) }
         }
         .onChange(of: viewModel.userId) { _, newValue in
             if newValue != nil {
-                print("✅ [EnterPhoneNumberScreen] User fetched successfully")
+                print("✅ [EnterTokenScreen] User fetched successfully")
                 handleSuccess()
             }
         }
         .navigationDestination(isPresented: $openMLScan) {
-            MLScanView(onDone:{
-                // 1) pop MLScanView (because navigationDestination is controlled by openMLScan)
+            MLScanView(onDone: {
                 openMLScan = false
-
-                // 2) present ClaimChaiView after pop completes
-                DispatchQueue.main.async {
-                    openChaiClaimView = true
-                }
+                DispatchQueue.main.async { openChaiClaimView = true }
             }, userId: viewModel.userId ?? "", deviceKeyHash: viewModel.deviceKeyHash ?? "")
         }
         .fullScreenCover(isPresented: $openChaiClaimView) {
@@ -156,36 +142,60 @@ struct EnterNumberToSearchUserView: View {
                     get: { viewModel.deviceKeyHash ?? "" },
                     set: { newValue in viewModel.deviceKeyHash = newValue.isEmpty ? nil : newValue }
                 ),
-                onDone: {
-                    openChaiClaimView = false   // ✅ this returns to EnterNumberToSearchUserView
-                }
+                onDone: { openChaiClaimView = false }
             )
         }
-
         .navigationDestination(isPresented: $openAdminLoginView) {
             AdminLoginView()
         }
-        .toolbar{
-            Button{
-                openAdminLoginView.toggle()
-            }label: {
-                Text("Admin")
+        .sheet(isPresented: $openFindTokenView) {  // ✅ New sheet
+            FindTokenByPhoneView()
+        }
+        .navigationDestination(isPresented: $openRegisterChaiView){
+            RegisterChaiView()
+        }
+        .toolbar {
+            ToolbarItem(placement: .navigationBarLeading){
+                Button{
+                    openRegisterChaiView.toggle()
+                }label: {
+                    Text("Register")
+                }
+            }
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Menu {
+                    Button {
+                        print("🔍 [EnterTokenScreen] Opening Find Token view")
+                        openFindTokenView = true
+                    } label: {
+                        Label("Find Token", systemImage: "magnifyingglass")
+                    }
+                    
+                    Button {
+                        print("👤 [EnterTokenScreen] Opening Admin Login")
+                        openAdminLoginView = true
+                    } label: {
+                        Label("Admin Login", systemImage: "person.circle")
+                    }
+                } label: {
+                    Text("More")
+                        .font(.system(size: 16, weight: .medium))
+                }
             }
         }
     }
-    
+
     // MARK: - Logo Section
-    
+
     private var logoSection: some View {
         VStack(spacing: 0) {
-            // Phone icon circle
             ZStack {
                 Circle()
                     .fill(Color.white)
                     .frame(width: 140, height: 140)
                     .shadow(color: .black.opacity(0.1), radius: 12, y: 6)
-                
-                Image(systemName: "phone.fill")
+
+                Image(systemName: "number.circle.fill")
                     .font(.system(size: 64))
                     .foregroundStyle(
                         LinearGradient(
@@ -195,11 +205,10 @@ struct EnterNumberToSearchUserView: View {
                         )
                     )
             }
-            
+
             Spacer().frame(height: 28)
-            
-            // Title with logo gradient
-            Text("Enter Phone Number")
+
+            Text("Enter Token")
                 .font(.system(size: 32, weight: .bold))
                 .foregroundStyle(
                     LinearGradient(
@@ -208,16 +217,15 @@ struct EnterNumberToSearchUserView: View {
                         endPoint: .bottom
                     )
                 )
-            
+
             Spacer().frame(height: 8)
-            
+
             Text("We'll verify your account")
                 .font(.system(size: 12, weight: .medium, design: .rounded))
                 .foregroundColor(Color(red: 0.392, green: 0.455, blue: 0.545))
-            
+
             Spacer().frame(height: 28)
-            
-            // Rotating feature pill
+
             FeaturePill(
                 icon: features[currentFeature].icon,
                 title: features[currentFeature].title,
@@ -234,31 +242,15 @@ struct EnterNumberToSearchUserView: View {
         }
         .padding(.horizontal, 16)
     }
-    
-    // MARK: - Phone Input Section
-    
-    private var phoneInputSection: some View {
+
+    // MARK: - Token Input Section
+
+    private var tokenInputSection: some View {
         VStack(spacing: 12) {
             HStack(spacing: 12) {
-                // Country code
-                HStack(spacing: 6) {
-                    Text("🇮🇳")
-                        .font(.system(size: 24))
-                    Text("+91")
-                        .font(.system(size: 16, weight: .semibold))
-                        .foregroundColor(Color(red: 0.118, green: 0.161, blue: 0.231))
-                }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 18)
-                .background(
-                    RoundedRectangle(cornerRadius: 16)
-                        .fill(Color.white)
-                        .shadow(color: .black.opacity(0.05), radius: 8, y: 4)
-                )
-                
-                // Phone number input
+                // Token input
                 HStack(spacing: 12) {
-                    Image(systemName: "phone")
+                    Image(systemName: "number")
                         .foregroundStyle(
                             LinearGradient(
                                 colors: [logoBlue.opacity(0.7), logoPurple.opacity(0.7)],
@@ -267,17 +259,17 @@ struct EnterNumberToSearchUserView: View {
                             )
                         )
                         .frame(width: 20)
-                    
-                    TextField("Phone number", text: $phoneNumber)
-                        .keyboardType(.phonePad)
-                        .focused($isPhoneFieldFocused)
-                        .textContentType(.telephoneNumber)
+
+                    TextField("Token (numbers only)", text: $tokenText)
+                        .keyboardType(.numberPad)
+                        .focused($isTokenFieldFocused)
+                        .textContentType(.oneTimeCode)
                         .font(.system(size: 16, weight: .medium))
                         .foregroundColor(Color(red: 0.118, green: 0.161, blue: 0.231))
-                        .onChange(of: phoneNumber) { _, newValue in
-                            if newValue.count > 10 {
-                                phoneNumber = String(newValue.prefix(10))
-                            }
+                        .onChange(of: tokenText) { _, newValue in
+                            let digitsOnly = newValue.filter(\.isNumber)
+                            if digitsOnly != newValue { tokenText = digitsOnly }
+                            if tokenText.count > 8 { tokenText = String(tokenText.prefix(8)) }
                         }
                 }
                 .padding(.horizontal, 16)
@@ -290,31 +282,26 @@ struct EnterNumberToSearchUserView: View {
                 .overlay(
                     RoundedRectangle(cornerRadius: 16)
                         .stroke(
-                            isPhoneFieldFocused ?
+                            isTokenFieldFocused ?
                             LinearGradient(
                                 colors: [logoBlue, logoPurple],
                                 startPoint: .leading,
                                 endPoint: .trailing
                             ) :
-                            LinearGradient(
-                                colors: [Color.clear, Color.clear],
-                                startPoint: .leading,
-                                endPoint: .trailing
-                            ),
+                            LinearGradient(colors: [Color.clear, Color.clear], startPoint: .leading, endPoint: .trailing),
                             lineWidth: 2
                         )
                 )
             }
         }
     }
-    
+
     // MARK: - Bottom Section
-    
+
     private var bottomSection: some View {
         VStack(spacing: 10) {
             Spacer().frame(height: 8)
-            
-            // Proceed button
+
             GlassButton(
                 text: "Proceed",
                 icon: "",
@@ -326,14 +313,14 @@ struct EnterNumberToSearchUserView: View {
             }
             .disabled(!isButtonEnabled || viewModel.isLoading)
             .opacity(viewModel.isLoading || !isButtonEnabled ? 0.6 : 1.0)
-            
+
             HStack {
                 Text("Your data is encrypted and secure")
                     .font(.system(size: 10, weight: .regular, design: .rounded))
                     .foregroundColor(Color(red: 0.580, green: 0.639, blue: 0.722))
                     .multilineTextAlignment(.center)
             }
-            
+
             HStack {
                 Text("powered by")
                     .font(.system(size: 8))
@@ -344,35 +331,33 @@ struct EnterNumberToSearchUserView: View {
             }
         }
     }
-    
+
     // MARK: - Computed Properties
-    
+
     private var isButtonEnabled: Bool {
-        phoneNumber.count >= 10
+        Int(tokenText.trimmingCharacters(in: .whitespacesAndNewlines)) != nil
     }
-    
+
     // MARK: - Actions
-    
+
     private func handleProceed() {
-        let fullPhoneNumber = "+91\(phoneNumber)"
-        let trimmed = fullPhoneNumber.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty else {
-            print("⚠️ [EnterPhoneNumberScreen] Empty phone number")
+        let trimmed = tokenText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard let token = Int(trimmed) else {
+            print("⚠️ [EnterTokenScreen] Invalid token: \(trimmed)")
             return
         }
-        
-        isPhoneFieldFocused = false
-        
-        print("🚀 [EnterPhoneNumberScreen] Fetching user for phone number")
+
+        isTokenFieldFocused = false
+
+        print("🚀 [EnterTokenScreen] Fetching user for token")
         Task {
-            await viewModel.fetch(phoneNumber: trimmed)
+            await viewModel.fetch(token: token)
         }
     }
-    
+
     private func handleSuccess() {
-        print("🎉 [EnterPhoneNumberScreen] Success - userId: \(viewModel.userId ?? "nil")")
-        print("📊 [EnterPhoneNumberScreen] Face IDs count: \(viewModel.faceIds.count)")
-        
+        print("🎉 [EnterTokenScreen] Success - userId: \(viewModel.userId ?? "nil")")
+        print("📊 [EnterTokenScreen] Face IDs count: \(viewModel.faceIds.count)")
         openMLScan.toggle()
     }
 }
@@ -380,4 +365,3 @@ struct EnterNumberToSearchUserView: View {
 #Preview {
     EnterNumberToSearchUserView()
 }
-
