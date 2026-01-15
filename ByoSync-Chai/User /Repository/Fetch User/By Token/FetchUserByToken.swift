@@ -15,7 +15,7 @@ struct FetchUserByTokenResponse: Decodable {
 struct FetchUserByTokenData: Decodable {
     let userId: String
     let salt: String
-    let deviceKeyHash: String
+    let deviceKeyHash: String?
     let faceData: [FaceId] // assumes FaceId: Decodable exists
 }
 

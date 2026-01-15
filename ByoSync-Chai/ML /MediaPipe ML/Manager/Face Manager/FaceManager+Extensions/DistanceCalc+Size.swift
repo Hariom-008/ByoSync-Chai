@@ -15,7 +15,7 @@ struct FrameDistance {
 // MARK: - Calculating Distances for each frame
 extension FaceManager {
 
-    private var IOD_NORM_MAX: Float { 0.31 }
+    private var IOD_NORM_MAX: Float { 0.22 }
 
     // Function to remove extra digits after 4 digits after decimal
     @inline(__always)
