@@ -74,7 +74,9 @@ final class RegisterFromChaiAppViewModel: ObservableObject {
                 return
             }
 
-            newUser = res.data.newUser
+            await MainActor.run {
+                self.newUser = res.data.newUser
+            }
             message = res.message
 
             Logger.shared.i(

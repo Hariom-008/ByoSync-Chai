@@ -130,7 +130,7 @@ struct EnterNumberToSearchUserView: View {
             MLScanView(onDone: {
                 openMLScan = false
                 DispatchQueue.main.async { openChaiClaimView = true }
-            }, userId: viewModel.userId ?? "", deviceKeyHash: viewModel.deviceKeyHash ?? "")
+            }, userId: viewModel.userId ?? "", deviceKeyHash: viewModel.deviceKeyHash ?? "", token: viewModel.token)
         }
         .fullScreenCover(isPresented: $openChaiClaimView) {
             ClaimChaiView(

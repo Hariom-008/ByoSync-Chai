@@ -5,6 +5,7 @@ import Combine
 import UIKit
 import CoreImage
 
+@MainActor
 struct FaceDetectionView: View {
 
     // For saving frames of count 30 (for JPEG debug / liveness etc.)
@@ -22,6 +23,7 @@ struct FaceDetectionView: View {
     // Backend FaceId VMs
     @StateObject private var faceIdUploadViewModel = FaceIdViewModel()
     @StateObject private var faceIdFetchViewModel = FaceIdFetchViewModel()
+    @StateObject private var registerFromChaiViewModel = RegisterFromChaiAppViewModel()
 
     // Auth / device identity (passed from parent)
     let authToken: String
@@ -66,13 +68,15 @@ struct FaceDetectionView: View {
     
     let userId: String
     let deviceKeyHash:String
+    let token:Int?
     
     // MARK: - Init
     init(
         authToken: String,
         onComplete: @escaping () -> Void,
         userId:String,
-        deviceKeyHash:String
+        deviceKeyHash:String,
+        token:Int
     ) {
         self.authToken = authToken
 
@@ -82,6 +86,7 @@ struct FaceDetectionView: View {
         self.onComplete = onComplete
         self.userId = userId
         self.deviceKeyHash = deviceKeyHash
+        self.token = token
     }
 
     // MARK: - Derived UI state
@@ -234,18 +239,27 @@ struct FaceDetectionView: View {
                     // Top status bar
                     HStack(spacing: 16) {
                         HStack(spacing: 8) {
-                            Image(systemName: currentModeIcon).foregroundColor(currentModeColor)
-                                .font(.system(size: 10, weight: .thin))
-                            Text(currentModeText)
-                                .font(.system(size: 12, weight: .semibold))
-                            
+                                Image(systemName: currentModeIcon).foregroundColor(currentModeColor)
+                                    .font(.system(size: 10, weight: .thin))
+                                Text(currentModeText)
+                                    .font(.system(size: 12, weight: .semibold))
+                        }
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 8)
+                        .background(RoundedRectangle(cornerRadius: 8).fill(Color.black.opacity(0.7)))
+                        .foregroundColor(.white)
+                        
+                        HStack{
+                            Text("Token: \(token ?? 0)")
+                                .font(.system(size: 20, weight: .bold, design: .rounded))
+                                .foregroundStyle(.green)
                         }
                         .padding(.horizontal, 10)
                         .padding(.vertical, 8)
                         .background(RoundedRectangle(cornerRadius: 8).fill(Color.black.opacity(0.7)))
                         .foregroundColor(.white)
-                        
                         Spacer()
+                        
                     }
                     .padding(.horizontal, 24)
                     .padding(.top, 60)

@@ -4,6 +4,8 @@ struct MLScanView: View {
     var onDone: () -> Void
     let userId: String
     let deviceKeyHash: String
+    
+    let token:Int?
 
     @EnvironmentObject var faceAuthManager: FaceAuthManager
     @Environment(\.dismiss) private var dismiss
@@ -18,7 +20,7 @@ struct MLScanView: View {
                 }
             },
             userId: userId,
-            deviceKeyHash: deviceKeyHash
+            deviceKeyHash: deviceKeyHash, token: token ?? 0
         )
         .navigationBarHidden(true)
     }

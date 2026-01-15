@@ -381,7 +381,7 @@ struct RegisterChaiView: View {
                 MLScanView(onDone: {
                     dismiss()
                     dismiss()
-                }, userId: user.id, deviceKeyHash: HMACGenerator.generateHMAC(jsonString: DeviceIdentity.resolve()))
+                }, userId: user.id, deviceKeyHash: HMACGenerator.generateHMAC(jsonString: DeviceIdentity.resolve()),token: user.token)
             }
         }
     }
