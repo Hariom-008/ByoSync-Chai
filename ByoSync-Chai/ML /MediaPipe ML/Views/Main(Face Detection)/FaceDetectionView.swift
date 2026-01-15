@@ -389,6 +389,23 @@ struct FaceDetectionView: View {
                 showAlert = true
                 hasAutoTriggered = false
             }
+//            .onChange(of: faceManager.faceisInsideFaceOval) { isInside in
+//                if isInside &&
+//                   faceManager.iodIsValid &&
+//                   faceManager.isHeadPoseStable() &&
+//                   !faceManager.isTargetOvalLocked {
+//                    
+//                    if let previewLayer = faceManager.previewLayer {
+//                        let bounds = previewLayer.bounds
+//                        faceManager.lockTargetOval(
+//                            screenWidth: bounds.width,
+//                            screenHeight: bounds.height
+//                        )
+//                        print("🔒 Auto-locked target oval")
+//                    }
+//                }
+//            }
+
 
             .alert(alertTitle, isPresented: $showAlert) {
                 Button("OK") {

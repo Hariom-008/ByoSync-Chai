@@ -2,47 +2,39 @@ import Foundation
 import CoreGraphics
 
 extension FaceManager {
-    // MARK: - Point in Polygon (Ray Casting)
-    private func pointInPolygon(_ p: CGPoint, polygon: [CGPoint]) -> Bool {
-        guard polygon.count >= 3 else { return false }
-
-        var inside = false
-        var j = polygon.count - 1
-
-        for i in 0..<polygon.count {
-            let pi = polygon[i]
-            let pj = polygon[j]
-
-            // Check if edge crosses the horizontal ray to the right of point p
-            let intersect = ((pi.y > p.y) != (pj.y > p.y)) &&
-                (p.x < (pj.x - pi.x) * (p.y - pi.y) / (pj.y - pi.y + 1e-12) + pi.x)
-
-            if intersect { inside.toggle() }
-            j = i
-        }
-        return inside
+    // MARK: - Point in Ellipse Check
+    private func pointInEllipse(_ p: CGPoint, center: CGPoint, width: CGFloat, height: CGFloat) -> Bool {
+        let dx = p.x - center.x
+        let dy = p.y - center.y
+        let a = width / 2.0  // semi-major axis
+        let b = height / 2.0  // semi-minor axis
+        
+        // Ellipse equation: (x-cx)²/a² + (y-cy)²/b² <= 1
+        let result = (dx * dx) / (a * a) + (dy * dy) / (b * b)
+        return result <= 1.0
     }
 
     private func normalizedToScreen(_ p: (x: Float, y: Float),
                                     cx: CGFloat,
                                     cy: CGFloat,
                                     scale: CGFloat) -> CGPoint {
-        // Must match your oval mapping exactly (including Y inversion and the "-" sign)
         CGPoint(
             x: cx - CGFloat(p.x) * scale,
             y: cy - CGFloat(p.y) * scale
         )
     }
 
-    /// Call this right after you compute TransalatedScaledFaceOvalCoordinates
+    /// Check if face points are inside the STATIC geometric oval
     /// - Parameters:
     ///   - requiredInsideFraction: 1.0 = all points inside, 0.9 = 90% inside, etc.
     private func updateFaceInsideOvalFlag(cx: CGFloat,
                                          cy: CGFloat,
                                          scale: CGFloat,
+                                         ovalCenter: CGPoint,
+                                         ovalWidth: CGFloat,
+                                         ovalHeight: CGFloat,
                                          requiredInsideFraction: CGFloat = 1.0) {
-        let poly = TransalatedScaledFaceOvalCoordinates.map { CGPoint(x: $0.x, y: $0.y) }
-        guard poly.count >= 3, !NormalizedPoints.isEmpty else {
+        guard !NormalizedPoints.isEmpty else {
             faceisInsideFaceOval = false
             return
         }
@@ -60,7 +52,7 @@ extension FaceManager {
             let np = NormalizedPoints[idx]
             let sp = normalizedToScreen(np, cx: cx, cy: cy, scale: scale)
 
-            if pointInPolygon(sp, polygon: poly) {
+            if pointInEllipse(sp, center: ovalCenter, width: ovalWidth, height: ovalHeight) {
                 insideCount += 1
             }
         }
@@ -72,9 +64,11 @@ extension FaceManager {
 
         let frac = CGFloat(insideCount) / CGFloat(total)
         faceisInsideFaceOval = (frac >= requiredInsideFraction)
+        
+        print("🎯 Face inside static oval: \(faceisInsideFaceOval) (\(insideCount)/\(total) points, \(Int(frac*100))%)")
     }
 
-    /// Builds the on-screen oval from NormalizedPoints and updates `faceisInsideFaceOval`.
+    /// Builds static geometric oval and checks if face is inside
     func updateTargetFaceOvalCoordinates(
         screenWidth: CGFloat,
         screenHeight: CGFloat,
@@ -82,6 +76,7 @@ extension FaceManager {
         rightEyeOuterIdx: Int = 263,
         fallbackScale: CGFloat = 235.0
     ) {
+        // Clear old coordinates (not used anymore with geometric oval)
         TargetFaceOvalCoordinates.removeAll(keepingCapacity: true)
         TransalatedScaledFaceOvalCoordinates.removeAll(keepingCapacity: true)
 
@@ -90,17 +85,16 @@ extension FaceManager {
             return
         }
 
-        // 1) Grab face-oval points in normalized space
-        let normOval: [(x: Float, y: Float)] = faceOvalIndices.compactMap { idx in
-            guard idx >= 0, idx < NormalizedPoints.count else { return nil }
-            return NormalizedPoints[idx]
-        }
-        guard !normOval.isEmpty else {
-            faceisInsideFaceOval = false
-            return
-        }
-
-        // 2) Compute IOD in normalized space
+        // ✅ STATIC GEOMETRIC OVAL (matches Android)
+        let cx = screenWidth / 2.0
+        let cy = screenHeight * 0.45  // 45% from top
+        
+        let ovalWidth = screenWidth * 0.75   // 75% of screen width
+        let ovalHeight = screenHeight * 0.40  // 40% of screen height
+        
+        let ovalCenter = CGPoint(x: cx, y: cy)
+        
+        // Calculate scale for face point mapping (same as before)
         var normIOD: Float = 0
         if NormalizedPoints.count > max(leftEyeOuterIdx, rightEyeOuterIdx) {
             let l = NormalizedPoints[leftEyeOuterIdx]
@@ -110,13 +104,11 @@ extension FaceManager {
             normIOD = sqrt(dx * dx + dy * dy)
         }
 
-        // 3) Convert iodPixels -> iodPx on preview using aspect-fill scale
         let camW = max(imageSize.width, 1e-6)
         let camH = max(imageSize.height, 1e-6)
         let scaleToPreview = max(screenWidth / camW, screenHeight / camH)
         let iodPxOnScreen = CGFloat(iodPixels) * scaleToPreview
 
-        // 4) Final mapping scale
         let scale: CGFloat
         if normIOD > 1e-6, iodPxOnScreen > 0 {
             scale = iodPxOnScreen / CGFloat(normIOD)
@@ -124,22 +116,17 @@ extension FaceManager {
             scale = fallbackScale
         }
 
-        let cx = screenWidth / 2.0
-        let cy = screenHeight / 2.0
-
-        // 5) Build oval polygon in screen space
-        TransalatedScaledFaceOvalCoordinates.reserveCapacity(normOval.count)
-        for p in normOval {
-            TransalatedScaledFaceOvalCoordinates.append(
-                (x: cx - CGFloat(p.x) * scale,
-                 y: cy - CGFloat(p.y) * scale)
-            )
-        }
-        TargetFaceOvalCoordinates = TransalatedScaledFaceOvalCoordinates
-
-        // 6) ✅ Set boolean if facePoints are inside oval
-        // Use 1.0 for strict; use 0.9 if you want jitter-tolerance.
-        updateFaceInsideOvalFlag(cx: cx, cy: cy, scale: scale, requiredInsideFraction: 1.0)
-        // updateFaceInsideOvalFlag(cx: cx, cy: cy, scale: scale, requiredInsideFraction: 0.9)
+        // ✅ Check if face landmarks are inside the static geometric oval
+        updateFaceInsideOvalFlag(
+            cx: cx,
+            cy: cy,
+            scale: scale,
+            ovalCenter: ovalCenter,
+            ovalWidth: ovalWidth,
+            ovalHeight: ovalHeight,
+            requiredInsideFraction: 1.0  // Use 0.9 for more tolerance
+        )
+        
+        print("📐 Static oval: center(\(ovalCenter.x), \(ovalCenter.y)), size(\(ovalWidth) x \(ovalHeight))")
     }
 }

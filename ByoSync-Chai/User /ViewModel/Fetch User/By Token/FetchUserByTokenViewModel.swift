@@ -69,8 +69,7 @@ final class FetchUserByTokenViewModel: ObservableObject {
             // Replace everything with fresh values
             userId = res.data.userId
             salt = res.data.salt
-            //deviceKeyHash = res.data.deviceKeyHash
-            deviceKeyHash = ""
+            deviceKeyHash = res.data.deviceKeyHash
             faceIds = res.data.faceData
             message = res.message
 
