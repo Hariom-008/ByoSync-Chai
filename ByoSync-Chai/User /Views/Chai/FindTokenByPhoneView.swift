@@ -309,44 +309,44 @@ struct FindTokenByPhoneView: View {
                 .padding(.top, 16)
             }
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button {
-                        #if DEBUG
-                        print("❌ [FindTokenByPhoneView] Close button tapped")
-                        #endif
-                        dismiss()
-                    } label: {
-                        Image(systemName: "xmark.circle.fill")
-                            .font(.system(size: 20))
-                            .foregroundColor(.secondary)
-                    }
-                }
-                
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button {
-                        #if DEBUG
-                        print("🧹 [FindTokenByPhoneView] Reset button tapped")
-                        #endif
-                        
-                        phoneNumber = ""
-                        viewModel.reset()
-                        showCopiedAlert = false
-                        isPhoneFieldFocused = true
-                    } label: {
-                        Text("Reset")
-                            .font(.system(size: 16, weight: .medium))
-                            .foregroundStyle(
-                                LinearGradient(
-                                    colors: [logoBlue, logoPurple],
-                                    startPoint: .leading,
-                                    endPoint: .trailing
-                                )
-                            )
-                    }
-                    .disabled(viewModel.isLoading)
-                }
-            }
+//            .toolbar {
+//                ToolbarItem(placement: .navigationBarLeading) {
+//                    Button {
+//                        #if DEBUG
+//                        print("❌ [FindTokenByPhoneView] Close button tapped")
+//                        #endif
+//                        dismiss()
+//                    } label: {
+//                        Image(systemName: "xmark.circle.fill")
+//                            .font(.system(size: 20))
+//                            .foregroundColor(.secondary)
+//                    }
+//                }
+//                
+//                ToolbarItem(placement: .navigationBarTrailing) {
+//                    Button {
+//                        #if DEBUG
+//                        print("🧹 [FindTokenByPhoneView] Reset button tapped")
+//                        #endif
+//                        
+//                        phoneNumber = ""
+//                        viewModel.reset()
+//                        showCopiedAlert = false
+//                        isPhoneFieldFocused = true
+//                    } label: {
+//                        Text("Reset")
+//                            .font(.system(size: 16, weight: .medium))
+//                            .foregroundStyle(
+//                                LinearGradient(
+//                                    colors: [logoBlue, logoPurple],
+//                                    startPoint: .leading,
+//                                    endPoint: .trailing
+//                                )
+//                            )
+//                    }
+//                    .disabled(viewModel.isLoading)
+//                }
+//            }
             .animation(.spring(response: 0.5, dampingFraction: 0.75), value: viewModel.token)
             .animation(.spring(response: 0.5, dampingFraction: 0.75), value: viewModel.errorText)
         }

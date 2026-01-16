@@ -33,6 +33,11 @@ struct DeleteFaceDatabyNumberView: View {
                 endPoint: .bottom
             )
             .ignoresSafeArea()
+            .onTapGesture {
+                // Dismiss keyboard when tapping background
+                print("🎯 [AdminDeleteFaceDataView] Background tapped - dismissing keyboard")
+                isPhoneFieldFocused = false
+            }
             
             // Animated background blobs
             AnimatedBackgroundBlobs(
@@ -116,8 +121,28 @@ struct DeleteFaceDatabyNumberView: View {
                     )
                 }
             }
+            
+            // Keyboard toolbar with Done button
+            ToolbarItemGroup(placement: .keyboard) {
+                Spacer()
+                Button {
+                    print("✅ [AdminDeleteFaceDataView] Done button tapped - dismissing keyboard")
+                    isPhoneFieldFocused = false
+                } label: {
+                    Text("Done")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundStyle(
+                            LinearGradient(
+                                colors: [logoBlue, logoPurple],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                }
+            }
         }
         .onAppear {
+            print("📱 [AdminDeleteFaceDataView] View appeared")
             
             // Show content with delay
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
@@ -270,12 +295,16 @@ struct DeleteFaceDatabyNumberView: View {
                         .foregroundColor(Color(red: 0.118, green: 0.161, blue: 0.231))
                         .onChange(of: phoneNumber) { _, newValue in
                             print("📝 [AdminDeleteFaceDataView] Phone: \(newValue.count) chars")
+                            // Limit to 10 digits
+                            if newValue.count > 10 {
+                                phoneNumber = String(newValue.prefix(10))
+                            }
                         }
-                        .onChange(of: phoneNumber) { _,newValue in
-                        if newValue.count > 10 {
-                            phoneNumber = String(newValue.prefix(10))
+                        .submitLabel(.done)
+                        .onSubmit {
+                            print("⌨️ [AdminDeleteFaceDataView] Submit pressed - dismissing keyboard")
+                            isPhoneFieldFocused = false
                         }
-                    }
                 }
                 .padding(.horizontal, 16)
                 .padding(.vertical, 18)
@@ -387,7 +416,10 @@ struct DeleteFaceDatabyNumberView: View {
             return
         }
         
+        print("⌨️ [AdminDeleteFaceDataView] Delete button tapped - dismissing keyboard first")
         isPhoneFieldFocused = false
+        
+        print("🗑️ [AdminDeleteFaceDataView] Deleting face data for: \(trimmed)")
         
         // Hash the phone number
         let phoneHash = HMACGenerator.generateHMAC(jsonString: trimmed)

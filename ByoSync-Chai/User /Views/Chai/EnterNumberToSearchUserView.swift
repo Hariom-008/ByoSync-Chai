@@ -15,7 +15,7 @@ struct EnterNumberToSearchUserView: View {
     @State var openMLScan: Bool = false
     @State var openChaiClaimView: Bool = false
     @State var openAdminLoginView: Bool = false
-    @State var openFindTokenView: Bool = false  // ✅ New state
+    @State var openFindTokenView: Bool = false
     @State var openRegisterChaiView:Bool = false
 
     // Colors from the logo gradient
@@ -41,6 +41,11 @@ struct EnterNumberToSearchUserView: View {
                 endPoint: .bottom
             )
             .ignoresSafeArea()
+            .onTapGesture {
+                // Dismiss keyboard when tapping background
+                print("🎯 [EnterTokenScreen] Background tapped - dismissing keyboard")
+                isTokenFieldFocused = false
+            }
 
             // Animated background blobs
             AnimatedBackgroundBlobs(
@@ -148,10 +153,10 @@ struct EnterNumberToSearchUserView: View {
         .navigationDestination(isPresented: $openAdminLoginView) {
             AdminLoginView()
         }
-        .sheet(isPresented: $openFindTokenView) {  // ✅ New sheet
+        .sheet(isPresented: $openFindTokenView) {
             FindTokenByPhoneView()
         }
-        .navigationDestination(isPresented: $openRegisterChaiView){
+        .fullScreenCover(isPresented: $openRegisterChaiView){
             RegisterChaiView()
         }
         .toolbar {
@@ -180,6 +185,25 @@ struct EnterNumberToSearchUserView: View {
                 } label: {
                     Text("More")
                         .font(.system(size: 16, weight: .medium))
+                }
+            }
+            
+            // Keyboard toolbar with Done button
+            ToolbarItemGroup(placement: .keyboard) {
+                Spacer()
+                Button {
+                    print("✅ [EnterTokenScreen] Done button tapped - dismissing keyboard")
+                    isTokenFieldFocused = false
+                } label: {
+                    Text("Done")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundStyle(
+                            LinearGradient(
+                                colors: [logoBlue, logoPurple],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
                 }
             }
         }
@@ -271,6 +295,11 @@ struct EnterNumberToSearchUserView: View {
                             if digitsOnly != newValue { tokenText = digitsOnly }
                             if tokenText.count > 8 { tokenText = String(tokenText.prefix(8)) }
                         }
+                        .submitLabel(.done)
+                        .onSubmit {
+                            print("⌨️ [EnterTokenScreen] Submit pressed - dismissing keyboard")
+                            isTokenFieldFocused = false
+                        }
                 }
                 .padding(.horizontal, 16)
                 .padding(.vertical, 18)
@@ -347,6 +376,7 @@ struct EnterNumberToSearchUserView: View {
             return
         }
 
+        print("⌨️ [EnterTokenScreen] Proceed tapped - dismissing keyboard first")
         isTokenFieldFocused = false
 
         print("🚀 [EnterTokenScreen] Fetching user for token")
