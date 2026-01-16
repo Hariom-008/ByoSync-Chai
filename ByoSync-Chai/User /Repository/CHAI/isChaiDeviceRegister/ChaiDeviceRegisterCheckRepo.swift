@@ -85,6 +85,7 @@ final class ChaiDeviceRegisterCheckRepo {
             case .success(let response):
                 print("✅ [DeviceRegistrationRepository] statusCode=\(response.statusCode), " +
                       "success=\(response.success), message='\(response.message)'")
+                KeychainHelper.shared.save(response.data.id, forKey: "chaiDeviceId")
                 
                 completion(.success(response))
                 

@@ -286,9 +286,7 @@ struct FaceDetectionView: View {
             }
             .onAppear {
                 syncBusy()
-                #if DEBUG
                 print("🎬 [FaceDetectionView] View appeared")
-                #endif
             }
             .onChange(of: isProcessing) { _, _ in syncBusy() }
             .onChange(of: fetchUserByTokenViewModel.isLoading) { _, _ in syncBusy() }
@@ -300,15 +298,14 @@ struct FaceDetectionView: View {
 
                 if faceAuthManager.currentMode == .verification, newValue >= 10, backendEnrollmentValid {
                     hasAutoTriggered = true
+                    print("🚀 [FaceDetectionView] Auto-triggering verification with \(newValue) frames")
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { handleLogin() }
                 }
             }
 
             .onChange(of: faceManager.uploadSuccess) { success in
                 if success {
-                    #if DEBUG
                     print("🎉 [Upload] Success! Completing flow...")
-                    #endif
                     DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
                         faceManager.resetForNewUser()
                         onComplete()
@@ -326,9 +323,7 @@ struct FaceDetectionView: View {
             .onChange(of: faceIdUploadViewModel.uploadSuccess) { ok in
                 guard ok else { return }
 
-                #if DEBUG
                 print("✅ [Upload] Registration successful!")
-                #endif
                 enrollmentGate.markEnrolled()
 
                 faceManager.capturedFrames = []
@@ -344,15 +339,14 @@ struct FaceDetectionView: View {
             
             .onChange(of: faceManager.registrationComplete) { _, done in
                 guard done, !hasAutoTriggered, !faceManager.isBusy else { return }
+                print("✅ [FaceDetectionView] Registration complete, triggering upload")
                 hasAutoTriggered = true
                 handleRegister()
             }
 
             .onChange(of: fetchUserByTokenViewModel.errorText) { _, err in
                 guard let err else { return }
-                #if DEBUG
                 print("❌ [TokenFetch] Error: \(err)")
-                #endif
                 alertTitle = "❌ Fetch Failed"
                 alertMessage = err
                 showAlert = true
@@ -361,9 +355,7 @@ struct FaceDetectionView: View {
 
             .onChange(of: faceIdUploadViewModel.showError) { show in
                 guard show else { return }
-                #if DEBUG
                 print("❌ [Upload] Error: \(faceIdUploadViewModel.errorMessage ?? "Unknown")")
-                #endif
                 alertTitle = "❌ Upload Failed"
                 alertMessage = faceIdUploadViewModel.errorMessage ?? "Unknown upload error"
                 showAlert = true
@@ -395,14 +387,12 @@ struct FaceDetectionView: View {
             hasAutoTriggered = false
             syncBusy()
 
-            #if DEBUG
             print("🎯 [FaceDetectionView] Current mode: \(faceAuthManager.currentMode)")
-            #endif
 
             if faceAuthManager.currentMode == .registration {
                 enrollmentGate.markNotEnrolled()
             } else {
-                // ✅ NEW: token-based face data fetch
+                print("📥 [FaceDetectionView] Fetching face data for token: \(token)")
                 Task { await fetchUserByTokenViewModel.fetch(token: token) }
             }
         }
@@ -434,20 +424,22 @@ struct FaceDetectionView: View {
         let count = fetchUserByTokenViewModel.faceIds.count
         let saltLen = fetchUserByTokenViewModel.salt?.count ?? 0
 
-        #if DEBUG
         print("📊 Enrollment status (token backend): \(isEnrolled ? "✅ Enrolled" : "❌ Not Enrolled")")
         print("   Remote FaceId count: \(count)")
         print("   Remote salt len: \(saltLen)")
-        #endif
     }
 
-    // MARK: - Register Handler (unchanged)
+    // MARK: - Register Handler
 
     private func handleRegister() {
+        print("📝 [FaceDetectionView] Starting registration upload")
         isProcessing = true
 
         let frames = faceManager.registrationFramesForUpload()
         let valid = frames.filter { $0.distances.count == 316 }
+
+        print("   • Total frames: \(frames.count)")
+        print("   • Valid frames: \(valid.count)")
 
         guard valid.count >= 60 else {
             isProcessing = false
@@ -468,10 +460,12 @@ struct FaceDetectionView: View {
                 self.isProcessing = false
                 switch result {
                 case .success:
+                    print("✅ [FaceDetectionView] Registration upload complete")
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                         self.onComplete()
                     }
                 case .failure(let error):
+                    print("❌ [FaceDetectionView] Registration failed: \(error)")
                     self.alertTitle = "❌ Registration Failed"
                     self.alertMessage = "Error: \(error.localizedDescription)"
                     self.showAlert = true
@@ -484,9 +478,10 @@ struct FaceDetectionView: View {
         }
     }
 
-    // MARK: - Login Handler (NEW: uses FetchUserByTokenViewModel)
+    // MARK: - Login Handler (uses FetchUserByTokenViewModel)
 
     private func handleLogin() {
+        print("🔐 [FaceDetectionView] Starting verification")
         isProcessing = true
 
         guard backendEnrollmentValid else {
@@ -500,6 +495,9 @@ struct FaceDetectionView: View {
 
         let allFrames = faceManager.verificationFrames10()
         let validFrames = allFrames.filter { $0.distances.count == 316 }
+
+        print("   • Total frames: \(allFrames.count)")
+        print("   • Valid frames: \(validFrames.count)")
 
         guard validFrames.count >= 10 else {
             isProcessing = false
@@ -526,12 +524,15 @@ struct FaceDetectionView: View {
             return
         }
 
+        print("🔑 [FaceDetectionView] Loading face cache with \(faceIds.count) records")
+        
         faceManager.loadRemoteFaceIdsForVerification(
             salt: saltHex,
             faceIds: faceIds
         ) { cacheResult in
             switch cacheResult {
             case .failure(let error):
+                print("❌ [FaceDetectionView] Cache load failed: \(error)")
                 DispatchQueue.main.async {
                     self.isProcessing = false
                     self.alertTitle = "⚠️Verification Error"
@@ -539,9 +540,11 @@ struct FaceDetectionView: View {
                     self.showAlert = true
                 }
             case .success:
+                print("✅ [FaceDetectionView] Cache loaded, starting BCH verification")
+                
+                // ✅ UPDATED: Removed requiredMatches parameter
                 faceManager.verifyFaceIDAgainstBackend(
-                    framesToUse: allFrames,
-                    requiredMatches: 4
+                    framesToUse: allFrames
                 ) { result in
                     DispatchQueue.main.async {
                         self.isProcessing = false
@@ -553,13 +556,14 @@ struct FaceDetectionView: View {
                         switch result {
                         case .success(let verification):
                             let matchPercent = verification.matchPercentage
-                            #if DEBUG
-                            print("📊 [Login] Verification result - Success: \(verification.success) | Match: \(String(format: "%.1f", matchPercent))% | notes=\(verification.notes ?? "")")
-                            #endif
+                            print("📊 [Login] Verification result - Success: \(verification.success) | Match: \(String(format: "%.1f", matchPercent))%")
+                            print("   • Notes: \(verification.notes ?? "none")")
 
                             if verification.success {
+                                print("✅ [FaceDetectionView] Verification passed, completing login")
                                 DispatchQueue.main.async { onComplete() }
                             } else {
+                                print("❌ [FaceDetectionView] Verification failed")
                                 self.alertTitle = "Failed to Login"
                                 self.alertMessage = "Face verification failed. Try again"
                                 self.showAlert = true
@@ -570,6 +574,7 @@ struct FaceDetectionView: View {
                             }
 
                         case .failure(let error):
+                            print("❌ [FaceDetectionView] Verification error: \(error)")
                             self.alertTitle = "⚠️Verification Error"
                             self.alertMessage = "Error: \(error.localizedDescription)"
                             self.showAlert = true

@@ -13,6 +13,4 @@ struct ChaiEndpoints{
     
     static let findUserTokenByPhoneNumber = "\(baseURL)/api/v1/users/find-user-token-by-phone-number"
     static let fetchUserByToken = "\(baseURL)/api/v1/users/find-user-by-token"
-    
-    
 }

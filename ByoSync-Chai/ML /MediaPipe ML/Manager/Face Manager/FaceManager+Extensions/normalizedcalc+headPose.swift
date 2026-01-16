@@ -215,9 +215,9 @@ extension FaceManager {
     
     /// Checks if head pose is stable (pitch ,yaw within ±0.1 radians && roll ±0.05)
     func isHeadPoseStable() -> Bool {
-        let threshold: Float = 0.15
-        return abs(Pitch) <= threshold &&
-        abs(Yaw) <= threshold &&
+        let threshold: Float = 0.1
+        return abs(Pitch) <= 0.12 &&
+        abs(Yaw) <= 0.12 &&
         abs(Roll) <= 0.05
     }
     // Variable Pitch ,Yaw and Roll thresholds check func

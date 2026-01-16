@@ -53,6 +53,7 @@ final class AddDeviceViewModel: ObservableObject {
                     if ok {
                         print("✅ [AddDeviceViewModel] Device added successfully: \(res.data._id)")
                         self.state = .success(message: msg, deviceId: res.data._id)
+                    
                     } else {
                         print("⚠️ [AddDeviceViewModel] API returned non-success: \(msg)")
                         self.state = .failure(message: msg)

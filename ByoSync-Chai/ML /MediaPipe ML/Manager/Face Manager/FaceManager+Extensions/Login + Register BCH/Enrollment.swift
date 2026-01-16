@@ -55,13 +55,10 @@ fileprivate func loadRemoteFaceIdsIfNeeded(
 ) {
     // If we already have salt + records, just reuse them
     if !RemoteFaceIdCache.isEmpty {
-        #if DEBUG
-        print("💾 [RemoteFaceIdCache] Using cached FaceId data (salt + \(RemoteFaceIdCache.faceIds.count) records).")
-        #endif
+        print("💾 [RemoteFaceIdCache] Using cached FaceId data (salt + \(RemoteFaceIdCache.faceIds.count) records)")
         completion(.success(()))
         return
     }
-    
     
     print("🌐 [RemoteFaceIdCache] Cache empty → fetching FaceIds from backend...")
     
@@ -74,10 +71,9 @@ fileprivate func loadRemoteFaceIdsIfNeeded(
             let saltHex = data.salt
             let faceIds = data.faceData
             
-            #if DEBUG
             print("✅ [RemoteFaceIdCache] Fetched \(faceIds.count) FaceId items from backend")
             print("🔑 [RemoteFaceIdCache] SALT from backend: \(saltHex) (len=\(saltHex.count))")
-            #endif
+            
             guard !faceIds.isEmpty else {
                 completion(.failure(LocalEnrollmentError.noLocalEnrollment))
                 return
@@ -85,9 +81,7 @@ fileprivate func loadRemoteFaceIdsIfNeeded(
             
             RemoteFaceIdCache.salt = saltHex
             RemoteFaceIdCache.faceIds = faceIds
-            #if DEBUG
             print("💾 [RemoteFaceIdCache] Cache filled (records=\(faceIds.count))")
-            #endif
             
             completion(.success(()))
         }
@@ -157,11 +151,13 @@ private func sha256(_ data: Data) -> Data {
     Data(SHA256.hash(data: data))
 }
 
-private let IOD_EPSILON: Float = 0.1 // tune if needed
+private let IOD_EPSILON: Float = 0.05 // tune if needed
 @inline(__always)
 private func iodMatches(_ a: Float, _ b: Float) -> Bool {
     #if DEBUG
-    print("IOD : \(a) - \(b)")
+    if abs(a - b) <= IOD_EPSILON {
+        print("IOD : \(a) - \(b)")
+    }
     #endif
     return abs(a - b) <= IOD_EPSILON
 }
@@ -180,9 +176,14 @@ extension FaceManager {
         minRequired: Int = 60,
         completion: ((Result<Void, Error>) -> Void)? = nil
     ) {
+        print("📝 [Enrollment] Starting enrollment process")
+        print("   • Total frames: \(frames.count)")
+        print("   • Min required: \(minRequired)")
+        
         // 1) Validate frames
         let valid = frames.filter { $0.distances.count == 316 }
         guard valid.count >= minRequired else {
+            print("❌ [Enrollment] Insufficient valid frames: \(valid.count)/\(minRequired)")
             DispatchQueue.main.async { completion?(.failure(BCHBiometricError.noDistanceArrays)) }
             return
         }
@@ -190,6 +191,7 @@ extension FaceManager {
         // 2) ONE SALT for all frames (32 bytes)
         let saltBytes = randomBytes(32)
         let saltHex = hexFromData(saltBytes)
+        print("🔑 [Enrollment] Generated salt: \(saltHex.prefix(16))...")
 
         var addFaceIdPayload: [AddFaceIdRequestBody] = []
         addFaceIdPayload.reserveCapacity(valid.count)
@@ -218,22 +220,25 @@ extension FaceManager {
                         iod: String(sample.iod * 100)
                     )
                 )
+                
+                if (index + 1) % 20 == 0 {
+                    print("✅ [Enrollment] Processed \(index + 1)/\(valid.count) frames")
+                }
             } catch {
                 failureCount += 1
-                #if DEBUG
-                print("❌ Enrollment frame \(index + 1) failed: \(error)")
-                #endif
+                print("❌ [Enrollment] Frame \(index + 1) failed: \(error)")
             }
         }
 
         guard addFaceIdPayload.count >= minRequired else {
-            #if DEBUG
-            print("❌ Enrollment failed — only \(addFaceIdPayload.count) generated (failures=\(failureCount))")
-            #endif
+            print("❌ [Enrollment] Failed - only \(addFaceIdPayload.count) generated (failures=\(failureCount))")
             DispatchQueue.main.async { completion?(.failure(LocalEnrollmentError.noLocalEnrollment)) }
             return
         }
 
+        print("✅ [Enrollment] Generated \(addFaceIdPayload.count) enrollment records")
+        print("🚀 [Enrollment] Uploading to backend...")
+        
         viewModel.uploadFaceIdList(userId: userId, salt: saltHex, list: addFaceIdPayload)
         DispatchQueue.main.async { completion?(.success(())) }
     }
@@ -255,7 +260,6 @@ extension FaceManager {
 
     func verifyFaceIDAgainstBackend(
         framesToUse: [FrameDistance],
-        requiredMatches: Int = 4,
         completion: @escaping (Result<BCHBiometric.VerificationResult, Error>) -> Void
     ) {
 
@@ -273,11 +277,11 @@ extension FaceManager {
         print("🔑 [Verification] Using salt: \(saltHex.prefix(16))...")
         print("📦 [Verification] Enrollment records: \(RemoteFaceIdCache.faceIds.count)")
 
-        // 1) Pre-process records (parse hex once)
+        // Pre-process records (parse hex once)
         let cachedRecords = preprocessRecords(RemoteFaceIdCache.faceIds)
         print("✅ [Verification] Preprocessed \(cachedRecords.count) records")
 
-        // 2) Select frames to verify (keep this policy centralized)
+        // Select best 5 frames
         let framesToVerify = selectBestFrames(from: framesToUse, count: 5)
 
         #if DEBUG
@@ -287,19 +291,17 @@ extension FaceManager {
 
         DispatchQueue.global(qos: .userInitiated).async {
 
-            var matchedFrames = 0
-            let lock = NSLock()
+            var bestResult: (matches: Int, frameIdx: Int)? = nil
+            let resultLock = NSLock()
 
             DispatchQueue.concurrentPerform(iterations: framesToVerify.count) { idx in
                 let frame = framesToVerify[idx]
 
                 let relevantRecords = cachedRecords.filter { iodMatches(frame.iod * 100, $0.iod) }
 
-                #if DEBUG
                 print("🎯 [Verification] Frame \(idx): \(relevantRecords.count)/\(cachedRecords.count) records pass IOD")
-                #endif
 
-                var frameMatched = false
+                var matchCount = 0
 
                 for record in relevantRecords {
                     // Scale distances
@@ -323,36 +325,40 @@ extension FaceManager {
                     let tokenCandidate = sha256(kRecovered + v.rBytes32)
 
                     if tokenCandidate == record.tokenBytes {
-                        frameMatched = true
-                        break
+                        matchCount += 1
+                        print("✅ [Verification] Frame \(idx) matched!")
+                        break // Early exit after first match per frame
                     }
                 }
 
-                if frameMatched {
-                    lock.lock()
-                    matchedFrames += 1
-                    lock.unlock()
+                // Thread-safe result update
+                if matchCount > 0 {
+                    resultLock.lock()
+                    if bestResult == nil || matchCount > bestResult!.matches {
+                        bestResult = (matchCount, idx)
+                    }
+                    resultLock.unlock()
                 }
             }
 
-            let required = max(1, requiredMatches)
-            let passed = matchedFrames >= required
-            let matchPct = framesToVerify.isEmpty ? 0.0 : (Double(matchedFrames) / Double(framesToVerify.count)) * 100.0
+            let passed = bestResult != nil
 
-            #if DEBUG
-            print("✅ [Verification] matchedFrames=\(matchedFrames)/\(framesToVerify.count) required=\(required) passed=\(passed)")
-            #endif
+            if passed {
+                print("✅ [Verification] SUCCESS - Best frame: \(bestResult!.frameIdx)")
+            } else {
+                print("❌ [Verification] FAILED - No matching frames")
+            }
 
             let result = BCHBiometric.VerificationResult(
                 success: passed,
-                matchPercentage: matchPct,
+                matchPercentage: passed ? 100.0 : 0.0,
                 registrationIndex: 0,
                 hashMatch: passed,
                 storedHashPreview: "",
                 recoveredHashPreview: "",
                 numErrorsDetected: 0,
                 totalBitsCompared: 0,
-                notes: "Token-only verification: matchedFrames=\(matchedFrames)/\(framesToVerify.count), required=\(required), storedRecords=\(cachedRecords.count)"
+                notes: "Verified \(framesToVerify.count) frames, best=\(bestResult?.frameIdx ?? -1)"
             )
 
             DispatchQueue.main.async { completion(.success(result)) }
@@ -425,9 +431,7 @@ extension FaceManager {
         RemoteFaceIdCache.salt = salt
         RemoteFaceIdCache.faceIds = faceIds
 
-        #if DEBUG
         print("💾 [RemoteFaceIdCache] Filled from FetchUserByTokenVM (records=\(faceIds.count))")
-        #endif
 
         completion(.success(()))
     }

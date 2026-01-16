@@ -23,7 +23,7 @@ extension FaceManager: FaceLandmarkerLiveStreamDelegate {
             // 🔒 Increase thresholds to be stricter about “face detected”
             options.minFaceDetectionConfidence = 0.80
             options.minFacePresenceConfidence = 0.80
-            options.minTrackingConfidence = 0.90
+            options.minTrackingConfidence = 0.80
             
             faceLandmarker = try FaceLandmarker(options: options)
             print("✅ MediaPipe Face Landmarker initialized")
@@ -148,12 +148,12 @@ extension FaceManager: FaceLandmarkerLiveStreamDelegate {
             
 //            if let previewLayer = self.previewLayer {
 //                let b = previewLayer.bounds
-//                
+//
 //                // CalculationCoordinates are already in previewLayer.bounds space
 //                let ptsCG: [CGPoint] = self.CalculationCoordinates.map {
 //                    CGPoint(x: CGFloat($0.x), y: CGFloat($0.y))
 //                }
-//                
+//
 //                self.updateNoseTipCenterStatusFromCalcCoords(
 //                    pixelPoints: ptsCG,
 //                    screenCenterX: b.midX,
