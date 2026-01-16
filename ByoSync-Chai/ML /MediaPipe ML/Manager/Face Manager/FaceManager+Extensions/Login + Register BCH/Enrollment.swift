@@ -282,7 +282,7 @@ extension FaceManager {
         print("✅ [Verification] Preprocessed \(cachedRecords.count) records")
 
         // Select best 5 frames
-        let framesToVerify = selectBestFrames(from: framesToUse, count: 5)
+        let framesToVerify = selectBestFrames(from: framesToUse, count: 8)
 
         #if DEBUG
         let iodList = framesToVerify.map { String(format: "%.4f", Double($0.iod * 100)) }.joined(separator: ", ")
