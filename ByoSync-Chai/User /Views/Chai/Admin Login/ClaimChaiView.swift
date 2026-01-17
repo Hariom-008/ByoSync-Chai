@@ -26,17 +26,21 @@ struct ClaimChaiView: View {
     
     var body: some View {
         ZStack {
-            // Background gradient
             LinearGradient(
-                colors: [
-                    Color(red: 0.972, green: 0.980, blue: 0.988),
-                    Color(red: 0.937, green: 0.965, blue: 1.0),
-                    Color(red: 0.929, green: 0.929, blue: 1.0)
-                ],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-            .ignoresSafeArea()
+                  colors: [
+                      Color(red: 0.972, green: 0.980, blue: 0.988),
+                      Color(red: 0.937, green: 0.965, blue: 1.0),
+                      Color(red: 0.929, green: 0.929, blue: 1.0)
+                  ],
+                  startPoint: .top,
+                  endPoint: .bottom
+              )
+              .ignoresSafeArea()
+              .onTapGesture {
+                  print("🎯 [ClaimChaiView] Background tapped - dismissing any active keyboard")
+                  UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+              }
+              .ignoresSafeArea(.keyboard, edges: .bottom)
             
             // Animated background blobs
             AnimatedBackgroundBlobs(
@@ -89,6 +93,10 @@ struct ClaimChaiView: View {
         }
         .onAppear {
             print("☕ [ClaimChaiView] appeared")
+            
+            // Force dismiss any keyboard from previous screen
+            print("⌨️ [ClaimChaiView] Force dismissing keyboard on appear")
+            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
             
             // Show content with delay
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {

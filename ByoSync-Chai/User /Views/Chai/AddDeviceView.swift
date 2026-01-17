@@ -36,6 +36,10 @@ struct AddDeviceView: View {
                 endPoint: .bottom
             )
             .ignoresSafeArea()
+            .onTapGesture {
+                print("🎯 [AddDeviceView] Background tapped - dismissing keyboard")
+                isDeviceNameFocused = false
+            }
             
             // Animated background blobs
             AnimatedBackgroundBlobs(
@@ -99,6 +103,26 @@ struct AddDeviceView: View {
         .navigationBarBackButtonHidden(true)
         .fullScreenCover(isPresented: $openEnterNumberToFetchUser){
             EnterNumberToSearchUserView()
+        }
+        .toolbar {
+            // Keyboard toolbar with Done button
+            ToolbarItemGroup(placement: .keyboard) {
+                Spacer()
+                Button {
+                    print("✅ [AddDeviceView] Done button tapped - dismissing keyboard")
+                    isDeviceNameFocused = false
+                } label: {
+                    Text("Done")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundStyle(
+                            LinearGradient(
+                                colors: [logoBlue, logoPurple],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                }
+            }
         }
         .onAppear {
             print("📱 [AddDeviceView] appeared")
@@ -251,7 +275,8 @@ struct AddDeviceView: View {
                     .foregroundColor(Color(red: 0.118, green: 0.161, blue: 0.231))
                     .submitLabel(.done)
                     .onSubmit {
-                        handleAddDevice()
+                        print("⌨️ [AddDeviceView] Submit pressed - dismissing keyboard")
+                        isDeviceNameFocused = false
                     }
                     .onChange(of: deviceName) { _, newValue in
                         print("📝 [AddDeviceView] Device name: \(newValue.count) chars")
@@ -336,6 +361,7 @@ struct AddDeviceView: View {
             return
         }
         
+        print("⌨️ [AddDeviceView] Add Device tapped - dismissing keyboard first")
         isDeviceNameFocused = false
         
         print("🚀 [AddDeviceView] Adding device")
@@ -390,7 +416,14 @@ struct AddDeviceView: View {
 //            alertMessage = message
            // showSuccessAlert = true
             
-            openEnterNumberToFetchUser.toggle()
+            // Dismiss keyboard before navigation
+            print("⌨️ [AddDeviceView] Dismissing keyboard before navigation")
+            isDeviceNameFocused = false
+            
+            // Small delay to ensure keyboard is dismissed before navigation
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                openEnterNumberToFetchUser.toggle()
+            }
             
         case .failure(let message):
             print("❌ [AddDeviceView] State: failure - \(message)")

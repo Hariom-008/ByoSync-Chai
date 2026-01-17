@@ -388,7 +388,15 @@ struct EnterNumberToSearchUserView: View {
     private func handleSuccess() {
         print("🎉 [EnterTokenScreen] Success - userId: \(viewModel.userId ?? "nil")")
         print("📊 [EnterTokenScreen] Face IDs count: \(viewModel.faceIds.count)")
-        openMLScan.toggle()
+        
+        // Explicitly dismiss keyboard before navigation
+        print("⌨️ [EnterTokenScreen] Dismissing keyboard before navigation")
+        isTokenFieldFocused = false
+        
+        // Small delay to ensure keyboard is dismissed before navigation
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            openMLScan.toggle()
+        }
     }
 }
 
