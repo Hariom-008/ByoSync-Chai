@@ -161,11 +161,11 @@ final class FaceManager: NSObject, ObservableObject {
     ]
     
     @Published var faceisInsideFaceOval:Bool = false
-    // Add these new properties to FaceManager class
-    @Published var staticTargetOvalCoordinates: [(x: CGFloat, y: CGFloat)] = []
-    @Published var isTargetOvalLocked: Bool = false
-    @Published var targetOvalScale: CGFloat = 0
-    @Published var targetOvalCenter: (x: CGFloat, y: CGFloat) = (0, 0)
+//    // Add these new properties to FaceManager class
+//    @Published var staticTargetOvalCoordinates: [(x: CGFloat, y: CGFloat)] = []
+//    @Published var isTargetOvalLocked: Bool = false
+//    @Published var targetOvalScale: CGFloat = 0
+//    @Published var targetOvalCenter: (x: CGFloat, y: CGFloat) = (0, 0)
 
     
     let midLineMandatoryLandmarks = [2, 4, 9]
@@ -210,51 +210,51 @@ final class FaceManager: NSObject, ObservableObject {
         }
     }
     
-    // Add method to lock the target oval
-    func lockTargetOval(screenWidth: CGFloat, screenHeight: CGFloat) {
-        guard !TransalatedScaledFaceOvalCoordinates.isEmpty else {
-            print("⚠️ Cannot lock target - no face oval coordinates")
-            return
-        }
-        
-        // Store the current oval as the static target
-        staticTargetOvalCoordinates = TransalatedScaledFaceOvalCoordinates
-        isTargetOvalLocked = true
-        targetOvalCenter = (x: screenWidth / 2.0, y: screenHeight / 2.0)
-        
-        // Calculate and store the scale used
-        if !NormalizedPoints.isEmpty {
-            let normIOD = calculateNormalizedIOD()
-            let camW = max(imageSize.width, 1e-6)
-            let camH = max(imageSize.height, 1e-6)
-            let scaleToPreview = max(screenWidth / camW, screenHeight / camH)
-            let iodPxOnScreen = CGFloat(iodPixels) * scaleToPreview
-            
-            if normIOD > 1e-6, iodPxOnScreen > 0 {
-                targetOvalScale = iodPxOnScreen / CGFloat(normIOD)
-            }
-        }
-        
-        print("✅ Target oval locked with \(staticTargetOvalCoordinates.count) points")
-    }
-
-    // Helper to calculate normalized IOD
-    private func calculateNormalizedIOD(leftEyeIdx: Int = 33, rightEyeIdx: Int = 263) -> Float {
-        guard NormalizedPoints.count > max(leftEyeIdx, rightEyeIdx) else { return 0 }
-        let l = NormalizedPoints[leftEyeIdx]
-        let r = NormalizedPoints[rightEyeIdx]
-        let dx = r.x - l.x
-        let dy = r.y - l.y
-        return sqrt(dx * dx + dy * dy)
-    }
-
-    // Add method to reset/unlock target
-    func resetTargetOval() {
-        staticTargetOvalCoordinates.removeAll()
-        isTargetOvalLocked = false
-        targetOvalScale = 0
-        print("🔓 Target oval reset")
-    }
+//    // Add method to lock the target oval
+//    func lockTargetOval(screenWidth: CGFloat, screenHeight: CGFloat) {
+//        guard !TransalatedScaledFaceOvalCoordinates.isEmpty else {
+//            print("⚠️ Cannot lock target - no face oval coordinates")
+//            return
+//        }
+//
+//        // Store the current oval as the static target
+//        staticTargetOvalCoordinates = TransalatedScaledFaceOvalCoordinates
+//        isTargetOvalLocked = true
+//        targetOvalCenter = (x: screenWidth / 2.0, y: screenHeight / 2.0)
+//
+//        // Calculate and store the scale used
+//        if !NormalizedPoints.isEmpty {
+//            let normIOD = calculateNormalizedIOD()
+//            let camW = max(imageSize.width, 1e-6)
+//            let camH = max(imageSize.height, 1e-6)
+//            let scaleToPreview = max(screenWidth / camW, screenHeight / camH)
+//            let iodPxOnScreen = CGFloat(iodPixels) * scaleToPreview
+//
+//            if normIOD > 1e-6, iodPxOnScreen > 0 {
+//                targetOvalScale = iodPxOnScreen / CGFloat(normIOD)
+//            }
+//        }
+//
+//        print("✅ Target oval locked with \(staticTargetOvalCoordinates.count) points")
+//    }
+//
+//    // Helper to calculate normalized IOD
+//    private func calculateNormalizedIOD(leftEyeIdx: Int = 33, rightEyeIdx: Int = 263) -> Float {
+//        guard NormalizedPoints.count > max(leftEyeIdx, rightEyeIdx) else { return 0 }
+//        let l = NormalizedPoints[leftEyeIdx]
+//        let r = NormalizedPoints[rightEyeIdx]
+//        let dx = r.x - l.x
+//        let dy = r.y - l.y
+//        return sqrt(dx * dx + dy * dy)
+//    }
+//
+//    // Add method to reset/unlock target
+//    func resetTargetOval() {
+//        staticTargetOvalCoordinates.removeAll()
+//        isTargetOvalLocked = false
+//        targetOvalScale = 0
+//        print("🔓 Target oval reset")
+//    }
 }
 
 // MARK: - Array Extension

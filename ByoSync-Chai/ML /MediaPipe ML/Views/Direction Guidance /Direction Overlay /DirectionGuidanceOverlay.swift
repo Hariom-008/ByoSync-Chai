@@ -4,7 +4,7 @@ struct DirectionalGuidanceOverlay: View {
     @ObservedObject var faceManager: FaceManager
     
     // MARK: - Thresholds
-    private let IOD_NORM_MAX: Float = 0.31
+    private let IOD_NORM_MAX: Float = 0.30
     
     private let REG_CENTER_PITCH_THR: Float = 0.12
     private let REG_CENTER_YAW_THR: Float = 0.12

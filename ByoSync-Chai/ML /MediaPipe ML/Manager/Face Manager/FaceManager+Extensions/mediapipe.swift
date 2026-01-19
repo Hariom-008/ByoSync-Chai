@@ -106,15 +106,15 @@ extension FaceManager: FaceLandmarkerLiveStreamDelegate {
             
             // IOD gate (per-frame)
             if faceAuthManager.currentMode == .verification{
-                self.iodMin = 0.18
-                self.iodMax = 0.20
+                self.iodMin = 0.28
+                self.iodMax = 0.29
             }else{
                 if registrationPhase == .centerCollecting{
-                    self.iodMin = 0.18
-                    self.iodMax = 0.20
+                    self.iodMin = 0.28
+                    self.iodMax = 0.29
                 }else{
-                    self.iodMin = 0.17
-                    self.iodMax = 0.22
+                    self.iodMin = 0.26
+                    self.iodMax = 0.30
                 }
             }
             self.updateIODGate(imageWidth: imageWidth, imageHeight: imageHeight,iodMin: iodMin,iodMax: iodMax)
@@ -166,15 +166,17 @@ extension FaceManager: FaceLandmarkerLiveStreamDelegate {
             
             
             // Build face-oval overlay from NormalizedPoints
+            // Build face-oval overlay from NormalizedPoints
             if let previewLayer = self.previewLayer {
                 let bounds = previewLayer.bounds
                 self.updateTargetFaceOvalCoordinates(
                     screenWidth: bounds.width,
                     screenHeight: bounds.height
                 )
+                
+                // ✅ Check if key face landmarks are inside the oval
+                self.updateFaceOvalAlignment()
             }
-            // Face metrics -- NOT IN USE
-            // self.calculateFaceBoundingBox()
             
             // Eye Aspect Ratio -- NOT IN USE
             let simdPoints = self.CalculationCoordinates.asSIMD2
