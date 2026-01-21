@@ -7,14 +7,17 @@ final class FetchUserByTokenViewModel: ObservableObject {
 
     // MARK: - UI State
     @Published private(set) var isLoading: Bool = false
-    @Published private(set) var faceIds: [FaceId] = []          // always replaced on fetch
+    @Published private(set) var faceIds: [FaceId] = []
     @Published var userId: String? = nil
     @Published private(set) var salt: String? = nil
     @Published var deviceKeyHash: String? = nil
     @Published private(set) var message: String? = nil
     @Published private(set) var errorText: String? = nil
     
-    @Published var token:Int = 0
+    @Published var token: Int = 0
+    
+    // NEW: Explicit completion flag for navigation triggering
+    @Published var fetchCompleted: Bool = false
 
     // MARK: - Dependencies
     private let repo: FetchUserByTokenRepositoryProtocol
@@ -25,27 +28,32 @@ final class FetchUserByTokenViewModel: ObservableObject {
 
     // MARK: - Actions
 
-    /// Clears old data and fetches fresh data. `faceIds` is replaced (not appended).
     func fetch(token: Int) async {
+        print("🔄 [FetchUserByTokenVM] fetch() called with token: \(token)")
+        print("🔄 [FetchUserByTokenVM] isLoading at start: \(isLoading)")
+        
         guard !isLoading else {
+            print("⏸️ [FetchUserByTokenVM] Skipped: already loading")
             Logger.shared.d("FETCH_USER_BY_TOKEN", "Skipped: already loading", user: UserSession.shared.currentUser?.userId)
             return
         }
+        
         self.token = token
-
-        // Avoid logging full token if you consider it sensitive. Keep minimal.
         let tokenHint = "token=\(token)"
 
+        // Reset completion flag at the start
+        fetchCompleted = false
         isLoading = true
         errorText = nil
         message = nil
 
-        // Clear old data immediately (so UI doesn't show stale data)
+        // Clear old data immediately
         faceIds.removeAll(keepingCapacity: true)
         userId = nil
         salt = nil
         deviceKeyHash = nil
 
+        print("📡 [FetchUserByTokenVM] Starting network request")
         Logger.shared.i("FETCH_USER_BY_TOKEN", "Fetch start | \(tokenHint)", user: UserSession.shared.currentUser?.userId)
         let startTime = CFAbsoluteTimeGetCurrent()
 
@@ -53,10 +61,14 @@ final class FetchUserByTokenViewModel: ObservableObject {
             let res = try await repo.fetchUserByToken(token: token)
             let elapsedMs = Int64((CFAbsoluteTimeGetCurrent() - startTime) * 1000.0)
 
+            print("📥 [FetchUserByTokenVM] Response received | success: \(res.success) | elapsed: \(elapsedMs)ms")
+            
             guard res.success else {
                 errorText = res.message
                 isLoading = false
+                fetchCompleted = true // Mark as completed even on failure
 
+                print("❌ [FetchUserByTokenVM] Backend failure: \(res.message)")
                 Logger.shared.e(
                     "FETCH_USER_BY_TOKEN",
                     "Backend failure | msg=\(res.message) | \(tokenHint)",
@@ -66,12 +78,19 @@ final class FetchUserByTokenViewModel: ObservableObject {
                 return
             }
 
-            // Replace everything with fresh values
-            userId = res.data.userId
-            salt = res.data.salt
-            deviceKeyHash = res.data.deviceKeyHash
-            faceIds = res.data.faceData
-            message = res.message
+            // Update all properties on main thread
+            await MainActor.run {
+                userId = res.data.userId
+                salt = res.data.salt
+                deviceKeyHash = res.data.deviceKeyHash
+                faceIds = res.data.faceData
+                message = res.message
+                
+                print("✅ [FetchUserByTokenVM] Data updated successfully")
+                print("   userId: \(res.data.userId)")
+                print("   faceIds count: \(res.data.faceData.count)")
+                print("   deviceKeyHash: \(res.data.deviceKeyHash ?? "nil")")
+            }
 
             Logger.shared.i(
                 "FETCH_USER_BY_TOKEN",
@@ -80,16 +99,15 @@ final class FetchUserByTokenViewModel: ObservableObject {
                 user: UserSession.shared.currentUser?.userId
             )
 
-            #if DEBUG
-            print("✅ [FetchUserByTokenVM] success userId=\(res.data.userId) faceIds=\(res.data.faceData.count)")
-            #endif
-
         } catch {
             let elapsedMs = Int64((CFAbsoluteTimeGetCurrent() - startTime) * 1000.0)
-
             let msg = (error as? LocalizedError)?.errorDescription ?? String(describing: error)
-            errorText = msg
+            
+            await MainActor.run {
+                errorText = msg
+            }
 
+            print("❌ [FetchUserByTokenVM] Fetch threw error: \(msg)")
             Logger.shared.e(
                 "FETCH_USER_BY_TOKEN",
                 "Fetch threw | msg=\(msg) | \(tokenHint)",
@@ -97,21 +115,21 @@ final class FetchUserByTokenViewModel: ObservableObject {
                 timeTakenMs: elapsedMs,
                 user: UserSession.shared.currentUser?.userId
             )
-
-            #if DEBUG
-            print("❌ [FetchUserByTokenVM] failed: \(msg)")
-            #endif
         }
 
-        isLoading = false
+        // Always mark as complete and stop loading on main thread
+        await MainActor.run {
+            isLoading = false
+            fetchCompleted = true
+            print("🏁 [FetchUserByTokenVM] Fetch completed | isLoading: \(isLoading) | fetchCompleted: \(fetchCompleted)")
+        }
     }
 
     func reset() {
-        #if DEBUG
         print("🧹 [FetchUserByTokenVM] reset()")
-        #endif
 
         isLoading = false
+        fetchCompleted = false
         faceIds.removeAll()
         userId = nil
         salt = nil

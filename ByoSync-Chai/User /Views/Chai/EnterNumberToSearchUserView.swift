@@ -16,7 +16,10 @@ struct EnterNumberToSearchUserView: View {
     @State var openChaiClaimView: Bool = false
     @State var openAdminLoginView: Bool = false
     @State var openFindTokenView: Bool = false
-    @State var openRegisterChaiView:Bool = false
+    @State var openRegisterChaiView: Bool = false
+    
+    // NEW: Dedicated navigation trigger
+    @State private var shouldNavigateToMLScan: Bool = false
 
     // Colors from the logo gradient
     private let logoBlue = Color(red: 0.0, green: 0.0, blue: 1.0)
@@ -42,7 +45,6 @@ struct EnterNumberToSearchUserView: View {
             )
             .ignoresSafeArea()
             .onTapGesture {
-                // Dismiss keyboard when tapping background
                 print("🎯 [EnterTokenScreen] Background tapped - dismissing keyboard")
                 isTokenFieldFocused = false
             }
@@ -125,15 +127,24 @@ struct EnterNumberToSearchUserView: View {
         } message: {
             if let error = viewModel.errorText { Text(error) }
         }
-        .onChange(of: viewModel.userId) { _, newValue in
-            if newValue != nil {
-                print("✅ [EnterTokenScreen] User fetched successfully")
-                handleSuccess()
+        // NEW: Watch for fetch completion instead of userId changes
+        .onChange(of: viewModel.fetchCompleted) { _, completed in
+            if completed {
+                print("✅ [EnterTokenScreen] Fetch completed - preparing navigation")
+                handleFetchCompleted()
+            }
+        }
+        // NEW: Navigate when shouldNavigateToMLScan becomes true
+        .onChange(of: shouldNavigateToMLScan) { _, shouldNavigate in
+            if shouldNavigate {
+                print("🚀 [EnterTokenScreen] Triggering MLScan navigation")
+                openMLScan = true
             }
         }
         .navigationDestination(isPresented: $openMLScan) {
             MLScanView(onDone: {
                 openMLScan = false
+                shouldNavigateToMLScan = false // Reset the trigger
                 DispatchQueue.main.async { openChaiClaimView = true }
             }, userId: viewModel.userId ?? "", deviceKeyHash: viewModel.deviceKeyHash ?? "", token: viewModel.token)
         }
@@ -147,7 +158,9 @@ struct EnterNumberToSearchUserView: View {
                     get: { viewModel.deviceKeyHash ?? "" },
                     set: { newValue in viewModel.deviceKeyHash = newValue.isEmpty ? nil : newValue }
                 ),
-                onDone: { openChaiClaimView = false }
+                onDone: {
+                    openChaiClaimView = false
+                }
             )
         }
         .navigationDestination(isPresented: $openAdminLoginView) {
@@ -156,14 +169,14 @@ struct EnterNumberToSearchUserView: View {
         .sheet(isPresented: $openFindTokenView) {
             FindTokenByPhoneView()
         }
-        .fullScreenCover(isPresented: $openRegisterChaiView){
+        .fullScreenCover(isPresented: $openRegisterChaiView) {
             RegisterChaiView()
         }
         .toolbar {
-            ToolbarItem(placement: .navigationBarLeading){
-                Button{
+            ToolbarItem(placement: .navigationBarLeading) {
+                Button {
                     openRegisterChaiView.toggle()
-                }label: {
+                } label: {
                     Text("Register")
                 }
             }
@@ -364,30 +377,46 @@ struct EnterNumberToSearchUserView: View {
     // MARK: - Computed Properties
 
     private var isButtonEnabled: Bool {
-        Int(tokenText.trimmingCharacters(in: .whitespacesAndNewlines)) != nil
+        let enabled = Int(tokenText.trimmingCharacters(in: .whitespacesAndNewlines)) != nil
+        print("🔘 [EnterTokenScreen] Button enabled: \(enabled) | token: '\(tokenText)'")
+        return enabled
     }
 
     // MARK: - Actions
 
     private func handleProceed() {
+        print("🔘 [EnterTokenScreen] Proceed button tapped")
+        
         let trimmed = tokenText.trimmingCharacters(in: .whitespacesAndNewlines)
         guard let token = Int(trimmed) else {
-            print("⚠️ [EnterTokenScreen] Invalid token: \(trimmed)")
+            print("⚠️ [EnterTokenScreen] Invalid token: '\(trimmed)'")
             return
         }
 
-        print("⌨️ [EnterTokenScreen] Proceed tapped - dismissing keyboard first")
+        print("🚀 [EnterTokenScreen] Starting fetch for token: \(token)")
+        print("📱 [EnterTokenScreen] isLoading before fetch: \(viewModel.isLoading)")
+        
+        // Dismiss keyboard but don't rely on it for flow control
         isTokenFieldFocused = false
-
-        print("🚀 [EnterTokenScreen] Fetching user for token")
+        
+        // Trigger the fetch
         Task {
             await viewModel.fetch(token: token)
+            print("✅ [EnterTokenScreen] Fetch task completed")
         }
     }
 
-    private func handleSuccess() {
-        print("🎉 [EnterTokenScreen] Success - userId: \(viewModel.userId ?? "nil")")
-        print("📊 [EnterTokenScreen] Face IDs count: \(viewModel.faceIds.count)")
+    private func handleFetchCompleted() {
+        print("🎯 [EnterTokenScreen] handleFetchCompleted called")
+        print("📊 [EnterTokenScreen] userId: \(viewModel.userId ?? "nil")")
+        print("📊 [EnterTokenScreen] faceIds count: \(viewModel.faceIds.count)")
+        print("📊 [EnterTokenScreen] errorText: \(viewModel.errorText ?? "nil")")
+        
+        // Only proceed if we have a valid userId (no error occurred)
+        guard viewModel.userId != nil, viewModel.errorText == nil else {
+            print("⚠️ [EnterTokenScreen] Fetch completed but no userId or has error - not navigating")
+            return
+        }
         
         // Set FaceAuthManager mode based on enrollment status
         if viewModel.faceIds.isEmpty {
@@ -398,13 +427,10 @@ struct EnterNumberToSearchUserView: View {
             faceAuthManager.setVerificationMode()
         }
         
-        // Explicitly dismiss keyboard before navigation
-        print("⌨️ [EnterTokenScreen] Dismissing keyboard before navigation")
-        isTokenFieldFocused = false
-        
-        // Small delay to ensure keyboard is dismissed before navigation
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-            openMLScan.toggle()
+        // Trigger navigation on main thread with slight delay for iOS 17.6 compatibility
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+            print("🎬 [EnterTokenScreen] Setting shouldNavigateToMLScan = true")
+            shouldNavigateToMLScan = true
         }
     }
 }
