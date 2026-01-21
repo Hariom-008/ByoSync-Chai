@@ -7,8 +7,8 @@ import Alamofire
 // {
 //   "firstName": "...",
 //   "lastName": "...",
-//   "email": "...",
-//   "emailHash": "...",
+//   "email": "...",        // optional - can be empty string
+//   "emailHash": "...",    // optional - can be empty string
 //   "phoneNumber": "...",
 //   "phoneNumberHash": "...",
 //   "deviceId": "..."
@@ -16,8 +16,8 @@ import Alamofire
 struct RegisterFromChaiAppRequest: Encodable {
     let firstName: String
     let lastName: String
-    let email: String
-    let emailHash: String
+    let email: String          // Can be empty string if not provided
+    let emailHash: String      // Can be empty string if email not provided
     let phoneNumber: String
     let phoneNumberHash: String
     let deviceId: String
@@ -34,9 +34,8 @@ struct RegisterFromChaiAppData: Decodable {
     let newUser: RegisterFromChaiAppUser
 }
 
-/// Full-ish user payload as per your sample.
-/// Anything you don’t need right now can stay optional to avoid decode breaks.
-struct RegisterFromChaiAppUser: Decodable, Identifiable,Equatable {
+/// Full user payload
+struct RegisterFromChaiAppUser: Decodable, Identifiable, Equatable {
     let id: String
 
     let email: String
@@ -52,7 +51,7 @@ struct RegisterFromChaiAppUser: Decodable, Identifiable,Equatable {
 
     let wallet: Double?
     let todayChaiCount: Int?
-    let todayChaiDate: String?     // backend sends null; keep String? unless you want Date parsing
+    let todayChaiDate: String?
     let chai: Int?
 
     let referralCode: String?
@@ -67,8 +66,8 @@ struct RegisterFromChaiAppUser: Decodable, Identifiable,Equatable {
     let isDeleted: Bool?
     let deletedAt: String?
 
-    let faceDistance: [Double]?    // sample shows []
-    let faceId: [FaceId]?          // sample shows [], assumes FaceId: Decodable exists
+    let faceDistance: [Double]?
+    let faceId: [FaceId]?
 
     let createdAt: String?
     let updatedAt: String?
@@ -114,8 +113,11 @@ final class RegisterFromChaiAppRepository: RegisterFromChaiAppRepositoryProtocol
     ) {
         let endpoint = ChaiEndpoints.registerFromChaiApp
 
-        // APIClient in your project style typically accepts Alamofire Parameters.
-        // If your APIClient supports Encodable directly, you can swap this for that.
+        print("🌐 [RegisterFromChaiAppRepo] Making API request")
+        print("   Email provided: \(req.email.isEmpty ? "NO" : "YES")")
+        print("   Phone: \(req.phoneNumber)")
+
+        // Build parameters with email fields (can be empty strings)
         let params: Parameters = [
             "firstName": req.firstName,
             "lastName": req.lastName,

@@ -1,10 +1,3 @@
-//
-//  RegisterFromChaiViewModel.swift
-//  ByoSync-Chai
-//
-//  Created by Hari's Mac on 14.01.2026.
-//
-
 import Foundation
 import Combine
 import SwiftUI
@@ -33,6 +26,7 @@ final class RegisterFromChaiAppViewModel: ObservableObject {
         deviceId: String
     ) async {
         guard !isLoading else {
+            print("⏸️ [RegisterFromChaiAppVM] Skipped: already loading")
             Logger.shared.d("REGISTER_FROM_CHAI_APP", "Skipped: already loading", user: UserSession.shared.currentUser?.userId)
             return
         }
@@ -42,17 +36,26 @@ final class RegisterFromChaiAppViewModel: ObservableObject {
         message = nil
         newUser = nil
 
-        let emailHash = HMACGenerator.generateHMAC(jsonString: email)
+        // Handle optional email - use empty string if not provided
+        let trimmedEmail = email.trimmingCharacters(in: .whitespacesAndNewlines)
+        let finalEmail = trimmedEmail.isEmpty ? "" : trimmedEmail
+        
+        // Generate hashes - empty string if email is empty
+        let emailHash = finalEmail.isEmpty ? "" : HMACGenerator.generateHMAC(jsonString: finalEmail)
         let phoneNumberHash = HMACGenerator.generateHMAC(jsonString: phoneNumber)
         
-        Logger.shared.i("REGISTER_FROM_CHAI_APP", "Start", user: UserSession.shared.currentUser?.userId)
+        print("📝 [RegisterFromChaiAppVM] Starting registration")
+        print("   Email provided: \(finalEmail.isEmpty ? "NO" : "YES")")
+        print("   Phone: \(phoneNumber)")
+        
+        Logger.shared.i("REGISTER_FROM_CHAI_APP", "Start | emailProvided=\(finalEmail.isEmpty ? "NO" : "YES")", user: UserSession.shared.currentUser?.userId)
         let startTime = CFAbsoluteTimeGetCurrent()
 
         do {
             let req = RegisterFromChaiAppRequest(
                 firstName: firstName,
                 lastName: lastName,
-                email: email,
+                email: finalEmail,
                 emailHash: emailHash,
                 phoneNumber: phoneNumber,
                 phoneNumberHash: phoneNumberHash,
@@ -65,6 +68,8 @@ final class RegisterFromChaiAppViewModel: ObservableObject {
             guard res.success else {
                 errorText = res.message
                 isLoading = false
+                
+                print("❌ [RegisterFromChaiAppVM] Backend failure: \(res.message)")
                 Logger.shared.e(
                     "REGISTER_FROM_CHAI_APP",
                     "Backend failure | msg=\(res.message)",
@@ -79,6 +84,10 @@ final class RegisterFromChaiAppViewModel: ObservableObject {
             }
             message = res.message
 
+            print("✅ [RegisterFromChaiAppVM] Success")
+            print("   User ID: \(res.data.newUser.id)")
+            print("   Token: \(res.data.newUser.token)")
+            
             Logger.shared.i(
                 "REGISTER_FROM_CHAI_APP",
                 "Success | userId=\(res.data.newUser.id) token=\(res.data.newUser.token)",
@@ -86,15 +95,12 @@ final class RegisterFromChaiAppViewModel: ObservableObject {
                 user: UserSession.shared.currentUser?.userId
             )
 
-            #if DEBUG
-            print("✅ [RegisterFromChaiAppVM] success userId=\(res.data.newUser.id) token=\(res.data.newUser.token)")
-            #endif
-
         } catch {
             let elapsedMs = Int64((CFAbsoluteTimeGetCurrent() - startTime) * 1000.0)
             let msg = (error as? LocalizedError)?.errorDescription ?? String(describing: error)
             errorText = msg
 
+            print("❌ [RegisterFromChaiAppVM] Error: \(msg)")
             Logger.shared.e(
                 "REGISTER_FROM_CHAI_APP",
                 "Threw | msg=\(msg)",
@@ -102,10 +108,6 @@ final class RegisterFromChaiAppViewModel: ObservableObject {
                 timeTakenMs: elapsedMs,
                 user: UserSession.shared.currentUser?.userId
             )
-
-            #if DEBUG
-            print("❌ [RegisterFromChaiAppVM] failed: \(msg)")
-            #endif
         }
 
         isLoading = false
@@ -116,6 +118,8 @@ final class RegisterFromChaiAppViewModel: ObservableObject {
         newUser = nil
         message = nil
         errorText = nil
+        
+        print("🧹 [RegisterFromChaiAppVM] State reset")
         Logger.shared.d("REGISTER_FROM_CHAI_APP", "reset()", user: UserSession.shared.currentUser?.userId)
     }
 }

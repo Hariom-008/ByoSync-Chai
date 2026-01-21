@@ -115,7 +115,7 @@ struct RegisterChaiView: View {
                             
                             // Email
                             InputField(
-                                title: "Email",
+                                title: "Email (Optional)",
                                 placeholder: "Enter email address",
                                 text: $email,
                                 icon: "envelope.fill",
@@ -388,9 +388,12 @@ struct RegisterChaiView: View {
     }
     
     private var isButtonEnabled: Bool {
-        !firstName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
+        let hasEmail = !email.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        let emailIsValid = hasEmail ? isValidEmail(email) : true
+        
+        return !firstName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
         !lastName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
-        isValidEmail(email) &&
+        emailIsValid &&
         phoneNumber.count == 10 &&
         !viewModel.isLoading
     }
