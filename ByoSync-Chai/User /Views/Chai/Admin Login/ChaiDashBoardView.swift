@@ -176,9 +176,7 @@ struct ChaiDashBoardView: View {
             
             // User name
             if let user = viewModel.user {
-                let firstName = CryptoManager.shared.decrypt(encryptedData: "\(user.firstName)")
-                let lastName =  CryptoManager.shared.decrypt(encryptedData: "\(user.lastName)")
-                Text("Welcome, \(firstName ?? "nil") \(lastName ?? "nil")")
+                Text("Welcome, \(CryptoManager.shared.decrypt(encryptedData: user.firstName) ?? "Dear") \(CryptoManager.shared.decrypt(encryptedData: user.lastName) ?? "User")")
                     .font(.system(size: 28, weight: .bold))
                     .foregroundStyle(
                         LinearGradient(
@@ -188,6 +186,14 @@ struct ChaiDashBoardView: View {
                         )
                     )
                     .multilineTextAlignment(.center)
+                    .onAppear {
+                        #if DEBUG
+                        print("Encrypted Name:\(user.firstName),\(user.lastName)")
+                        let decFirst = CryptoManager.shared.decrypt(encryptedData: user.firstName) ?? "nil"
+                        let decLast = CryptoManager.shared.decrypt(encryptedData: user.lastName) ?? "nil"
+                        print("Decrypted Name: \(decFirst), \(decLast)")
+                        #endif
+                    }
             } else {
                 Text("Welcome!")
                     .font(.system(size: 28, weight: .bold))
@@ -368,7 +374,6 @@ struct ChaiDashBoardView: View {
         }
         
         let deviceKeyHash = deviceKeyHash
-        
         
         viewModel.beginLoading(clearOldData: true)
         viewModel.fetch(userId: userId, deviceKeyHash: deviceKeyHash)

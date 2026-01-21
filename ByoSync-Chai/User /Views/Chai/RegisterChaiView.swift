@@ -34,6 +34,10 @@ struct RegisterChaiView: View {
                     endPoint: .bottom
                 )
                 .ignoresSafeArea()
+                .onTapGesture {
+                    print("⌨️ [RegisterUserView] Background tapped - dismissing keyboard")
+                    dismissKeyboard()
+                }
                 
                 ScrollView {
                     VStack(spacing: 28) {
@@ -71,6 +75,10 @@ struct RegisterChaiView: View {
                             Text("Fill in the details to create account")
                                 .font(.system(size: 14, weight: .medium))
                                 .foregroundColor(.secondary)
+                        }
+                        .onTapGesture {
+                            print("⌨️ [RegisterUserView] Header tapped - dismissing keyboard")
+                            dismissKeyboard()
                         }
                         
                         // Form Fields
@@ -238,6 +246,10 @@ struct RegisterChaiView: View {
                             )
                             .padding(.horizontal, 24)
                             .transition(.scale.combined(with: .opacity))
+                            .onTapGesture {
+                                print("⌨️ [RegisterUserView] Success message tapped - dismissing keyboard")
+                                dismissKeyboard()
+                            }
                         }
                         
                         // Error Message
@@ -265,6 +277,10 @@ struct RegisterChaiView: View {
                             )
                             .padding(.horizontal, 24)
                             .transition(.scale.combined(with: .opacity))
+                            .onTapGesture {
+                                print("⌨️ [RegisterUserView] Error message tapped - dismissing keyboard")
+                                dismissKeyboard()
+                            }
                         }
                         
                         Spacer().frame(height: 20)
@@ -278,28 +294,7 @@ struct RegisterChaiView: View {
                     Spacer()
                     
                     Button(action: {
-                        #if DEBUG
-                        print("📝 [RegisterUserView] Register button tapped")
-                        print("   First: \(firstName)")
-                        print("   Last: \(lastName)")
-                        print("   Email: \(email)")
-                        print("   Phone: +91\(phoneNumber)")
-                        #endif
-                        
-                        focusedField = nil
-                        
-                        let fullPhoneNumber = "+91\(phoneNumber)"
-                        Task {
-                            await viewModel.register(
-                                firstName: firstName,
-                                lastName: lastName,
-                                email: email,
-                                phoneNumber: fullPhoneNumber,
-                                deviceId: KeychainHelper.shared.read(forKey: "chaiDeviceId") ?? ""
-                            )
-                        }
-                        FaceAuthManager.shared.setRegistrationMode()
-                        openMLScan.toggle()
+                        handleRegister()
                     }) {
                         HStack(spacing: 8) {
                             if viewModel.isLoading {
@@ -336,9 +331,7 @@ struct RegisterChaiView: View {
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button {
-                        #if DEBUG
                         print("❌ [RegisterUserView] Close button tapped")
-                        #endif
                         dismiss()
                     } label: {
                         Image(systemName: "xmark.circle.fill")
@@ -349,10 +342,7 @@ struct RegisterChaiView: View {
                 
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button {
-                        #if DEBUG
                         print("🧹 [RegisterUserView] Reset button tapped")
-                        #endif
-                        
                         firstName = ""
                         lastName = ""
                         email = ""
@@ -373,15 +363,26 @@ struct RegisterChaiView: View {
                     .disabled(viewModel.isLoading)
                 }
             }
-            //.animation(.spring(response: 0.5, dampingFraction: 0.75), value: viewModel.newUser)
             .animation(.spring(response: 0.5, dampingFraction: 0.75), value: viewModel.errorText)
         }
-        .fullScreenCover(isPresented: $openMLScan){
+        .fullScreenCover(isPresented: $openMLScan) {
             if let user = viewModel.newUser {
-                MLScanView(onDone: {
-                    dismiss()
-                    dismiss()
-                }, userId: user.id, deviceKeyHash: HMACGenerator.generateHMAC(jsonString: DeviceIdentity.resolve()),token: user.token)
+                MLScanView(
+                    onDone: {
+                        dismiss()
+                        dismiss()
+                    },
+                    userId: user.id,
+                    deviceKeyHash: HMACGenerator.generateHMAC(jsonString: DeviceIdentity.resolve()),
+                    token: user.token
+                )
+            }
+        }
+        .onChange(of: viewModel.newUser) { _, newUser in
+            if newUser != nil {
+                print("✅ [RegisterUserView] Registration successful - opening MLScan")
+                FaceAuthManager.shared.setRegistrationMode()
+                openMLScan = true
             }
         }
     }
@@ -398,6 +399,31 @@ struct RegisterChaiView: View {
         let emailRegex = "[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,64}"
         let emailPredicate = NSPredicate(format: "SELF MATCHES %@", emailRegex)
         return emailPredicate.evaluate(with: email)
+    }
+    
+    private func dismissKeyboard() {
+        focusedField = nil
+    }
+    
+    private func handleRegister() {
+        print("📝 [RegisterUserView] Register button tapped")
+        print("   First: \(firstName)")
+        print("   Last: \(lastName)")
+        print("   Email: \(email)")
+        print("   Phone: +91\(phoneNumber)")
+        
+        dismissKeyboard()
+        
+        let fullPhoneNumber = "+91\(phoneNumber)"
+        Task {
+            await viewModel.register(
+                firstName: firstName,
+                lastName: lastName,
+                email: email,
+                phoneNumber: fullPhoneNumber,
+                deviceId: KeychainHelper.shared.read(forKey: "chaiDeviceId") ?? ""
+            )
+        }
     }
 }
 

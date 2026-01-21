@@ -389,6 +389,15 @@ struct EnterNumberToSearchUserView: View {
         print("🎉 [EnterTokenScreen] Success - userId: \(viewModel.userId ?? "nil")")
         print("📊 [EnterTokenScreen] Face IDs count: \(viewModel.faceIds.count)")
         
+        // Set FaceAuthManager mode based on enrollment status
+        if viewModel.faceIds.isEmpty {
+            print("📸 [EnterTokenScreen] No face data - setting Registration mode")
+            faceAuthManager.setRegistrationMode()
+        } else {
+            print("🔐 [EnterTokenScreen] Face data exists - setting Verification mode")
+            faceAuthManager.setVerificationMode()
+        }
+        
         // Explicitly dismiss keyboard before navigation
         print("⌨️ [EnterTokenScreen] Dismissing keyboard before navigation")
         isTokenFieldFocused = false

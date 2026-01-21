@@ -36,7 +36,7 @@ struct RegisterFromChaiAppData: Decodable {
 
 /// Full-ish user payload as per your sample.
 /// Anything you don’t need right now can stay optional to avoid decode breaks.
-struct RegisterFromChaiAppUser: Decodable, Identifiable {
+struct RegisterFromChaiAppUser: Decodable, Identifiable,Equatable {
     let id: String
 
     let email: String

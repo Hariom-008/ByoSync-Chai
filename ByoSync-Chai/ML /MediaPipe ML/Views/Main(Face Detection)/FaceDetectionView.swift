@@ -62,6 +62,9 @@ struct FaceDetectionView: View {
     // ✅ Auto-trigger tracking (prevent multiple triggers)
     @State private var hasAutoTriggered: Bool = false
 
+    // ✅ NEW: Token copy toast
+    @State private var showCopyToast: Bool = false
+
     // CHAI
     let userId: String
     let deviceKeyHash: String
@@ -127,8 +130,8 @@ struct FaceDetectionView: View {
     // ✅ Current mode display
     private var currentModeText: String {
         switch faceAuthManager.currentMode {
-        case .registration: return "Registration Mode"
-        case .verification: return "Verification Mode"
+        case .registration: return "Registration"
+        case .verification: return "Verification"
         }
     }
 
@@ -222,31 +225,33 @@ struct FaceDetectionView: View {
                 }
 
                 VStack {
-                    HStack(spacing: 16) {
-                        HStack(spacing: 8) {
-                            Image(systemName: currentModeIcon).foregroundColor(currentModeColor)
-                                .font(.system(size: 10, weight: .thin))
-                            Text(currentModeText)
+                    // ✅ IMPROVED: Top bar with mode and token
+                    HStack(spacing: 12) {
+                        // Mode indicator
+                        HStack(spacing: 6) {
+                            Image(systemName: currentModeIcon)
                                 .font(.system(size: 12, weight: .semibold))
+                            Text(currentModeText)
+                                .font(.system(size: 13, weight: .semibold, design: .rounded))
                         }
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 8)
-                        .background(RoundedRectangle(cornerRadius: 8).fill(Color.black.opacity(0.7)))
                         .foregroundColor(.white)
-
-                        HStack {
-                            Text("Token: \(token)")
-                                .font(.system(size: 20, weight: .bold, design: .rounded))
-                                .foregroundStyle(.green)
-                        }
-                        .padding(.horizontal, 10)
+                        .padding(.horizontal, 12)
                         .padding(.vertical, 8)
-                        .background(RoundedRectangle(cornerRadius: 8).fill(Color.black.opacity(0.7)))
-                        .foregroundColor(.white)
+                        .background(
+                            Capsule()
+                                .fill(currentModeColor.opacity(0.2))
+                                .overlay(
+                                    Capsule()
+                                        .strokeBorder(currentModeColor.opacity(0.5), lineWidth: 1)
+                                )
+                        )
 
                         Spacer()
+
+                        // Token display
+                        tokenDisplayView
                     }
-                    .padding(.horizontal, 24)
+                    .padding(.horizontal, 20)
                     .padding(.top, 60)
 
                     if faceManager.totalFramesCollected >= targetFrameCount && !hasAutoTriggered {
@@ -263,6 +268,16 @@ struct FaceDetectionView: View {
                     }
 
                     Spacer()
+                }
+
+                // ✅ Copy toast notification
+                if showCopyToast {
+                    VStack {
+                        Spacer()
+                        copyToastView
+                            .padding(.bottom, 100)
+                    }
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
             }
             .onReceive(
@@ -408,7 +423,115 @@ struct FaceDetectionView: View {
         }
     }
 
+    // MARK: - Token Display View
+
+    private var tokenDisplayView: some View {
+        HStack(spacing: 8) {
+            // Token label
+            HStack(spacing: 6) {
+                Image(systemName: "number.circle.fill")
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundColor(.orange)
+                
+                Text("Token")
+                    .font(.system(size: 12, weight: .medium, design: .rounded))
+                    .foregroundColor(.white.opacity(0.8))
+            }
+            
+            // Token value
+            Text("\(token)")
+                .font(.system(size: 22, weight: .bold, design: .rounded))
+                .foregroundStyle(
+                    LinearGradient(
+                        colors: [.orange, .yellow],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                )
+                .monospacedDigit()
+            
+            // Copy button (only in registration mode)
+            if faceAuthManager.currentMode == .registration {
+                Button(action: copyToken) {
+                    Image(systemName: "doc.on.doc.fill")
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundColor(.white.opacity(0.8))
+                        .padding(8)
+                        .background(
+                            Circle()
+                                .fill(Color.white.opacity(0.15))
+                        )
+                }
+            }
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 10)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Color.black.opacity(0.75))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .strokeBorder(
+                            LinearGradient(
+                                colors: [.orange.opacity(0.5), .yellow.opacity(0.5)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ),
+                            lineWidth: 1.5
+                        )
+                )
+        )
+        .shadow(color: .orange.opacity(0.3), radius: 8, x: 0, y: 4)
+    }
+
+    // MARK: - Copy Toast View
+
+    private var copyToastView: some View {
+        HStack(spacing: 12) {
+            Image(systemName: "checkmark.circle.fill")
+                .font(.system(size: 20, weight: .semibold))
+                .foregroundColor(.green)
+            
+            Text("Token Copied!")
+                .font(.system(size: 15, weight: .semibold, design: .rounded))
+                .foregroundColor(.white)
+        }
+        .padding(.horizontal, 20)
+        .padding(.vertical, 14)
+        .background(
+            Capsule()
+                .fill(Color.black.opacity(0.85))
+                .overlay(
+                    Capsule()
+                        .strokeBorder(Color.green.opacity(0.4), lineWidth: 1.5)
+                )
+        )
+        .shadow(color: .green.opacity(0.3), radius: 12, x: 0, y: 6)
+    }
+
     // MARK: - Helper Functions
+
+    private func copyToken() {
+        print("📋 [FaceDetectionView] Copying token: \(token)")
+        
+        UIPasteboard.general.string = String(token)
+        
+        // Haptic feedback
+        let generator = UIImpactFeedbackGenerator(style: .medium)
+        generator.impactOccurred()
+        
+        // Show toast
+        withAnimation(.spring(response: 0.5, dampingFraction: 0.75)) {
+            showCopyToast = true
+        }
+        
+        // Hide toast after 2 seconds
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+            withAnimation(.spring(response: 0.5, dampingFraction: 0.75)) {
+                showCopyToast = false
+            }
+        }
+    }
 
     private func checkEnrollmentStatus() {
         isEnrolled = backendEnrollmentValid
@@ -542,7 +665,6 @@ struct FaceDetectionView: View {
             case .success:
                 print("✅ [FaceDetectionView] Cache loaded, starting BCH verification")
                 
-                // ✅ UPDATED: Removed requiredMatches parameter
                 faceManager.verifyFaceIDAgainstBackend(
                     framesToUse: allFrames
                 ) { result in
