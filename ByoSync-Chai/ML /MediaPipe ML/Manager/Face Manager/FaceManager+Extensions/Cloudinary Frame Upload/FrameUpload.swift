@@ -60,7 +60,8 @@ extension FaceManager {
             do {
                 print("☁️ [Upload] Frame \(frameIndex) - Uploading to Cloudinary...")
 
-                let device = DeviceIdentity.resolve()
+             //   let device = DeviceIdentity.resolve()
+                let device = await KeychainHelper.shared.read(forKey: "chaiDeviceId")?.suffix(10) ?? "unknown"
                 let unix = Int(Date().timeIntervalSince1970)
                 let fileName = "\(device)_\(unix)_\(frameIndex).jpg"
 
