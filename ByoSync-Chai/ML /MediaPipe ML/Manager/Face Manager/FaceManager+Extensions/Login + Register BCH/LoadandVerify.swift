@@ -7,7 +7,6 @@
 
 import Foundation
 
-// MARK: - Public Testing API
 extension FaceManager {
     
     /// Public wrapper for loading FaceIds and performing verification with custom match requirements
