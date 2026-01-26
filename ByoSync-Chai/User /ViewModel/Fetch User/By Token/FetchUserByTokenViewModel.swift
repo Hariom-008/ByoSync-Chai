@@ -58,7 +58,14 @@ final class FetchUserByTokenViewModel: ObservableObject {
         let startTime = CFAbsoluteTimeGetCurrent()
 
         do {
+            // Check for cancellation before network call (iOS 17.6 fix)
+            try Task.checkCancellation()
+            
             let res = try await repo.fetchUserByToken(token: token)
+            
+            // Check for cancellation after network call (iOS 17.6 fix)
+            try Task.checkCancellation()
+            
             let elapsedMs = Int64((CFAbsoluteTimeGetCurrent() - startTime) * 1000.0)
 
             print("📥 [FetchUserByTokenVM] Response received | success: \(res.success) | elapsed: \(elapsedMs)ms")
@@ -78,19 +85,17 @@ final class FetchUserByTokenViewModel: ObservableObject {
                 return
             }
 
-            // Update all properties on main thread
-            await MainActor.run {
-                userId = res.data.userId
-                salt = res.data.salt
-                deviceKeyHash = res.data.deviceKeyHash
-                faceIds = res.data.faceData
-                message = res.message
-                
-                print("✅ [FetchUserByTokenVM] Data updated successfully")
-                print("   userId: \(res.data.userId)")
-                print("   faceIds count: \(res.data.faceData.count)")
-                print("   deviceKeyHash: \(res.data.deviceKeyHash ?? "nil")")
-            }
+            // Update all properties directly (class is @MainActor, no need for MainActor.run)
+            userId = res.data.userId
+            salt = res.data.salt
+            deviceKeyHash = res.data.deviceKeyHash
+            faceIds = res.data.faceData
+            message = res.message
+            
+            print("✅ [FetchUserByTokenVM] Data updated successfully")
+            print("   userId: \(res.data.userId)")
+            print("   faceIds count: \(res.data.faceData.count)")
+            print("   deviceKeyHash: \(res.data.deviceKeyHash ?? "nil")")
 
             Logger.shared.i(
                 "FETCH_USER_BY_TOKEN",
@@ -99,13 +104,22 @@ final class FetchUserByTokenViewModel: ObservableObject {
                 user: UserSession.shared.currentUser?.userId
             )
 
+        } catch is CancellationError {
+            let elapsedMs = Int64((CFAbsoluteTimeGetCurrent() - startTime) * 1000.0)
+            print("🚫 [FetchUserByTokenVM] Fetch cancelled | elapsed: \(elapsedMs)ms")
+            Logger.shared.d("FETCH_USER_BY_TOKEN", "Cancelled | \(tokenHint)", timeTakenMs: elapsedMs, user: UserSession.shared.currentUser?.userId)
+            
+            // Reset state on cancellation
+            isLoading = false
+            fetchCompleted = false
+            return
+            
         } catch {
             let elapsedMs = Int64((CFAbsoluteTimeGetCurrent() - startTime) * 1000.0)
             let msg = (error as? LocalizedError)?.errorDescription ?? String(describing: error)
             
-            await MainActor.run {
-                errorText = msg
-            }
+            // Update error directly (class is @MainActor)
+            errorText = msg
 
             print("❌ [FetchUserByTokenVM] Fetch threw error: \(msg)")
             Logger.shared.e(
@@ -117,12 +131,10 @@ final class FetchUserByTokenViewModel: ObservableObject {
             )
         }
 
-        // Always mark as complete and stop loading on main thread
-        await MainActor.run {
-            isLoading = false
-            fetchCompleted = true
-            print("🏁 [FetchUserByTokenVM] Fetch completed | isLoading: \(isLoading) | fetchCompleted: \(fetchCompleted)")
-        }
+        // Always mark as complete and stop loading (class is @MainActor, no need for MainActor.run)
+        isLoading = false
+        fetchCompleted = true
+        print("🏁 [FetchUserByTokenVM] Fetch completed | isLoading: \(isLoading) | fetchCompleted: \(fetchCompleted)")
     }
 
     func reset() {

@@ -20,6 +20,9 @@ struct EnterNumberToSearchUserView: View {
     
     // NEW: Dedicated navigation trigger
     @State private var shouldNavigateToMLScan: Bool = false
+    
+    // Store fetch task to prevent cancellation on view updates (iOS 17.6 fix)
+    @State private var fetchTask: Task<Void, Never>?
 
     // Colors from the logo gradient
     private let logoBlue = Color(red: 0.0, green: 0.0, blue: 1.0)
@@ -122,6 +125,11 @@ struct EnterNumberToSearchUserView: View {
                 }
             }
         }
+        .onDisappear {
+            // Cancel fetch task when view disappears (iOS 17.6 fix)
+            fetchTask?.cancel()
+            fetchTask = nil
+        }
         .alert("Error", isPresented: .constant(viewModel.errorText != nil)) {
             Button("OK") { viewModel.reset() }
         } message: {
@@ -135,12 +143,12 @@ struct EnterNumberToSearchUserView: View {
             }
         }
         // NEW: Navigate when shouldNavigateToMLScan becomes true
-        .onChange(of: shouldNavigateToMLScan) { _, shouldNavigate in
-            if shouldNavigate {
-                print("🚀 [EnterTokenScreen] Triggering MLScan navigation")
-                openMLScan = true
-            }
-        }
+//        .onChange(of: shouldNavigateToMLScan) { _, shouldNavigate in
+//            if shouldNavigate {
+//                print("🚀 [EnterTokenScreen] Triggering MLScan navigation")
+//                openMLScan = true
+//            }
+//        }
         .navigationDestination(isPresented: $openMLScan) {
             MLScanView(onDone: {
                 openMLScan = false
@@ -396,13 +404,20 @@ struct EnterNumberToSearchUserView: View {
         print("🚀 [EnterTokenScreen] Starting fetch for token: \(token)")
         print("📱 [EnterTokenScreen] isLoading before fetch: \(viewModel.isLoading)")
         
+        // Cancel any existing fetch task
+        fetchTask?.cancel()
+        
         // Dismiss keyboard but don't rely on it for flow control
         isTokenFieldFocused = false
         
-        // Trigger the fetch
-        Task {
-            await viewModel.fetch(token: token)
-            print("✅ [EnterTokenScreen] Fetch task completed")
+        // Store the task to prevent cancellation on view updates (iOS 17.6 fix)
+        fetchTask = Task { @MainActor in
+            do {
+                await viewModel.fetch(token: token)
+                print("✅ [EnterTokenScreen] Fetch task completed")
+            } catch {
+                print("❌ [EnterTokenScreen] Fetch task error: \(error)")
+            }
         }
     }
 
@@ -427,10 +442,9 @@ struct EnterNumberToSearchUserView: View {
             faceAuthManager.setVerificationMode()
         }
         
-        // Trigger navigation on main thread with slight delay for iOS 17.6 compatibility
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
-            print("🎬 [EnterTokenScreen] Setting shouldNavigateToMLScan = true")
-            shouldNavigateToMLScan = true
+        // Trigger navigation directly on MainActor (iOS 17.6 fix: no delay needed)
+        Task { @MainActor in
+            openMLScan = true
         }
     }
 }
