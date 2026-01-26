@@ -5,7 +5,6 @@ import SwiftUI
 @MainActor
 final class FetchUserByTokenViewModel: ObservableObject {
 
-    // MARK: - UI State
     @Published private(set) var isLoading: Bool = false
     @Published private(set) var faceIds: [FaceId] = []
     @Published var userId: String? = nil
@@ -13,27 +12,20 @@ final class FetchUserByTokenViewModel: ObservableObject {
     @Published var deviceKeyHash: String? = nil
     @Published private(set) var message: String? = nil
     @Published private(set) var errorText: String? = nil
-    
     @Published var token: Int = 0
-    
-    // NEW: Explicit completion flag for navigation triggering
     @Published var fetchCompleted: Bool = false
 
-    // MARK: - Dependencies
     private let repo: FetchUserByTokenRepositoryProtocol
 
     init(repo: FetchUserByTokenRepositoryProtocol = FetchUserByTokenRepository()) {
         self.repo = repo
     }
 
-    // MARK: - Actions
-
     func fetch(token: Int) async {
         print("🔄 [FetchUserByTokenVM] fetch() called with token: \(token)")
-        print("🔄 [FetchUserByTokenVM] isLoading at start: \(isLoading)")
         
         guard !isLoading else {
-            print("⏸️ [FetchUserByTokenVM] Skipped: already loading")
+            print("⏸️ [FetchUserByTokenVM] Already loading, skipping")
             Logger.shared.d("FETCH_USER_BY_TOKEN", "Skipped: already loading", user: UserSession.shared.currentUser?.userId)
             return
         }
@@ -41,13 +33,11 @@ final class FetchUserByTokenViewModel: ObservableObject {
         self.token = token
         let tokenHint = "token=\(token)"
 
-        // Reset completion flag at the start
         fetchCompleted = false
         isLoading = true
         errorText = nil
         message = nil
 
-        // Clear old data immediately
         faceIds.removeAll(keepingCapacity: true)
         userId = nil
         salt = nil
@@ -58,22 +48,21 @@ final class FetchUserByTokenViewModel: ObservableObject {
         let startTime = CFAbsoluteTimeGetCurrent()
 
         do {
-            // Check for cancellation before network call (iOS 17.6 fix)
             try Task.checkCancellation()
             
             let res = try await repo.fetchUserByToken(token: token)
             
-            // Check for cancellation after network call (iOS 17.6 fix)
             try Task.checkCancellation()
             
             let elapsedMs = Int64((CFAbsoluteTimeGetCurrent() - startTime) * 1000.0)
-
             print("📥 [FetchUserByTokenVM] Response received | success: \(res.success) | elapsed: \(elapsedMs)ms")
             
             guard res.success else {
                 errorText = res.message
                 isLoading = false
-                fetchCompleted = true // Mark as completed even on failure
+                
+                try? await Task.sleep(nanoseconds: 50_000_000)
+                fetchCompleted = true
 
                 print("❌ [FetchUserByTokenVM] Backend failure: \(res.message)")
                 Logger.shared.e(
@@ -85,7 +74,6 @@ final class FetchUserByTokenViewModel: ObservableObject {
                 return
             }
 
-            // Update all properties directly (class is @MainActor, no need for MainActor.run)
             userId = res.data.userId
             salt = res.data.salt
             deviceKeyHash = res.data.deviceKeyHash
@@ -109,7 +97,6 @@ final class FetchUserByTokenViewModel: ObservableObject {
             print("🚫 [FetchUserByTokenVM] Fetch cancelled | elapsed: \(elapsedMs)ms")
             Logger.shared.d("FETCH_USER_BY_TOKEN", "Cancelled | \(tokenHint)", timeTakenMs: elapsedMs, user: UserSession.shared.currentUser?.userId)
             
-            // Reset state on cancellation
             isLoading = false
             fetchCompleted = false
             return
@@ -117,8 +104,6 @@ final class FetchUserByTokenViewModel: ObservableObject {
         } catch {
             let elapsedMs = Int64((CFAbsoluteTimeGetCurrent() - startTime) * 1000.0)
             let msg = (error as? LocalizedError)?.errorDescription ?? String(describing: error)
-            
-            // Update error directly (class is @MainActor)
             errorText = msg
 
             print("❌ [FetchUserByTokenVM] Fetch threw error: \(msg)")
@@ -131,8 +116,11 @@ final class FetchUserByTokenViewModel: ObservableObject {
             )
         }
 
-        // Always mark as complete and stop loading (class is @MainActor, no need for MainActor.run)
+        print("🏁 [FetchUserByTokenVM] Setting completion flags")
         isLoading = false
+        
+        try? await Task.sleep(nanoseconds: 50_000_000)
+        
         fetchCompleted = true
         print("🏁 [FetchUserByTokenVM] Fetch completed | isLoading: \(isLoading) | fetchCompleted: \(fetchCompleted)")
     }
