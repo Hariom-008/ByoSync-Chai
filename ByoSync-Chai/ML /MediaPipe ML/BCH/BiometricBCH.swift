@@ -140,25 +140,71 @@ final class BCHBiometric {
     }
 
     func verifyFrame(distances: [Double], helper: String) throws -> FrameVerification {
+        let totalStartTime = CFAbsoluteTimeGetCurrent()
+        
+        #if DEBUG
+        let enableTiming = true  // Set to false to disable timing logs
+        #else
+        let enableTiming = false
+        #endif
+        
+        // Step 1: Ensure initialization
+        var stepStartTime = CFAbsoluteTimeGetCurrent()
         try ensureInit()
-
+        if enableTiming {
+            print("🔐 [BCH] ensureInit: \(String(format: "%.2f", (CFAbsoluteTimeGetCurrent() - stepStartTime) * 1000))ms")
+        }
+        
+        // Step 2: Validate helper length
+        stepStartTime = CFAbsoluteTimeGetCurrent()
         guard helper.count == n else {
+            print("❌ [BCH] Verification failed - Helper length mismatch: \(helper.count) != \(n)")
             return FrameVerification(success: false, rBytesFull: Data(), rBytes32: Data(), numErrors: 0)
         }
-
+        if enableTiming {
+            print("🔐 [BCH] Helper validation: \(String(format: "%.2f", (CFAbsoluteTimeGetCurrent() - stepStartTime) * 1000))ms")
+        }
+        
+        // Step 3: Convert helper to bits
+        stepStartTime = CFAbsoluteTimeGetCurrent()
         let helperBits = bitStringToArray(helper)
+        if enableTiming {
+            print("🔐 [BCH] Helper to bits: \(String(format: "%.2f", (CFAbsoluteTimeGetCurrent() - stepStartTime) * 1000))ms")
+        }
+        
+        // Step 4: Convert distances to bits
+        stepStartTime = CFAbsoluteTimeGetCurrent()
         let biometricBits = try distancesToBits(distances)
+        if enableTiming {
+            print("🔐 [BCH] Distances to bits: \(String(format: "%.2f", (CFAbsoluteTimeGetCurrent() - stepStartTime) * 1000))ms")
+        }
+        
+        // Step 5: Align biometric bits
+        stepStartTime = CFAbsoluteTimeGetCurrent()
         let alignedBio = alignBits(biometricBits, to: n)
-
-        // codeword' = helper XOR biometricAligned
+        if enableTiming {
+            print("🔐 [BCH] Bit alignment: \(String(format: "%.2f", (CFAbsoluteTimeGetCurrent() - stepStartTime) * 1000))ms")
+        }
+        
+        // Step 6: XOR operation
+        stepStartTime = CFAbsoluteTimeGetCurrent()
         let codewordPrime = xorBits(helperBits, alignedBio)
-
-        // split (approxR, approxECC)
+        if enableTiming {
+            print("🔐 [BCH] XOR operation: \(String(format: "%.2f", (CFAbsoluteTimeGetCurrent() - stepStartTime) * 1000))ms")
+        }
+        
+        // Step 7: Split codeword
+        stepStartTime = CFAbsoluteTimeGetCurrent()
         let cw = alignBits(codewordPrime, to: n)
         var dataBuf = Array(cw[0..<K])
         var eccBuf = Array(cw[K..<(K + eccBits)])
         var errloc = [UInt32](repeating: 0, count: Int(Self.BCH_T))
-
+        if enableTiming {
+            print("🔐 [BCH] Codeword split: \(String(format: "%.2f", (CFAbsoluteTimeGetCurrent() - stepStartTime) * 1000))ms")
+        }
+        
+        // Step 8: BCH decode
+        stepStartTime = CFAbsoluteTimeGetCurrent()
         let nerr: Int32 = dataBuf.withUnsafeMutableBufferPointer { dataPtr in
             eccBuf.withUnsafeMutableBufferPointer { eccPtr in
                 errloc.withUnsafeMutableBufferPointer { errPtr in
@@ -166,26 +212,46 @@ final class BCHBiometric {
                 }
             }
         }
-
-        // Convention: <0 => decode failure
+        if enableTiming {
+            print("🔐 [BCH] BCH decode: \(String(format: "%.2f", (CFAbsoluteTimeGetCurrent() - stepStartTime) * 1000))ms | Errors: \(nerr)")
+        }
+        
+        // Check decode status
         if nerr < 0 {
+            print("❌ [BCH] Verification failed - Decode error: \(nerr)")
             return FrameVerification(success: false, rBytesFull: Data(), rBytes32: Data(), numErrors: Int(nerr))
         }
-
+        
+        // Step 9: Correct errors if detected
         if nerr > 0 {
+            stepStartTime = CFAbsoluteTimeGetCurrent()
             _ = dataBuf.withUnsafeMutableBufferPointer { dataPtr in
                 errloc.withUnsafeMutableBufferPointer { errPtr in
                     c_correctbits_bch(ctl, dataPtr.baseAddress!, errPtr.baseAddress!, nerr)
                 }
             }
+            if enableTiming {
+                print("🔐 [BCH] Error correction: \(String(format: "%.2f", (CFAbsoluteTimeGetCurrent() - stepStartTime) * 1000))ms | Corrected: \(nerr)")
+            }
         }
-
+        
+        // Step 10: Convert to bytes
+        stepStartTime = CFAbsoluteTimeGetCurrent()
         let correctedSecretBits = dataBuf.map { $0 & 1 }
         let rFull = bitsToBytes(correctedSecretBits)
+        if enableTiming {
+            print("🔐 [BCH] Bits to bytes: \(String(format: "%.2f", (CFAbsoluteTimeGetCurrent() - stepStartTime) * 1000))ms")
+        }
+        
+        // Validate result
         guard rFull.count >= 32 else {
+            print("❌ [BCH] Verification failed - Insufficient bytes: \(rFull.count) < 32")
             return FrameVerification(success: false, rBytesFull: Data(), rBytes32: Data(), numErrors: Int(nerr))
         }
-
+        
+        let totalTime = (CFAbsoluteTimeGetCurrent() - totalStartTime) * 1000
+        print("✅ [BCH] Verification successful | Total: \(String(format: "%.2f", totalTime))ms | Errors corrected: \(nerr)")
+        
         return FrameVerification(
             success: true,
             rBytesFull: rFull,
@@ -193,8 +259,6 @@ final class BCHBiometric {
             numErrors: Int(nerr)
         )
     }
-
-    
     
     // MARK: - BCH encode (1 byte per bit)
     private func encodeSecretKeyBCH(_ secretKeyBits: BitArray) throws -> BitArray {

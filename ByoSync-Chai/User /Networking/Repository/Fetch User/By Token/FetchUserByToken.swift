@@ -1,7 +1,6 @@
 // FetchUserByPhoneNumberRepository.swift
 
 import Foundation
-import Alamofire
 
 protocol FetchUserByTokenRepositoryProtocol {
     func fetchUserByToken(

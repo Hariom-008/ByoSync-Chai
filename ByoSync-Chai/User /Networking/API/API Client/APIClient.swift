@@ -93,13 +93,11 @@ final class APIClient: NSObject {
         request.httpMethod = method.rawValue
         request.timeoutInterval = 30
         
-        // Add headers
         let requestHeaders = headers ?? HTTPHeaders()
         for header in requestHeaders {
             request.setValue(header.value, forHTTPHeaderField: header.name)
         }
         
-        // Add JSON body if parameters exist
         if let parameters = parameters {
             do {
                 request.httpBody = try JSONSerialization.data(withJSONObject: parameters)
@@ -111,7 +109,6 @@ final class APIClient: NSObject {
             }
         }
         
-        // Inject auth token
         injectAuthToken(into: &request)
         
         #if DEBUG
@@ -161,24 +158,32 @@ final class APIClient: NSObject {
                 return
             }
             
-            // Check status code
             guard (200..<300).contains(httpResponse.statusCode) else {
                 let apiError = APIError.map(from: httpResponse.statusCode, error: nil, data: data)
                 completion(.failure(apiError))
                 return
             }
             
-            // Decode response
-            do {
-                let decoder = JSONDecoder()
-                decoder.keyDecodingStrategy = .convertFromSnakeCase
-                let decodedResponse = try decoder.decode(T.self, from: data)
-                completion(.success(decodedResponse))
-            } catch {
-                #if DEBUG
-                print("APIClient request decodeError \(error)")
-                #endif
-                completion(.failure(.decodingError(error.localizedDescription)))
+            // ✅ FIX: Decode on background queue to prevent UI freeze
+            DispatchQueue.global(qos: .userInitiated).async {
+                do {
+                    print("🔄 [APIClient] Starting JSON decode on background thread")
+                    let decoder = JSONDecoder()
+                    decoder.keyDecodingStrategy = .convertFromSnakeCase
+                    let decodedResponse = try decoder.decode(T.self, from: data)
+                    print("✅ [APIClient] Decode completed successfully")
+                    
+                    // Return result on main queue
+                    DispatchQueue.main.async {
+                        completion(.success(decodedResponse))
+                    }
+                    
+                } catch {
+                    print("❌ [APIClient] Decode error: \(error)")
+                    DispatchQueue.main.async {
+                        completion(.failure(.decodingError(error.localizedDescription)))
+                    }
+                }
             }
         }
         

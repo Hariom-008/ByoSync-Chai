@@ -11,13 +11,14 @@ struct EnterNumberToSearchUserView: View {
     @State private var showContent = false
     @State private var currentFeature = 0
 
-    @State var openMLScan: Bool = false
-    @State var openChaiClaimView: Bool = false
-    @State var openAdminLoginView: Bool = false
-    @State var openFindTokenView: Bool = false
-    @State var openRegisterChaiView: Bool = false
-    
+    @State private var openMLScan: Bool = false
+    @State private var openChaiClaimView: Bool = false
+    @State private var openAdminLoginView: Bool = false
+    @State private var openFindTokenView: Bool = false
+    @State private var openRegisterChaiView: Bool = false
+
     @State private var fetchTask: Task<Void, Never>?
+    @State private var featureTimer: Timer?
 
     private let logoBlue = Color(red: 0.0, green: 0.0, blue: 1.0)
     private let logoPurple = Color(red: 0.478, green: 0.0, blue: 1.0)
@@ -110,25 +111,38 @@ struct EnterNumberToSearchUserView: View {
                 isTokenFieldFocused = true
             }
 
-            Timer.scheduledTimer(withTimeInterval: 3.5, repeats: true) { _ in
+            featureTimer?.invalidate()
+            featureTimer = Timer.scheduledTimer(withTimeInterval: 3.5, repeats: true) { _ in
                 withAnimation(.spring(response: 0.8, dampingFraction: 0.85)) {
                     currentFeature = (currentFeature + 1) % features.count
                 }
             }
         }
         .onDisappear {
-            print("👋 [EnterTokenScreen] disappeared - cancelling fetch task")
+            print("👋 [EnterTokenScreen] disappeared - cancelling fetch task + timer")
+            featureTimer?.invalidate()
+            featureTimer = nil
+
             fetchTask?.cancel()
             fetchTask = nil
         }
-        .alert("Error", isPresented: .constant(viewModel.errorText != nil)) {
-            Button("OK") { viewModel.reset() }
+        // ✅ FIXED: real binding, not `.constant(...)`
+        .alert(
+            "Error",
+            isPresented: Binding(
+                get: { viewModel.errorText != nil },
+                set: { newValue in
+                    if !newValue {
+                        viewModel.clearError()
+                    }
+                }
+            )
+        ) {
+            Button("OK") {
+                viewModel.clearError()
+            }
         } message: {
-            if let error = viewModel.errorText { Text(error) }
-        }
-        .onChange(of: viewModel.fetchCompleted) { _, completed in
-            guard completed else { return }
-            handleFetchCompletedBackup()
+            Text(viewModel.errorText ?? "")
         }
         .navigationDestination(isPresented: $openMLScan) {
             MLScanView(
@@ -184,7 +198,7 @@ struct EnterNumberToSearchUserView: View {
                     } label: {
                         Label("Find Token", systemImage: "magnifyingglass")
                     }
-                    
+
                     Button {
                         print("👤 [EnterTokenScreen] Opening Admin Login")
                         openAdminLoginView = true
@@ -196,7 +210,7 @@ struct EnterNumberToSearchUserView: View {
                         .font(.system(size: 16, weight: .medium))
                 }
             }
-            
+
             ToolbarItemGroup(placement: .keyboard) {
                 Spacer()
                 Button {
@@ -363,13 +377,11 @@ struct EnterNumberToSearchUserView: View {
     }
 
     private var isButtonEnabled: Bool {
-        let enabled = Int(tokenText.trimmingCharacters(in: .whitespacesAndNewlines)) != nil
-        return enabled
+        Int(tokenText.trimmingCharacters(in: .whitespacesAndNewlines)) != nil
     }
-
     private func handleProceed() {
         print("🔘 [EnterTokenScreen] Proceed button tapped")
-        
+
         let trimmed = tokenText.trimmingCharacters(in: .whitespacesAndNewlines)
         guard let token = Int(trimmed) else {
             print("⚠️ [EnterTokenScreen] Invalid token: '\(trimmed)'")
@@ -377,58 +389,48 @@ struct EnterNumberToSearchUserView: View {
         }
 
         print("🚀 [EnterTokenScreen] Starting fetch for token: \(token)")
-        
+
         fetchTask?.cancel()
-        
-        fetchTask = Task { @MainActor in
-            print("📱 [EnterTokenScreen] Task started - dismissing keyboard")
-            isTokenFieldFocused = false
-            
+
+        fetchTask = Task {
+            await MainActor.run {
+                isTokenFieldFocused = false
+            }
+
             await viewModel.fetch(token: token)
-            
-            print("✅ [EnterTokenScreen] Fetch completed in Task")
-            print("📊 userId: \(viewModel.userId ?? "nil")")
-            print("📊 errorText: \(viewModel.errorText ?? "nil")")
-            
-            guard viewModel.userId != nil, viewModel.errorText == nil else {
-                print("⚠️ [EnterTokenScreen] Fetch completed but no userId or has error")
+
+            let userId = await MainActor.run { viewModel.userId }
+            let errorText = await MainActor.run { viewModel.errorText }
+            let faceIds = await MainActor.run { viewModel.faceIds }
+
+            print("✅ [EnterTokenScreen] Fetch completed")
+            print("📊 userId: \(userId ?? "nil")")
+            print("📊 errorText: \(errorText ?? "nil")")
+            print("📊 faceIds count: \(faceIds.count)")
+
+            guard userId != nil, errorText == nil else {
+                print("⚠️ [EnterTokenScreen] Not navigating (missing userId or error present)")
                 return
             }
-            
-            print("🎯 [EnterTokenScreen] Valid fetch - preparing navigation")
-            
-            if viewModel.faceIds.isEmpty {
-                print("📸 No face data - Registration mode")
-                faceAuthManager.setRegistrationMode()
-            } else {
-                print("🔐 Face data exists - Verification mode")
-                faceAuthManager.setVerificationMode()
+
+            await MainActor.run {
+                if faceIds.isEmpty {
+                    print("📸 No face data - Registration mode")
+                    faceAuthManager.setRegistrationMode()
+                } else {
+                    print("🔐 Face data exists - Verification mode")
+                    faceAuthManager.setVerificationMode()
+                }
             }
             
-            try? await Task.sleep(nanoseconds: 100_000_000)
+            // ✅ iOS 17 FIX: Add extra delay before navigation
+            try? await Task.sleep(nanoseconds: 100_000_000) // 100ms
             
-            print("🚀 [EnterTokenScreen] Setting openMLScan = true")
-            openMLScan = true
+            await MainActor.run {
+                print("🚀 [EnterTokenScreen] Setting openMLScan = true")
+                openMLScan = true
+            }
         }
-    }
-
-    private func handleFetchCompletedBackup() {
-        print("🔄 [EnterTokenScreen] handleFetchCompletedBackup (onChange backup)")
-        
-        guard viewModel.userId != nil, viewModel.errorText == nil, !openMLScan else {
-            print("⏭️ [EnterTokenScreen] Backup skipped - already handled or error present")
-            return
-        }
-        
-        print("🎯 [EnterTokenScreen] Backup navigation triggered")
-        
-        if viewModel.faceIds.isEmpty {
-            faceAuthManager.setRegistrationMode()
-        } else {
-            faceAuthManager.setVerificationMode()
-        }
-        
-        openMLScan = true
     }
 }
 
